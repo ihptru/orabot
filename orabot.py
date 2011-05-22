@@ -71,6 +71,26 @@ class IRC_Server:
     def listen(self):
         while self.is_connected:
             recv = self.irc_sock.recv( 4096 )
+            ###for logs
+            a = date.today()
+            a = str(a)
+            a = a.split('-')
+            year = a[0]
+            month = a[1]
+            day = a[2]
+            b = time.localtime()
+            b = str(b)
+            hours = b.split('tm_hour=')[1].split(',')[0]
+            minutes = b.split('tm_min=')[1].split(',')[0]
+            if len(hours) == 1:
+                real_hours = '0'+hours
+            else:
+                real_hours = hours
+            if len(minutes) == 1:
+                real_minutes = '0'+minutes
+            else:
+                real_minutes = minutes
+            ###
             if str(recv).find ( "PING" ) != -1:
                 self.irc_sock.send ( "PONG ".encode() + recv.split() [ 1 ] + "\r\n".encode() )
             if str(recv).find ( "PRIVMSG" ) != -1:
@@ -78,54 +98,79 @@ class IRC_Server:
                 irc_user_host = str(recv).split ( '@' ) [ 1 ] . split ( ' ' ) [ 0 ]
                 irc_user_message = self.data_to_message(str(recv)).encode('utf-8').decode('utf-8')
                 irc_user_message = str(irc_user_message)
+                # if PRIVMSG is still in string - message from person with ipv6
                 suit = re.compile('PRIVMSG')
-                if suit.search(irc_user_message):   #for people with ipv6
+                if suit.search(irc_user_message):
                     irc_user_message = str(recv).split ( 'PRIVMSG' ) [ 1 ] . split ( ' :') [ 1 ]
                     irc_user_message = irc_user_message[:-5].encode('utf-8').decode('utf-8')
                     irc_user_message = str(irc_user_message)
+                ###logs
+                chan = str(recv).split ( 'PRIVMSG' ) [ 1 ] . lstrip() . split(' :')[0]  #channel ex: #openra
+                if chan == '#openra' or chan == '#openra-dev':
+                    row = '['+real_hours+':'+real_minutes+'] '+irc_user_nick+': '+str(irc_user_message)+'\n'
+                    if chan == '#openra':
+                        chan_d = 'openra'
+                    elif chan == '#openra-dev':
+                        chan_d = 'openra-dev'
+                    else:
+                        chan_d = 'pms'
+                    filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
+                    dir = os.path.dirname(filename)
+                    if not os.path.exists(dir):
+                        os.makedirs(dir)
+                    file = open(filename,'a')
+                    file.write(row)
+                    file.close()
+                ###
                 print ( irc_user_nick + ": " + irc_user_message)
-                # Logs of #openra and openra-dev
-                chan = str(recv).split ( 'PRIVMSG' ) [ 1 ] . lstrip() . split(' :')[0]
-                if (len(str(irc_user_message)) >= 0):
-                    if chan == '#openra' or chan == '#openra-dev':
-                        a = date.today()
-                        a = str(a)
-                        a = a.split('-')
-                        year = a[0]
-                        month = a[1]
-                        day = a[2]
-                        b = time.localtime()
-                        b = str(b)
-                        hours = b.split('tm_hour=')[1].split(',')[0]
-                        minutes = b.split('tm_min=')[1].split(',')[0]
-                        if len(hours) == 1:
-                            real_hours = '0'+hours
-                        else:
-                            real_hours = hours
-                        if len(minutes) == 1:
-                            real_minutes = '0'+minutes
-                        else:
-                            real_minutes = minutes
-                        row = '['+real_hours+':'+real_minutes+'] '+irc_user_nick+': '+str(irc_user_message)+'\n'
-                        if chan == '#openra':
-                            chan_d = 'openra'
-                        elif chan == '#openra-dev':
-                            chan_d = 'openra-dev'
-                        else:
-                            chan_d = 'pms'
-                        filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
-                        dir = os.path.dirname(filename)
-                        if not os.path.exists(dir):
-                            os.makedirs(dir)
-                        file = open(filename,'a')
-                        file.write(row)
-                        file.close()
-              
                 # "!" Indicated a command
-                if ( str(irc_user_message[0]) == "!" ):
+                if ( str(irc_user_message[0]) == "]" ):
                     self.command = str(irc_user_message[1:])
                     # (str(recv)).split()[2] ) is simply the channel the command was heard on.
                     self.process_command(irc_user_nick, ( (str(recv)).split()[2] ) )
+            #if str(recv).find ( "JOIN" ) != -1:
+            #    irc_join_nick = str(recv).split( '!' ) [ 0 ].split( ':' ) [ 1 ]
+            #    irc_join_host = str(recv).split( '!' ) [ 1 ].split( ' ' ) [ 0 ]
+            #    ###logs
+            #    chan = str(recv).split( "JOIN" ) [ 1 ].lstrip().split( ":" )[1]     #channle ex: #openra
+            #    if chan == '#openra' or chan == '#openra-dev':
+            #        row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_join_nick+' ('+irc_join_host+') has joined '+chan
+            #        if chan == '#openra':
+            #            chan_d = 'openra'
+            #        elif chan == '#openra-dev':
+            #            chan_d = 'openra-dev'
+            #        else:
+            #            chan_d = 'pms'
+            #        filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
+            #        dir = os.path.dirname(filename)
+            #        if not os.path.exists(dir):
+            #            os.makedirs(dir)
+            #        file = open(filename,'a')
+            #        file.write(row)
+            #        file.close()
+            #    ###
+            #if str(recv).find ( "PART" ) != -1:
+            #    irc_part_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
+            #    ###logs
+            #    chan = str(recv).split( "PART" ) [ 1 ].split( " #" ) [ 1 ].split( " " ) [ 0 ]
+            #    chan = '#'+chan     #channel ex: #openra
+            #    if chan == '#openra' or chan == '#openra-dev':
+            #        row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_part_nick+' has quit'
+            #        if chan == '#openra':
+            #            chan_d = 'openra'
+            #        elif chan == '#openra-dev':
+            #            chan_d = 'openra-dev'
+            #        else:
+            #            chan_d = 'pms'
+            #        filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
+            #        dir = os.path.dirname(filename)
+            #        if not os.path.exists(dir):
+            #            os.makedirs(dir)
+            #        file = open(filename,'a')
+            #        file.write(row)
+            #        file.close()
+            #    ###
+              
         if self.should_reconnect:
             self.connect()
 
@@ -433,42 +478,39 @@ class IRC_Server:
                     count='0'
                     for i in range(int(length)):
                         if lines[a2].lstrip().rstrip() == 'State: 1':
+                            count='1'   # lock - there are games in State: 1
                             state = '(W)'
-                        elif lines[a2].lstrip().rstrip() == 'State: 2':
-                            state = '(P)'
-                        ### for location
-                        ip=lines[loc].split(':')[1].lstrip()    # ip address
-                        os.system("whois "+ip+" > whois_info")
-                        time.sleep(0.7)
-                        filename = 'whois_info'
-                        file = open(filename,'r')
-                        who = file.readlines()
-                        file.close()
-                        a =  str(who).split()
-                        try:
-                            index = a.index('\'country:')
-                            index = int(index) + 1
-                            code = a[index]
-                            code = code[:-4].upper()    #got country code
-                            code_index = codes.index(code)
-                            country = match_codes[code_index]
-                        except:
-                            country = 'USA'
-                        sname = lines[a1].encode('utf-8').decode('utf-8')
-                        sname = str(sname)
-                        games = str(i)+': '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1]+' - '+country
+                            ### for location
+                            ip=lines[loc].split(':')[1].lstrip()    # ip address
+                            os.system("whois "+ip+" > whois_info")
+                            time.sleep(0.7)
+                            filename = 'whois_info'
+                            file = open(filename,'r')
+                            who = file.readlines()
+                            file.close()
+                            a =  str(who).split()
+                            try:
+                                index = a.index('\'country:')
+                                index = int(index) + 1
+                                code = a[index]
+                                code = code[:-4].upper()    #got country code
+                                code_index = codes.index(code)
+                                country = match_codes[code_index]   #got country name
+                            except:
+                                country = 'USA' #whois does not show coutry code for most USA IPs and some Canadians (did not find a way to determine where USA and where Canada is)
+                            sname = lines[a1].encode('utf-8').decode('utf-8')
+                            sname = str(sname)
+                            games = sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1]+' - '+country
+                            if re.search("^#", channel):
+                                self.send_message_to_channel( (games), channel )
+                            else:
+                                self.send_message_to_channel( (games), user )
                         a1=a1+9 
                         loc=loc+9
                         a2=a2+9
                         a3=a3+9
                         a4=a4+9
-                        if state == "(W)":
-                            count='1'
-                            if re.search("^#", channel):
-                                self.send_message_to_channel( (games), channel )
-                            else:
-                                self.send_message_to_channel( (games), user )
-                    if count == "0":
+                    if count == "0":    #appeared no games in State: 1
                         if re.search("^#", channel):
                             self.send_message_to_channel( ("No games waiting for players found"), channel )
                         else:
