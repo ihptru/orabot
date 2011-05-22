@@ -14,6 +14,8 @@ import socket, sys, threading, time
 import os
 import re
 from datetime import date
+import sqlite3
+
 # Hardcoding the root admin - it seems the best way for now
 root_admin = "ihptru"
 
@@ -206,177 +208,286 @@ class IRC_Server:
     def process_command(self, user, channel):
         # This line makes sure an actual command was sent, not a plain "!"
         if ( len(self.command.split()) == 0):
+            error = "Usage: ]command [arguments]"
+            if re.search("^#", channel):
+                self.send_message_to_channel( (error), channel)
+            else:
+                self.send_message_to_channel( (error), user)
             return
         # So the command isn't case sensitive
         command = (self.command).lower()
         # Break the command into pieces, so we can interpret it with arguments
         command = command.split()
-
-        # All admin only commands go in here.
-        if (user == root_admin):
-            # The first set of commands are ones that don't take parameters
-            if ( len(command) == 1):
-
-                #This command shuts the bot down.
-                if (command[0] == "quit"):
-                    str_buff = ( "QUIT %s \r\n" ) % (channel)
-                    self.irc_sock.send (str_buff.encode())
-                    self.irc_sock.close()
-                    self.is_connected = False
-                    self.should_reconnect = False
-
-            # These commands take parameters
+        string_command = " ".join(command)
+        #connect to sqlite to write command into irc.db
+        conn = sqlite3.connect('db/openra.db')
+        cur=conn.cursor()
+        
+        #uncomment strings below at first script run
+        #sql = """CREATE TABLE black_list (
+        #    uid integer NOT NULL,
+        #    user varchar(30) NOT NULL,
+        #    date_time date NOT NULL,
+        #    count integer NOT NULL
+        #    )        
+        #"""
+        #cur.execute(sql)
+        #conn.commit()
+        #sql = """INSERT INTO black_list
+        #       (uid,user,date_time,count)
+        #       VALUES
+        #       (
+        #       1,'test',strftime('%Y-%m-%d-%H-%M'),1
+        #       )
+        #"""
+        #cur.execute(sql)
+        #conn.commit()
+        #
+        #sql = """CREATE TABLE commands (
+        #        uid integer NOT NULL,
+        #        user varchar(30) NOT NULL,
+        #        command varchar(300) NOT NULL,
+        #        date_time date NOT NULL
+        #)
+        #"""
+        #cur.execute(sql)
+        #conn.commit()
+        #sql = """INSERT INTO commands
+        #       (uid,user,command,date_time)
+        #       VALUES
+        #       (
+        #       1,'test','test_command',strftime('%Y-%m-%d-%H-%M-%S')
+        #       )
+        #"""
+        #cur.execute(sql)
+        #conn.commit()
+        
+        check_ignore = '0'  #allowed
+        sql = """SELECT * FROM black_list
+            WHERE user = '"""+user+"'"+"""
+        """
+        cur.execute(sql)
+        conn.commit()
+        row = []
+        for row in cur:
+            pass
+        if user in row:
+            ignore_count = row[3]
+            ignore_minutes = str(ignore_count)+'0'
+            ignore_date = "".join(str(row[2]).split('-'))
+            a = date.today()
+            a = str(a)
+            a = a.split('-')
+            year = a[0]
+            month = a[1]
+            day = a[2]
+            b = time.localtime()
+            b = str(b)
+            hours = b.split('tm_hour=')[1].split(',')[0]
+            minutes = b.split('tm_min=')[1].split(',')[0]
+            if len(hours) == 1:
+                hours = '0'+hours
             else:
-
-                # This command makes the bot join a channel
-                # This needs to be rewritten in a better way, to catch multiple channels
-                if (command[0] == "join"):
-                    if ( (command[1])[0] == "#"):
-                        irc_channel = command[1]
-                    else:
-                        irc_channel = "#" + command[1]
-                    self.join_channel(irc_channel)
-
-                # This command makes the bot part a channel
-                # This needs to be rewritten in a better way, to catch multiple channels
-                if (command[0] == "part"):
-                    if ( (command[1])[0] == "#"):
-                        irc_channel = command[1]
-                    else:
-                        irc_channel = "#" + command[1]
-                    self.quit_channel(irc_channel)
-
-        # All public commands go here
-        # The first set of commands are ones that don't take parameters
-        #########################################################################################
-        if ( len(command) > 3):
-            if ( command[0] == "tr"):
-                if command[1] in languages:
-                    if command[2] in languages:
-                        filename = 'tr.temp'
-                        length = len(command)
-                        line=''
-                        for i in range(length):
-                            line = line+command[i]+' '
-                        line = line.lstrip().rstrip()
-                        file = open(filename, 'w')
-                        file.write(line)
-                        file.close()
-                        os.system("python tr.py")
-                        time.sleep(0.5)
-                        filename = 'tr.text'
-                        file = open(filename, 'r')
-                        text = file.readline()
-                        file.close()
+                hours = hours
+            if len(minutes) == 1:
+                minutes = '0'+minutes
+            else:
+                minutes = minutes
+            localtime = year+month+day+hours+minutes
+            difference = int(localtime) - int(ignore_date)  #how many minutes after last ignore
+            if int(difference) < int(ignore_minutes):
+                check_ignore = '1'  #lock, start ignore
+            else:   #no need to ignore, ignore_minutes < difference
+                check_ignore = '0'
+        if check_ignore == '0':
+            #get last uid_commands
+            sql = """SELECT * FROM commands
+                    ORDER BY uid DESC LIMIT 1
+            """
+            cur.execute(sql)
+            conn.commit()
+            for row in cur:
+                pass
+            uid_commands=row[0]
+            
+            uid_commands = uid_commands + 1
+            #clear 'commands' table after each 1 000 000 record
+            if uid_commands >= 1000000:
+                uid_commands = 1
+                sql = """DELETE FROM commands"""
+                cur.execute(sql)
+                conn.commit()
+    
+            #write each command into 'commands' table   
+            sql = """INSERT INTO commands
+                    (uid,user,command,date_time)
+                    VALUES
+                    (
+                    """+str(uid_commands)+",'"+user+"','"+string_command+"',"+"strftime('%Y-%m-%d-%H-%M-%S')"+""" 
+                    )        
+            """
+            cur.execute(sql)
+            conn.commit()
+            
+            #extract last 30 records
+            sql = """SELECT * FROM commands
+                ORDER BY uid DESC LIMIT 30
+            """
+            cur.execute(sql)
+            conn.commit()
+        
+            var=[]
+            for row in cur:
+                var.append(row)
+            var.reverse()
+            
+            actual=[]
+            user_data=[]
+            for i in range(30):
+                if user in str(var[i][1]):
+                    actual.append(str(var[i][1]))   #name
+                    actual.append(str(var[i][3]))   #date and time
+                    user_data.append(actual)
+                    actual=[]
+            user_data_length = len(user_data)
+            if user_data_length > 10:
+                #get player's (last - 10) record
+                user_data_len10 = user_data_length - 10
+                actual=user_data[user_data_len10]
+                first_date="".join(actual[1].split('-'))    #last - 10 record
+                last_date="".join(user_data[user_data_length-1][1].split('-'))
+                seconds_range=int(last_date)-int(first_date)  #how many seconds between player's commands
+                if seconds_range < 30:  #player made more then 10 commands in range of 30 seconds. It is too quick, spam!
+                    sql = """SELECT * FROM black_list
+                            WHERE user = '"""+user+"'"+"""
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                    row = []
+                    for row in cur:
+                        pass
+                    if user not in row:   #user does not exist in 'black_list' table yet
+                        #get last uid_black_list
+                        sql = """SELECT * FROM black_list
+                                ORDER BY uid DESC LIMIT 1
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                        for row in cur:
+                            pass
+                        uid_black_list=row[0]
+                        uid_black_list = uid_black_list + 1
+                        
+                        sql = """INSERT INTO black_list
+                            (uid,user,date_time,count)
+                            VALUES
+                            (
+                            """+str(uid_black_list)+",'"+user+"',strftime('%Y-%m-%d-%H-%M'),"+str(1)+"""
+                            )                   
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                    else:   #in row : exists in 'black_table'
+                        count_ignore = row[3]
+                        count_ignore = count_ignore + 1
+                        sql = """UPDATE black_list
+                                SET count = """+str(count_ignore)+", "+"""date_time = strftime('%Y-%m-%d-%H-%M')
+                                WHERE user = '"""+user+"'"+""" 
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                    sql = """SELECT * FROM black_list
+                        WHERE user = '"""+user+"'"+"""
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                    row = []
+                    for row in cur:
+                        pass
+                    if user in row:
+                        ignore_count = row[3]
+                        ignore_minutes = str(ignore_count)+'0'        
                         if re.search("^#", channel):
-                            self.send_message_to_channel( (text), channel)
+                            self.send_message_to_channel( (user+", your actions are counted as spam, I will ignore you for "+str(ignore_minutes)+" minutes"), channel )
                         else:
-                            self.send_message_to_channel( (text), user)
-        if ( len(command) == 2):
-            if (command[0] == "games"):
-                os.system("wget http://master.open-ra.org/list.php > /dev/null 2>&1")
-                filename = 'list.php'
-                file = open(filename, 'r')
-                lines = file.readlines()
-                file.close()
-                os.system("rm list.php")
-                length = len(lines)
-                if length == 1:
-                    if re.search("^#", channel):
-                        self.send_message_to_channel( ("No games found"), channel)
-                    else:
-                        self.send_message_to_channel( ("No games found"), user)
-                else:   # there are one or more games
-                    if (command[1] == "1"):
-                        length = length / 9 # number of games
-                        a1=2
-                        loc=3
-                        a2=4
-                        a3=5
-                        a4=7
-                        for i in range(int(length)):
-                            if lines[a2].lstrip().rstrip() == 'State: 1':
-                                state = '(W)'
-                                ### for location
-                                ip=lines[loc].split(':')[1].lstrip()    # ip address
-                                os.system("whois "+ip+" > whois_info")
-                                time.sleep(1)
-                                filename = 'whois_info'
-                                file = open(filename,'r')
-                                who = file.readlines()
-                                file.close()
-                                a =  str(who).split()
-                                try:
-                                    index = a.index('\'country:')
-                                    index = int(index) + 1
-                                    code = a[index]
-                                    code = code[:-4].upper()    #got country code
-                                    code_index = codes.index(code)
-                                    country = match_codes[code_index]
-                                except:
-                                    country = 'USA'
-                                sname = lines[a1].encode('utf-8').decode('utf-8')
-                                sname = str(sname)
-                                games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1]+' - '+country
-                                a1=a1+9
-                                loc=loc+9
-                                a2=a2+9
-                                a3=a3+9
-                                a4=a4+9
-                                if re.search("^#", channel):
-                                    self.send_message_to_channel( (games), channel )
-                                else:
-                                    self.send_message_to_channel( (games), user )
-                    elif (command[1] == "2"):
-                        length = length / 9 # number of games
-                        a1=2
-                        loc=3
-                        a2=4
-                        a3=5
-                        a4=7
-                        for i in range(int(length)):
-                            if lines[a2].lstrip().rstrip() == 'State: 2':
-                                state = '(P)'
-                                ### for location
-                                ip=lines[loc].split(':')[1].lstrip()    # ip address
-                                os.system("whois "+ip+" > whois_info")
-                                time.sleep(1)
-                                filename = 'whois_info'
-                                file = open(filename,'r')
-                                who = file.readlines()
-                                file.close()
-                                a =  str(who).split()
-                                try:
-                                    index = a.index('\'country:')
-                                    index = int(index) + 1
-                                    code = a[index]
-                                    code = code[:-4].upper()    #got country code
-                                    code_index = codes.index(code)
-                                    country = match_codes[code_index]
-                                except:
-                                    country = 'USA'
-                                sname = lines[a1].encode('utf-8').decode('utf-8')
-                                sname = str(sname)
-                                games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1]+' - '+country
-                                a1=a1+9
-                                loc=loc+9
-                                a2=a2+9
-                                a3=a3+9
-                                a4=a4+9
-                                if re.search("^#", channel):
-                                    self.send_message_to_channel( (games), channel )
-                                else:
-                                    self.send_message_to_channel( (games), user )
-                    else:   #it is pattern
-                        chars=['*','.','$','^','@','{','}','+','?']
-                        for i in range(int(len(chars))):
-                            if chars[i] in command[1]:
-                                check = 'tru'
-                                break
+                            self.send_message_to_channel( (user+", your actions are counted as spam, I will ignore you for "+str(ignore_minutes)+" minutes"), user )        
+            
+                
+            # All admin only commands go in here.
+            if (user == root_admin):
+                # The first set of commands are ones that don't take parameters
+                if ( len(command) == 1):
+    
+                    #This command shuts the bot down.
+                    if (command[0] == "quit"):
+                        str_buff = ( "QUIT %s \r\n" ) % (channel)
+                        self.irc_sock.send (str_buff.encode())
+                        self.irc_sock.close()
+                        self.is_connected = False
+                        self.should_reconnect = False
+    
+                # These commands take parameters
+                else:
+    
+                    # This command makes the bot join a channel
+                    # This needs to be rewritten in a better way, to catch multiple channels
+                    if (command[0] == "join"):
+                        if ( (command[1])[0] == "#"):
+                            irc_channel = command[1]
+                        else:
+                            irc_channel = "#" + command[1]
+                        self.join_channel(irc_channel)
+    
+                    # This command makes the bot part a channel
+                    # This needs to be rewritten in a better way, to catch multiple channels
+                    if (command[0] == "part"):
+                        if ( (command[1])[0] == "#"):
+                            irc_channel = command[1]
+                        else:
+                            irc_channel = "#" + command[1]
+                        self.quit_channel(irc_channel)
+    
+            # All public commands go here
+            #########################################################################################
+            if ( len(command) > 3):
+                if ( command[0] == "tr"):
+                    if command[1] in languages:
+                        if command[2] in languages:
+                            filename = 'tr.temp'
+                            length = len(command)
+                            line=''
+                            for i in range(length):
+                                line = line+command[i]+' '
+                            line = line.lstrip().rstrip()
+                            file = open(filename, 'w')
+                            file.write(line)
+                            file.close()
+                            os.system("python tr.py")
+                            time.sleep(0.5)
+                            filename = 'tr.text'
+                            file = open(filename, 'r')
+                            text = file.readline()
+                            file.close()
+                            if re.search("^#", channel):
+                                self.send_message_to_channel( (text), channel)
                             else:
-                                check = 'fals'
-                        if check == 'fals':
-                            p = re.compile(command[1], re.IGNORECASE)
+                                self.send_message_to_channel( (text), user)
+            if ( len(command) == 2):
+                if (command[0] == "games"):
+                    os.system("wget http://master.open-ra.org/list.php > /dev/null 2>&1")
+                    filename = 'list.php'
+                    file = open(filename, 'r')
+                    lines = file.readlines()
+                    file.close()
+                    os.system("rm list.php")
+                    length = len(lines)
+                    if length == 1:
+                        if re.search("^#", channel):
+                            self.send_message_to_channel( ("No games found"), channel)
+                        else:
+                            self.send_message_to_channel( ("No games found"), user)
+                    else:   # there are one or more games
+                        if (command[1] == "1"):
                             length = length / 9 # number of games
                             a1=2
                             loc=3
@@ -384,11 +495,8 @@ class IRC_Server:
                             a3=5
                             a4=7
                             for i in range(int(length)):
-                                if p.search(lines[a1]):
-                                    if lines[a2].lstrip().rstrip() == 'State: 1':
-                                        state = '(W)'
-                                    elif lines[a2].lstrip().rstrip() == 'State: 2':
-                                        state = '(P)'
+                                if lines[a2].lstrip().rstrip() == 'State: 1':
+                                    state = '(W)'
                                     ### for location
                                     ip=lines[loc].split(':')[1].lstrip()    # ip address
                                     os.system("whois "+ip+" > whois_info")
@@ -409,115 +517,217 @@ class IRC_Server:
                                         country = 'USA'
                                     sname = lines[a1].encode('utf-8').decode('utf-8')
                                     sname = str(sname)
-                                    games = '@ '+sname.lstrip().rstrip()[6:].lstrip()+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1]+' - '+country
+                                    games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1]+' - '+country
+                                    a1=a1+9
+                                    loc=loc+9
+                                    a2=a2+9
+                                    a3=a3+9
+                                    a4=a4+9
                                     if re.search("^#", channel):
-                                        self.send_message_to_channel( (games), channel)
+                                        self.send_message_to_channel( (games), channel )
                                     else:
-                                        self.send_message_to_channel( (games), user)
+                                        self.send_message_to_channel( (games), user )
+                        elif (command[1] == "2"):
+                            length = length / 9 # number of games
+                            a1=2
+                            loc=3
+                            a2=4
+                            a3=5
+                            a4=7
+                            for i in range(int(length)):
+                                if lines[a2].lstrip().rstrip() == 'State: 2':
+                                    state = '(P)'
+                                    ### for location
+                                    ip=lines[loc].split(':')[1].lstrip()    # ip address
+                                    os.system("whois "+ip+" > whois_info")
+                                    time.sleep(1)
+                                    filename = 'whois_info'
+                                    file = open(filename,'r')
+                                    who = file.readlines()
+                                    file.close()
+                                    a =  str(who).split()
+                                    try:
+                                        index = a.index('\'country:')
+                                        index = int(index) + 1
+                                        code = a[index]
+                                        code = code[:-4].upper()    #got country code
+                                        code_index = codes.index(code)
+                                        country = match_codes[code_index]
+                                    except:
+                                        country = 'USA'
+                                    sname = lines[a1].encode('utf-8').decode('utf-8')
+                                    sname = str(sname)
+                                    games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1]+' - '+country
+                                    a1=a1+9
+                                    loc=loc+9
+                                    a2=a2+9
+                                    a3=a3+9
+                                    a4=a4+9
+                                    if re.search("^#", channel):
+                                        self.send_message_to_channel( (games), channel )
+                                    else:
+                                        self.send_message_to_channel( (games), user )
+                        else:   #it is pattern
+                            chars=['*','.','$','^','@','{','}','+','?']
+                            for i in range(int(len(chars))):
+                                if chars[i] in command[1]:
+                                    check = 'tru'
                                     break
-                                a1=a1+9
+                                else:
+                                    check = 'fals'
+                            if check == 'fals':
+                                p = re.compile(command[1], re.IGNORECASE)
+                                length = length / 9 # number of games
+                                a1=2
+                                loc=3
+                                a2=4
+                                a3=5
+                                a4=7
+                                for i in range(int(length)):
+                                    if p.search(lines[a1]):
+                                        if lines[a2].lstrip().rstrip() == 'State: 1':
+                                            state = '(W)'
+                                        elif lines[a2].lstrip().rstrip() == 'State: 2':
+                                            state = '(P)'
+                                        ### for location
+                                        ip=lines[loc].split(':')[1].lstrip()    # ip address
+                                        os.system("whois "+ip+" > whois_info")
+                                        time.sleep(1)
+                                        filename = 'whois_info'
+                                        file = open(filename,'r')
+                                        who = file.readlines()
+                                        file.close()
+                                        a =  str(who).split()
+                                        try:
+                                            index = a.index('\'country:')
+                                            index = int(index) + 1
+                                            code = a[index]
+                                            code = code[:-4].upper()    #got country code
+                                            code_index = codes.index(code)
+                                            country = match_codes[code_index]
+                                        except:
+                                            country = 'USA'
+                                        sname = lines[a1].encode('utf-8').decode('utf-8')
+                                        sname = str(sname)
+                                        games = '@ '+sname.lstrip().rstrip()[6:].lstrip()+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1]+' - '+country
+                                        if re.search("^#", channel):
+                                            self.send_message_to_channel( (games), channel)
+                                        else:
+                                            self.send_message_to_channel( (games), user)
+                                        break
+                                    a1=a1+9
+                                    loc=loc+9
+                                    a2=a2+9
+                                    a3=a3+9
+                                    a4=a4+9                 
+#           if re.search('http://*', command):
+#               length = len(command)
+#               for i in range(int(length)):
+#                   if re.search('http://*', command[i]):
+#                       link = command[i]
+#                       break
+#               os.system("wget "+link)
+#               part = len(link.split('//'))        
+#               if part == 2:
+#                   filename = 'index.html'
+#                   file = open(filename, 'r')
+#                   lines = file.readlines()
+    
+            if ( len(command) == 1):
+    
+                if (command[0] == "hi"):
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Hello, " + user), channel )
+                    else:
+                        self.send_message_to_channel( ("Hello, " + user), user)
+                if (command[0] == "tr"):
+                    self.send_message_to_channel( ("Usage: ]tr <from language> <to language> <text to translate>   |   To get a list of the available languages in private: ]langs   |   For example, to translate from English to German: ]tr en de Thank you"), user)
+                if (command[0] == "langs"):
+                    b=0
+                    for i in range(25):
+                        line1 = languages[b].ljust(8)+real_langs[b].ljust(20)
+                        b=b+1
+                        line2 = languages[b].ljust(8)+real_langs[b].ljust(20)
+                        line_output=line1+'| '+line2
+                        time.sleep(1)
+                        self.send_message_to_channel( (line_output), user)
+                        b=b+1
+                        if b == 50:
+                            break
+                if (command[0] == "games"):
+                    try:
+                        os.system("wget http://master.open-ra.org/list.php > /dev/null 2>&1")
+                        filename = "list.php"
+                        file = open(filename, 'r')
+                        lines = file.readlines()    #got a list
+                        file.close()
+                        os.system("rm list.php")
+                        length = len(lines)
+                        if length == 1:
+                            if re.search("^#", channel):
+                                self.send_message_to_channel( ("No games found"), channel )
+                            else:
+                                self.send_message_to_channel( ("No games found"), user )
+                        else:
+                            length = length / 9
+                            a1=2
+                            loc=3
+                            a2=4
+                            a3=5
+                            a4=7
+                            games=''
+                            count='0'
+                            for i in range(int(length)):
+                                if lines[a2].lstrip().rstrip() == 'State: 1':
+                                    count='1'   # lock - there are games in State: 1
+                                    state = '(W)'
+                                    ### for location
+                                    ip=lines[loc].split(':')[1].lstrip()    # ip address
+                                    os.system("whois "+ip+" > whois_info")
+                                    time.sleep(0.7)
+                                    filename = 'whois_info'
+                                    file = open(filename,'r')
+                                    who = file.readlines()
+                                    file.close()
+                                    a =  str(who).split()
+                                    try:
+                                        index = a.index('\'country:')
+                                        index = int(index) + 1
+                                        code = a[index]
+                                        code = code[:-4].upper()    #got country code
+                                        code_index = codes.index(code)
+                                        country = match_codes[code_index]   #got country name
+                                    except:
+                                        country = 'USA' #whois does not show coutry code for most USA IPs and some Canadians (did not find a way to determine where USA and where Canada is)
+                                    sname = lines[a1].encode('utf-8').decode('utf-8')
+                                    sname = str(sname)
+                                    games = sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1]+' - '+country
+                                    if re.search("^#", channel):
+                                        self.send_message_to_channel( (games), channel )
+                                    else:
+                                        self.send_message_to_channel( (games), user )
+                                a1=a1+9 
                                 loc=loc+9
                                 a2=a2+9
                                 a3=a3+9
-                                a4=a4+9                 
-#        if re.search('http://*', command):
-#           length = len(command)
-#           for i in range(int(length)):
-#               if re.search('http://*', command[i]):
-#                   link = command[i]
-#                   break
-#           os.system("wget "+link)
-#           part = len(link.split('//'))        
-#           if part == 2:
-#               filename = 'index.html'
-#               file = open(filename, 'r')
-#               lines = file.readlines()
- 
-        if ( len(command) == 1):
-
-            if (command[0] == "hi"):
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("Hello, " + user), channel )
-                else:
-                    self.send_message_to_channel( ("Hello, " + user), user)
-            if (command[0] == "translate"):
-                self.send_message_to_channel( ("Usage: !translate <from language> <to language> <text to translate>   |   To get a list of the available languages: !langs   |   For example, to translate from English to German: !translate en de Thank you"), user)
-            if (command[0] == "langs"):
-                b=0
-                for i in range(25):
-                    line1 = languages[b].ljust(8)+real_langs[b].ljust(20)
-                    b=b+1
-                    line2 = languages[b].ljust(8)+real_langs[b].ljust(20)
-                    line_output=line1+'| '+line2
-                    time.sleep(1)
-                    self.send_message_to_channel( (line_output), user)
-                    b=b+1
-                    if b == 50:
-                        break
-            if (command[0] == "games"):
-                os.system("wget http://master.open-ra.org/list.php > /dev/null 2>&1")
-                filename = "list.php"
-                file = open(filename, 'r')
-                lines = file.readlines()    #got a list
-                file.close()
-                os.system("rm list.php")
-                length = len(lines)
-                if length == 1:
-                    if re.search("^#", channel):
-                        self.send_message_to_channel( ("No games found"), channel )
-                    else:
-                        self.send_message_to_channel( ("No games found"), user )
-                else:
-                    length = length / 9
-                    a1=2
-                    loc=3
-                    a2=4
-                    a3=5
-                    a4=7
-                    games=''
-                    count='0'
-                    for i in range(int(length)):
-                        if lines[a2].lstrip().rstrip() == 'State: 1':
-                            count='1'   # lock - there are games in State: 1
-                            state = '(W)'
-                            ### for location
-                            ip=lines[loc].split(':')[1].lstrip()    # ip address
-                            os.system("whois "+ip+" > whois_info")
-                            time.sleep(0.7)
-                            filename = 'whois_info'
-                            file = open(filename,'r')
-                            who = file.readlines()
-                            file.close()
-                            a =  str(who).split()
-                            try:
-                                index = a.index('\'country:')
-                                index = int(index) + 1
-                                code = a[index]
-                                code = code[:-4].upper()    #got country code
-                                code_index = codes.index(code)
-                                country = match_codes[code_index]   #got country name
-                            except:
-                                country = 'USA' #whois does not show coutry code for most USA IPs and some Canadians (did not find a way to determine where USA and where Canada is)
-                            sname = lines[a1].encode('utf-8').decode('utf-8')
-                            sname = str(sname)
-                            games = sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1]+' - '+country
-                            if re.search("^#", channel):
-                                self.send_message_to_channel( (games), channel )
-                            else:
-                                self.send_message_to_channel( (games), user )
-                        a1=a1+9 
-                        loc=loc+9
-                        a2=a2+9
-                        a3=a3+9
-                        a4=a4+9
-                    if count == "0":    #appeared no games in State: 1
-                        if re.search("^#", channel):
-                            self.send_message_to_channel( ("No games waiting for players found"), channel )
-                        else:
-                            self.send_message_to_channel( ("No games waiting for players found"), user )
-        else:
-            if (command[0] == "bop"):
-                self.send_message_to_channel( ("\x01ACTION bopz " + str(command[1]) + "\x01"), channel )
+                                a4=a4+9
+                            if count == "0":    #appeared no games in State: 1
+                                if re.search("^#", channel):
+                                    self.send_message_to_channel( ("No games waiting for players found"), channel )
+                                else:
+                                    self.send_message_to_channel( ("No games waiting for players found"), user )
+                    except:
+                        exc = ']games crashed\n'
+                        filename = 'except_log.txt'
+                        file = open(filename, 'a')
+                        file.write(exc)
+                        file.close()
+                        
+            else:
+                if (command[0] == "bop"):
+                    self.send_message_to_channel( ("\x01ACTION bopz " + str(command[1]) + "\x01"), channel )
+            #close sqlite connection
+            cur.close()
 
 
 # Here begins the main programs flow:
