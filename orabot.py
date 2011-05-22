@@ -250,7 +250,7 @@ class IRC_Server:
         # The first set of commands are ones that don't take parameters
         #########################################################################################
         if ( len(command) > 3):
-            if ( command[0] == "translate"):
+            if ( command[0] == "tr"):
                 if command[1] in languages:
                     if command[2] in languages:
                         filename = 'tr.temp'
