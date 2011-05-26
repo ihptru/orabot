@@ -224,43 +224,43 @@ class IRC_Server:
         cur=conn.cursor()
         
         #uncomment strings below at first script run
-        #sql = """CREATE TABLE black_list (
-        #    uid integer NOT NULL,
-        #    user varchar(30) NOT NULL,
-        #    date_time date NOT NULL,
-        #    count integer NOT NULL
-        #    )        
-        #"""
-        #cur.execute(sql)
-        #conn.commit()
-        #sql = """INSERT INTO black_list
-        #       (uid,user,date_time,count)
-        #       VALUES
-        #       (
-        #       1,'test',strftime('%Y-%m-%d-%H-%M'),1
-        #       )
-        #"""
-        #cur.execute(sql)
-        #conn.commit()
-        #
-        #sql = """CREATE TABLE commands (
-        #        uid integer NOT NULL,
-        #        user varchar(30) NOT NULL,
-        #        command varchar(300) NOT NULL,
-        #        date_time date NOT NULL
-        #)
-        #"""
-        #cur.execute(sql)
-        #conn.commit()
-        #sql = """INSERT INTO commands
-        #       (uid,user,command,date_time)
-        #       VALUES
-        #       (
-        #       1,'test','test_command',strftime('%Y-%m-%d-%H-%M-%S')
-        #       )
-        #"""
-        #cur.execute(sql)
-        #conn.commit()
+       # sql = """CREATE TABLE black_list (
+       #     uid integer NOT NULL,
+       #     user varchar(30) NOT NULL,
+       #     date_time date NOT NULL,
+       #     count integer NOT NULL
+       #    )        
+       # """
+       # cur.execute(sql)
+       # conn.commit()
+       # sql = """INSERT INTO black_list
+       #        (uid,user,date_time,count)
+       #        VALUES
+       #        (
+       #        1,'test',strftime('%Y-%m-%d-%H-%M'),1
+       #        )
+       # """
+       # cur.execute(sql)
+       # conn.commit()
+       # 
+       # sql = """CREATE TABLE commands (
+       #         uid integer NOT NULL,
+       #         user varchar(30) NOT NULL,
+       #         command varchar(300) NOT NULL,
+       #         date_time date NOT NULL
+       # )
+       # """
+       # cur.execute(sql)
+       # conn.commit()
+       # sql = """INSERT INTO commands
+       #        (uid,user,command,date_time)
+       #        VALUES
+       #        (
+       #        1,'test','test_command',strftime('%Y-%m-%d-%H-%M-%S')
+       #        )
+       # """
+       # cur.execute(sql)
+       # conn.commit()
         
         check_ignore = '0'  #allowed
         sql = """SELECT * FROM black_list
@@ -731,11 +731,19 @@ class IRC_Server:
 
 
 # Here begins the main programs flow:
-
+import sys
 test2 = IRC_Server("irc.freenode.net", 6667, "orabot", "#arma.ctf")
 test = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
 run_test = threading.Thread(None, test.connect)
+run_test.daemon=True #The program should exit, also when run_test is still alive.
 run_test.start()
-
-while (test.should_reconnect):
-    time.sleep(5)
+try:
+    while(test.should_reconnect):
+        time.sleep(5)
+    while(True): # I'm sure that could be done better 
+        time.sleep(1000000) # Don't make that number too big, you'll get an io error with errno 22.
+except KeyboardInterrupt: # Ctrl + C pressed
+    pass # We're ignoring that Exception, so the user does not see that this Exception was raised.
+sys.stdout=None
+print(sys.__stdout__)
+print("Bot exits.")
