@@ -729,13 +729,16 @@ class IRC_Server:
             #close sqlite connection
             cur.close()
 
+import sys
+
+def threadStarter(func):
+	func()
+
 
 # Here begins the main programs flow:
-import sys
 test2 = IRC_Server("irc.freenode.net", 6667, "orabot", "#arma.ctf")
 test = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
-run_test = threading.Thread(None, test.connect)
-run_test.daemon=True #The program should exit, also when run_test is still alive.
+run_test = threading.Thread(None, threadStarter(test.connect) )
 run_test.start()
 try:
     while(test.should_reconnect):
@@ -744,6 +747,4 @@ try:
         time.sleep(1000000) # Don't make that number too big, you'll get an io error with errno 22.
 except KeyboardInterrupt: # Ctrl + C pressed
     pass # We're ignoring that Exception, so the user does not see that this Exception was raised.
-sys.stdout=None
-print(sys.__stdout__)
 print("Bot exits.")
