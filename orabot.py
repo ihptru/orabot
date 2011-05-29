@@ -729,16 +729,10 @@ class IRC_Server:
             #close sqlite connection
             cur.close()
 
-import sys
-
-def threadStarter(func):
-	func()
-
-
 # Here begins the main programs flow:
 test2 = IRC_Server("irc.freenode.net", 6667, "orabot", "#arma.ctf")
 test = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
-run_test = threading.Thread(None, threadStarter(test.connect) )
+run_test = threading.Thread(None, test.connect)
 run_test.start()
 try:
     while(test.should_reconnect):
