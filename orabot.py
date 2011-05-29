@@ -256,7 +256,7 @@ class IRC_Server:
                             who_sent = msgs[i][1]
                             on_channel = msgs[i][3]
                             message_date = msgs[i][4]
-                            offline_message = msgs[i][4]
+                            offline_message = msgs[i][5]
                             self.send_message_to_channel( ("### From: "+who_sent+";  channel: "+on_channel+";  date: "+message_date), irc_join_nick )
                             self.send_message_to_channel( (offline_message), irc_join_nick )
                         time.sleep(0.1)
@@ -976,11 +976,21 @@ class IRC_Server:
 
 
 # Here begins the main programs flow:
+import sys
 
-test2 = IRC_Server("irc.freenode.net", 6667, "orabot", "#arma.ctf")
+def threadStarter(func):
+    func()
+    
+test2 = IRC_Server("irc.freenode.net", 6667, "orabot", "##untitled")
 test = IRC_Server("irc.freenode.net", 6667, "orabot", "##untitled")
-run_test = threading.Thread(None, test.connect)
+run_test = threading.Thread(None, threadStarter(test.connect))
 run_test.start()
 
-while (test.should_reconnect):
-    time.sleep(5)
+try:
+    while(test.should_reconnect):
+        time.sleep(5)
+    while(True):    # I'm sure that could be done better
+        time.sleep(1000000) #Don't make that number too big, you'll get an io error with errno 22.
+except KeyboardInterrupt: # Ctrl + C pressed
+    pass # We're ignoring that Exception, so the user does not see that this Exception was raised.
+print("Bot exits.")
