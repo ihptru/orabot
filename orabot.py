@@ -10,7 +10,7 @@
 # version 0.101
 # Fixed an error if an admin used a command with an argument, that wasn't an admin-only command
 
-import socket, sys, threading, time
+import socket, sys, multiprocessing, time
 import os
 import re
 from datetime import date
@@ -40,6 +40,10 @@ class IRC_Server:
         self.should_reconnect = False
         self.command = ""
 
+    ## The destructor - Close socket.
+    def __del__(self):
+        self.irc_sock.close()
+
 
     # This is the bit that controls connection to a server & channel.
     # It should be rewritten to allow multiple channels in a single server.
@@ -68,7 +72,10 @@ class IRC_Server:
         self.irc_sock.send (str_buff.encode())
         print ("Joining channel " + str(self.irc_channel) )
         self.is_connected = True
-        self.listen()
+        try:
+            self.listen()
+        except:
+            return
         
     def listen(self):
         while self.is_connected:
@@ -729,22 +736,20 @@ class IRC_Server:
             #close sqlite connection
             cur.close()
 
-import sys
+def main():
+	# Here begins the main programs flow:
+    test2 = IRC_Server("irc.freenode.net", 6667, "orabot", "#arma.ctf")
+    test = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
+    run_test = multiprocessing.Process(None,test.connect )
+    run_test.start()
+    try:
+        while(test.should_reconnect):
+            time.sleep(5)
+        run_test.join()
+    except KeyboardInterrupt: # Ctrl + C pressed
+        pass # We're ignoring that Exception, so the user does not see that this Exception was raised.
+    #if run_test.is_alive():
+    #    print("Terminating process ...")
+    #    run_test.terminate() # Terminate process 
+    print("Bot exited.")
 
-def threadStarter(func):
-	func()
-
-
-# Here begins the main programs flow:
-test2 = IRC_Server("irc.freenode.net", 6667, "orabot", "#arma.ctf")
-test = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
-run_test = threading.Thread(None, threadStarter(test.connect) )
-run_test.start()
-try:
-    while(test.should_reconnect):
-        time.sleep(5)
-    while(True): # I'm sure that could be done better 
-        time.sleep(1000000) # Don't make that number too big, you'll get an io error with errno 22.
-except KeyboardInterrupt: # Ctrl + C pressed
-    pass # We're ignoring that Exception, so the user does not see that this Exception was raised.
-print("Bot exits.")

@@ -1,2 +1,3 @@
-/botlog.txt #Ignore botlog
-.pyc #Ignore compiled python files
+/run
+/run/*
+*.pyc
