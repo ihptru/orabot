@@ -142,6 +142,19 @@ class IRC_Server:
                     self.command = str(irc_user_message[1:])
                     # (str(recv)).split()[2] ) is simply the channel the command was heard on.
                     self.process_command(irc_user_nick, ( (str(recv)).split()[2] ))
+                ### when message cotains link to youtube, show video title
+                if re.search('http://www.youtube.com/*', str(irc_user_message)):
+                    if re.search("^#", chan):
+                        link = str(irc_user_message).split('http://')[1].split()[0]
+                        dl_file = link.split('/')[1]
+                        link = 'http://'+link
+                        os.system("wget "+link)
+                        filename = dl_file
+                        file = open(filename, 'r')
+                        lines = file.readlines()
+                        file.close()
+                        video_title = lines[25].split('&#x202a;')[1].split('&#x202c;')[0]
+                        self.send_message_to_channel( ("Youtube: "+video_title), chan )
             if str(recv).find ( "JOIN" ) != -1:
                 print (str(recv))
                 irc_join_nick = str(recv).split( '!' ) [ 0 ].split( ':' ) [ 1 ]
@@ -1148,19 +1161,6 @@ class IRC_Server:
                                     a2=a2+9
                                     a3=a3+9
                                     a4=a4+9                 
-#           if re.search('http://*', command):
-#               length = len(command)
-#               for i in range(int(length)):
-#                   if re.search('http://*', command[i]):
-#                       link = command[i]
-#                       break
-#               os.system("wget "+link)
-#               part = len(link.split('//'))        
-#               if part == 2:
-#                   filename = 'index.html'
-#                   file = open(filename, 'r')
-#                   lines = file.readlines()
-    
             if ( len(command) == 1):
                 if (command[0] == "online"):
                     if not re.search("^#", channel):
