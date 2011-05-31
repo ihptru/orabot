@@ -1076,5 +1076,4 @@ def main():
     #if run_test.is_alive():
     #   print("Terminating process ...")
     #   run_test.terminate()    # Terminate process
->>>>>>> upstream/master
     print("Bot exited.")
