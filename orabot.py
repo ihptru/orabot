@@ -143,9 +143,9 @@ class IRC_Server:
                     # (str(recv)).split()[2] ) is simply the channel the command was heard on.
                     self.process_command(irc_user_nick, ( (str(recv)).split()[2] ))
                 ### when message cotains link to youtube, show video title
-                if re.search('http://www.youtube.com/*', str(irc_user_message)):
+                if re.search('http://www.youtube.com/*', str(irc_user_message)) or re.search('http://youtube.com/*', str(irc_user_message)):
                     if re.search("^#", chan):
-                        link = str(irc_user_message).split('http://')[1].split()[0]
+                        link = str(irc_user_message).split('http://')[1].split()[0].split('&')[0]
                         dl_file = link.split('/')[1]
                         link = 'http://'+link
                         os.system("wget "+link)
