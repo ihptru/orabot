@@ -1,2 +1,8 @@
-orabot is an entertainment irc bot mainly for #openra channel on freenode. It also provides current game list of openra games and makes channel's logs
+orabot is an entertainment irc bot mainly for #openra channel on freenode. It also provides current game list of openra games; makes channel's logs; translate texts; sends an offline messages; etc.
 
+To start the bot:
+./run.py
+
+But there must be made some changes in orabot.py:
+1) At the bottom of orabot.py change server/port/channel where to connect
+2) Uncomment 2 blocks of sql syntax of creating databases at first run (do not forget to comment them again afterwards)
