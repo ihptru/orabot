@@ -15,9 +15,11 @@ import os
 import re
 from datetime import date
 import sqlite3
+import hashlib
 
 # Hardcoding the root admin - it seems the best way for now
 root_admin = "ihptru"
+root_admin_password = "" #only for the successful first run, dont forget to remove it later
 
 languages=['af','sq','ar','be','bg','ca','zh-CN','hr','cs','da','nl','en','et','tl','fi','fr','gl','de','el','iw','hi','hu','is','id','ga','it','ja','ko','lv','lt','mk','ml','mt','no','fa','pl','ro','ru','sr','sk','sl','es','sw','sv','th','tr','uk','vi','cy','yi']
 real_langs=['Afrikaans','Albanian','Arabic','Belarusian','Bulgarian','Catalan','Chinese_Simplified','Croatian','Czech','Danish','Dutch','English','Estonian','Filipino','Finnish','French','Galician','German','Greek','Hebrew','Hindi','Hungarian','Icelandic','Indonesian','Irish','Italian','Japanese','Korean','Latvian','Lithuanian','Macedonian','Malay','Maltese','Norwegian','Persian','Polish','Romanian','Russian','Serbian','Slovak','Slovenian','Spanish','Swahili','Swedish','Thai','Turkish','Ukrainian','Vietnamese','Welsh','Yiddish']
@@ -71,10 +73,7 @@ class IRC_Server:
         self.irc_sock.send (str_buff.encode())
         print ("Joining channel " + str(self.irc_channel) )
         self.is_connected = True
-        try:
-            self.listen()
-        except:
-            return
+        self.listen()
         
     def listen(self):
         while self.is_connected:
@@ -297,6 +296,31 @@ class IRC_Server:
             if str(recv).find ( "PART" ) != -1:
                 print (str(recv))
                 irc_part_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
+                ###logout
+                conn = sqlite3.connect('../db/register.db')
+                cur = conn.cursor()
+                sql = """SELECT * FROM register
+                        WHERE user = '"""+irc_part_nick+"'"+"""
+                """
+                cur.execute(sql)
+                conn.commit()
+                row = []
+                for row in cur:
+                    pass
+                cur.close()
+                if irc_part_nick in row:
+                    authenticated = row[4]
+                    if authenticated == 1:
+                        conn = sqlite3.connect('../db/register.db')
+                        cur = conn.cursor()
+                        sql = """UPDATE register
+                                SET authenticated = 0
+                                WHERE user = '"""+irc_part_nick+"'"+"""
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                        cur.close()              
+                
                 ###logs
                 chan = str(recv).split( "PART" ) [ 1 ].split( " #" ) [ 1 ].split( " " ) [ 0 ]
                 chan = '#'+chan     #channel ex: #openra
@@ -363,9 +387,32 @@ class IRC_Server:
         # Break the command into pieces, so we can interpret it with arguments
         command = command.split()
         string_command = " ".join(command)
-        #connect to sqlite to write command into irc.db
-
+        
         #uncomment strings below at first script run
+        #conn = sqlite3.connect('../db/register.db')
+        #cur = conn.cursor()
+        #sql = """CREATE TABLE register (
+        #uid int NOT NULL,
+        #user varchar(20) NOT NULL,
+        #pass varchar(50),
+        #owner boolean NOT NULL DEFAULT '0',
+        #authenticated boolean NOT NULL DEFAULT '0'
+        #)
+        #"""
+        #cur.execute(sql)
+        #conn.commit()
+        #
+        #user_password = hashlib.md5(root_admin_password.encode('utf-8')).hexdigest()     
+        #sql = """INSERT INTO register
+        #        (uid,user,pass,owner)
+        #        VALUES
+        #        (
+        #        1,'"""+root_admin+"','"+str(user_password)+"'"+""",1
+        #        )       
+        #"""
+        #cur.execute(sql)
+        #conn.commit()
+        #cur.close()
         #conn = sqlite3.connect('../db/black_list.db')
         #cur=conn.cursor()
         #sql = """CREATE TABLE black_list (
@@ -521,7 +568,7 @@ class IRC_Server:
                 user_data_len10 = user_data_length - 10
                 actual=user_data[user_data_len10]
                 first_date="".join(actual[1].split('-'))    #last - 10 record
-                last_date="".join(user_data[user_data_length-1][1].split('-'))
+                last_date="".join(user_data[user_data_length-1][1].split('-'))  #current date/time
                 seconds_range=int(last_date)-int(first_date)  #how many seconds between player's commands
                 if seconds_range < 30:  #player made more then 10 commands in range of 30 seconds. It is too quick, spam!
                     conn = sqlite3.connect('../db/black_list.db')
@@ -596,91 +643,167 @@ class IRC_Server:
                             self.send_message_to_channel( (user+", your actions are counted as spam, I will ignore you for "+str(ignore_minutes)+" minutes"), channel )
                         else:
                             self.send_message_to_channel( (user+", your actions are counted as spam, I will ignore you for "+str(ignore_minutes)+" minutes"), user )        
-            
-                
-            # All admin only commands go in here.
-            admin = 'False'
-            if (user == root_admin):
-                admin = 'True'
-                # The first set of commands are ones that don't take parameters
-                if ( len(command) == 1):
+                        return
+############    commands
+            conn = sqlite3.connect('../db/register.db')
+            cur = conn.cursor()
+            sql = """SELECT * FROM register
+                    WHERE user = '"""+user+"'"+"""
+            """
+            cur.execute(sql)
+            conn.commit()
+            row = []
+            for row in cur:
+                pass
+            cur.close()
+            if user in row:     #user exists in 'register' table
+                owner = row[3]
+                authenticated = row[4]
+                if (authenticated == 1):    #he is also authenticated           
+                    # All admin only commands go in here.
+                    # The first set of commands are ones that don't take parameters
+                    if ( len(command) == 1):
     
-                    #This command shuts the bot down.
-                    if (command[0] == "quit"):
-                        str_buff = ( "QUIT %s \r\n" ) % (channel)
-                        self.irc_sock.send (str_buff.encode())
-                        self.irc_sock.close()
-                        self.is_connected = False
-                        self.should_reconnect = False
-    
-                # These commands take parameters
-                else:
-                    if (len(command) == 2):
-                        if (command[0] == "add"):
-                            nick = command[1]
-                            conn = sqlite3.connect('../db/users.db')
-                            cur=conn.cursor()
-                            sql = """SELECT * FROM users
-                                    ORDER BY uid DESC LIMIT 1
-                            """
-                            cur.execute(sql)
-                            conn.commit()
-                            for row in cur:
-                                pass
-                            cur.close()
-                            uid_users=row[0]
-                            uid_users = uid_users + 1
-                            
-                            conn = sqlite3.connect('../db/users.db')
-                            cur = conn.cursor()
-                            sql = """SELECT * FROM users
-                                    WHERE user = '"""+nick+"'"+"""
-                            """
-                            cur.execute(sql)
-                            conn.commit()
-                            row = []
-                            for row in cur:
-                                pass
-                            cur.close()
-                            if nick in row: #users exists in database already
-                                if re.search("^#", channel):
-                                    self.send_message_to_channel( ("Error! User already exists"), channel)
-                                else:
-                                    self.send_message_to_channel( ("Error! User already exists"), user)
-                            else:   
-                                conn = sqlite3.connect('../db/users.db')
-                                cur=conn.cursor()
-                                sql = """INSERT INTO users
-                                    (uid,user)
-                                    VALUES
-                                    (
-                                    """+str(uid_users)+",'"+nick+"'"+"""
-                                    )
+                        #This command shuts the bot down.
+                        if (command[0] == "quit"):
+                            str_buff = ( "QUIT %s \r\n" ) % (channel)
+                            self.irc_sock.send (str_buff.encode())
+                            self.irc_sock.close()
+                            self.is_connected = False
+                            self.should_reconnect = False
+                        if (command[0] == "log"):
+                            if not re.search("^#", channel):
+                                conn = sqlite3.connect('../db/commands.db')
+                                cur = conn.cursor()
+                                sql = """SELECT * FROM commands
+                                        ORDER BY uid DESC LIMIT 10
                                 """
                                 cur.execute(sql)
                                 conn.commit()
+                                row = []
+                                logs = []
+                                actual = []
+                                for row in cur:
+                                    logs.append(row)
                                 cur.close()
-                                if re.search("^#", channel):
-                                    self.send_message_to_channel( ("Confirmed"), channel)
+                                for i in range(int(len(logs))):
+                                    actual.append(logs[i][1])
+                                    actual.append(logs[i][2])
+                                    actual.append(logs[i][3])
+                                    self.send_message_to_channel( ("User: "+actual[0]+"; Date: "+actual[2]+"; Command: ]"+actual[1]), user)
+                                    actual = []
+                                    time.sleep(0.5)
+                    # These commands take parameters
+                    else:
+                        if (len(command) == 2):
+                            if (command[0] == "add"):
+                                nick = command[1]
+                                conn = sqlite3.connect('../db/users.db')
+                                cur=conn.cursor()
+                                sql = """SELECT * FROM users
+                                        ORDER BY uid DESC LIMIT 1
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                for row in cur:
+                                    pass
+                                cur.close()
+                                uid_users=row[0]
+                                uid_users = uid_users + 1
+                            
+                                conn = sqlite3.connect('../db/users.db')
+                                cur = conn.cursor()
+                                sql = """SELECT * FROM users
+                                        WHERE user = '"""+nick+"'"+"""
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                row = []
+                                for row in cur:
+                                    pass
+                                cur.close()
+                                if nick in row: #users exists in database already
+                                    if re.search("^#", channel):
+                                        self.send_message_to_channel( ("Error! User already exists"), channel)
+                                    else:
+                                        self.send_message_to_channel( ("Error! User already exists"), user)
+                                else:   
+                                    conn = sqlite3.connect('../db/users.db')
+                                    cur=conn.cursor()
+                                    sql = """INSERT INTO users
+                                        (uid,user)
+                                        VALUES
+                                        (
+                                        """+str(uid_users)+",'"+nick+"'"+"""
+                                        )
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    cur.close()
+                                    if re.search("^#", channel):
+                                        self.send_message_to_channel( ("Confirmed"), channel)
+                                    else:
+                                        self.send_message_to_channel( ("Confirmed"), user)
+                            # This command makes the bot join a channel
+                            # This needs to be rewritten in a better way, to catch multiple channels
+                            if (command[0] == "join"):
+                                if ( (command[1])[0] == "#"):
+                                    irc_channel = command[1]
                                 else:
-                                    self.send_message_to_channel( ("Confirmed"), user)
-                    # This command makes the bot join a channel
-                    # This needs to be rewritten in a better way, to catch multiple channels
-                    if (command[0] == "join"):
-                        if ( (command[1])[0] == "#"):
-                            irc_channel = command[1]
-                        else:
-                            irc_channel = "#" + command[1]
-                        self.join_channel(irc_channel)
+                                    irc_channel = "#" + command[1]
+                                self.join_channel(irc_channel)
     
-                    # This command makes the bot part a channel
-                    # This needs to be rewritten in a better way, to catch multiple channels
-                    if (command[0] == "part"):
-                        if ( (command[1])[0] == "#"):
-                            irc_channel = command[1]
-                        else:
-                            irc_channel = "#" + command[1]
-                        self.quit_channel(irc_channel)
+                            # This command makes the bot part a channel
+                            # This needs to be rewritten in a better way, to catch multiple channels
+                            if (command[0] == "part"):
+                                if ( (command[1])[0] == "#"):
+                                    irc_channel = command[1]
+                                else:
+                                    irc_channel = "#" + command[1]
+                                self.quit_channel(irc_channel)
+                    if (owner == 1):    #owner commands go here
+                        if not re.search("^#", channel):    #owner commands only in private
+                            if (len(command) == 2):
+                                if (command[0] == "register"):      #owner command to allow users register
+                                    register_nick = command[1]
+                                    conn = sqlite3.connect('../db/register.db')
+                                    cur = conn.cursor()
+                                    sql = """SELECT * FROM register
+                                            WHERE user = '"""+register_nick+"'"+"""
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    row = []
+                                    for row in cur:
+                                        pass
+                                    cur.close()
+                                    if register_nick in row:
+                                        self.send_message_to_channel( ("User "+register_nick+" already exists"), user)
+                                    else:
+                                        conn = sqlite3.connect('../db/register.db')
+                                        cur = conn.cursor()
+                                        sql = """SELECT * FROM register
+                                                ORDER BY uid DESC LIMIT 1                                       
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                        row = []
+                                        for row in cur:
+                                            pass
+                                        uid_register = row[0]
+                                        uid_register = uid_register + 1
+                                        sql = """INSERT INTO register
+                                                (uid,user)
+                                                VALUES
+                                                (
+                                                """+str(uid_register)+",'"+register_nick+"'"+"""
+                                                )
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                        cur.close()
+                                        self.send_message_to_channel( ("User "+register_nick+" added successfully, he can use ]register to set up a password"), user)
+                                    
     
             # All public commands go here
             #########################################################################################
@@ -776,6 +899,77 @@ class IRC_Server:
                     else:
                         self.send_message_to_channel( ("You can use ]later only on a channel"), user)
             if ( len(command) == 2):
+                if (command[0] == "register"):
+                    if not re.search("^#", channel):
+                        conn = sqlite3.connect('../db/register.db')
+                        cur = conn.cursor()
+                        sql = """SELECT * FROM register
+                                WHERE user = '"""+user+"'"+"""
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                        row = []
+                        for row in cur:
+                            pass    
+                        cur.close()
+                        if user not in row:
+                            self.send_message_to_channel( ("You are not allowed to register, please contact more privileged user"), user)
+                        else:   #user found in 'register' database
+                            ifowner = row[3]
+                            if ifowner == 0:    #it not 'owner' type of users
+                                if row[2] == None:  #password field is empty - this user is set to be registered by owner
+                                    user_password = command[1]
+                                    pass_to_db = hashlib.md5( user_password.encode('utf-8') ).hexdigest()
+                                    conn = sqlite3.connect('../db/register.db')
+                                    cur = conn.cursor()
+                                    sql = """UPDATE register
+                                            SET pass = '"""+str(pass_to_db)+"'"+"""
+                                            WHERE user = '"""+user+"'"+"""
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    cur.close()
+                                    self.send_message_to_channel( ("Congratulations! You are registered. Don't forget your password, you need it to authenticate with ]login"), user)
+                                else:
+                                    self.send_message_to_channel( ("You are already registered"), user)
+                if (command[0] == "login"):
+                    if not re.search("^#", channel):
+                        conn = sqlite3.connect('../db/register.db')
+                        cur = conn.cursor()
+                        sql = """SELECT * FROM register
+                                WHERE user = '"""+user+"'"+"""
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                        row = []
+                        for row in cur:
+                            pass
+                        cur.close()
+                        if user not in row:
+                            self.send_message_to_channel( ("You are not registered!"), user)
+                        else:
+                            if row[2] == None:
+                                self.send_message_to_channel( ("You are not registered!"), user)
+                            else:   #he is registered
+                                if row[4] == 1:
+                                    self.send_message_to_channel( ("You are already authenticated!"), user)
+                                else:
+                                    user_password = command[1]
+                                    user_password_hash = hashlib.md5( user_password.encode('utf-8') ).hexdigest()
+                                    user_password_hash_in_db = row[2]
+                                    if str(user_password_hash) == str(user_password_hash_in_db):    #password matches
+                                        conn = sqlite3.connect('../db/register.db')
+                                        cur = conn.cursor()
+                                        sql = """UPDATE register
+                                                SET authenticated = 1
+                                                WHERE user = '"""+user+"'"+"""
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                        cur.close()
+                                        self.send_message_to_channel( ("Successful!"), user)
+                                    else:
+                                        self.send_message_to_channel( ("Password incorrect!"), user)
                 if (command[0] == "if"):
                     nick = command[1]
                     conn = sqlite3.connect('../db/users.db')
@@ -968,7 +1162,29 @@ class IRC_Server:
 #                   lines = file.readlines()
     
             if ( len(command) == 1):
-    
+                if (command[0] == "online"):
+                    if not re.search("^#", channel):
+                        conn = sqlite3.connect('../db/register.db')
+                        cur = conn.cursor()
+                        sql = """SELECT * FROM register
+                                WHERE authenticated = 1
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                        row = []
+                        online = []
+                        for row in cur:
+                            online.append(row)
+                        cur.close()
+                        actual = []
+                        for i in range(int(len(online))):
+                            actual.append(online[i][1])
+                        num_users_online = int(len(actual))
+                        if num_users_online == 0:
+                            self.send_message_to_channel( ("No any authenticated users online"), user)
+                        else:
+                            usrs = ", ".join(actual)
+                            self.send_message_to_channel( (str(num_users_online)+" authenticated users online: "+usrs), user)
                 if (command[0] == "hi"):
                     if re.search("^#", channel):
                         self.send_message_to_channel( ("Hello, " + user), channel )
