@@ -277,7 +277,7 @@ class IRC_Server:
                             message_date = msgs[i][4]
                             offline_message = msgs[i][5]
                             self.send_message_to_channel( ("### From: "+who_sent+";  channel: "+on_channel+";  date: "+message_date), irc_join_nick )
-                            self.send_message_to_channel( (offline_message), irc_join_nick )
+                            self.send_message_to_channel( (offline_message.replace("~qq~","'")), irc_join_nick )
                         time.sleep(0.1)
                         conn = sqlite3.connect('../db/later.db')
                         cur=conn.cursor()
@@ -545,7 +545,7 @@ class IRC_Server:
                     (uid,user,command,date_time)
                     VALUES
                     (
-                    """+str(uid_commands)+",'"+user+"','"+string_command+"',"+"strftime('%Y-%m-%d-%H-%M-%S')"+""" 
+                    """+str(uid_commands)+",'"+str(user)+"','"+string_command.replace("'","~qq~")+"',"+"strftime('%Y-%m-%d-%H-%M-%S')"+""" 
                     )        
             """
             cur.execute(sql)
@@ -703,7 +703,7 @@ class IRC_Server:
                                     actual.append(logs[i][1])
                                     actual.append(logs[i][2])
                                     actual.append(logs[i][3])
-                                    self.send_message_to_channel( ("User: "+actual[0]+"; Date: "+actual[2]+"; Command: ]"+actual[1]), user)
+                                    self.send_message_to_channel( ("User: "+actual[0]+"; Date: "+actual[2]+"; Command: ]"+actual[1].replace("~qq~","'")), user)
                                     actual = []
                                     time.sleep(0.5)
                     # These commands take parameters
@@ -913,7 +913,7 @@ class IRC_Server:
                                             (uid,sender,reciever,channel,date,message)
                                             VALUES
                                             (
-                                            """+str(uid_later)+",'"+user+"','"+user_nick+"','"+channel+"',strftime('%Y-%m-%d-%H-%M'),'"+user_message+"'"+"""
+                                            """+str(uid_later)+",'"+user+"','"+user_nick+"','"+channel+"',strftime('%Y-%m-%d-%H-%M'),'"+user_message.replace("'","~qq~")+"'"+"""
                                             )
                                     """
                                     cur.execute(sql)
