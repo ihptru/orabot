@@ -142,6 +142,19 @@ class IRC_Server:
                     self.command = str(irc_user_message[1:])
                     # (str(recv)).split()[2] ) is simply the channel the command was heard on.
                     self.process_command(irc_user_nick, ( (str(recv)).split()[2] ))
+                ### when message cotains link to youtube, show video title
+                if re.search('http://www.youtube.com/*', str(irc_user_message)) or re.search('http://youtube.com/*', str(irc_user_message)):
+                    if re.search("^#", chan):
+                        link = str(irc_user_message).split('http://')[1].split()[0].split('&')[0]
+                        dl_file = link.split('/')[1]
+                        link = 'http://'+link
+                        os.system("wget "+link+" > /dev/null 2>&1")
+                        filename = dl_file
+                        file = open(filename, 'r')
+                        lines = file.readlines()
+                        file.close()
+                        video_title = lines[25].split('&#x202a;')[1].split('&#x202c;')[0].replace('&#39;', '\'')
+                        self.send_message_to_channel( ("Youtube: "+video_title), chan )
             if str(recv).find ( "JOIN" ) != -1:
                 print (str(recv))
                 irc_join_nick = str(recv).split( '!' ) [ 0 ].split( ':' ) [ 1 ]
@@ -264,7 +277,7 @@ class IRC_Server:
                             message_date = msgs[i][4]
                             offline_message = msgs[i][5]
                             self.send_message_to_channel( ("### From: "+who_sent+";  channel: "+on_channel+";  date: "+message_date), irc_join_nick )
-                            self.send_message_to_channel( (offline_message), irc_join_nick )
+                            self.send_message_to_channel( (offline_message.replace("~qq~","'")), irc_join_nick )
                         time.sleep(0.1)
                         conn = sqlite3.connect('../db/later.db')
                         cur=conn.cursor()
@@ -532,7 +545,7 @@ class IRC_Server:
                     (uid,user,command,date_time)
                     VALUES
                     (
-                    """+str(uid_commands)+",'"+user+"','"+string_command+"',"+"strftime('%Y-%m-%d-%H-%M-%S')"+""" 
+                    """+str(uid_commands)+",'"+str(user)+"','"+string_command.replace("'","~qq~")+"',"+"strftime('%Y-%m-%d-%H-%M-%S')"+""" 
                     )        
             """
             cur.execute(sql)
@@ -690,7 +703,7 @@ class IRC_Server:
                                     actual.append(logs[i][1])
                                     actual.append(logs[i][2])
                                     actual.append(logs[i][3])
-                                    self.send_message_to_channel( ("User: "+actual[0]+"; Date: "+actual[2]+"; Command: ]"+actual[1]), user)
+                                    self.send_message_to_channel( ("User: "+actual[0]+"; Date: "+actual[2]+"; Command: ]"+actual[1].replace("~qq~","'")), user)
                                     actual = []
                                     time.sleep(0.5)
                     # These commands take parameters
@@ -808,6 +821,17 @@ class IRC_Server:
             # All public commands go here
             #########################################################################################
             if ( len(command) > 3):
+                if ( command[0] == "randomteam" ):
+                    team_names = " ".join(command[1:])
+                    os.system("python ../pyrand.py "+team_names)
+                    filename = 'pyrand.txt'
+                    file = open(filename, 'r')
+                    result_pyrand = file.readline()
+                    file.close()
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( (result_pyrand.rstrip()), channel)
+                    else:
+                        self.send_message_to_channel( (result_pyrand.rstrip()), user)
                 if ( command[0] == "tr"):
                     if command[1] in languages:
                         if command[2] in languages:
@@ -889,7 +913,7 @@ class IRC_Server:
                                             (uid,sender,reciever,channel,date,message)
                                             VALUES
                                             (
-                                            """+str(uid_later)+",'"+user+"','"+user_nick+"','"+channel+"',strftime('%Y-%m-%d-%H-%M'),'"+user_message+"'"+"""
+                                            """+str(uid_later)+",'"+user+"','"+user_nick+"','"+channel+"',strftime('%Y-%m-%d-%H-%M'),'"+user_message.replace("'","~qq~")+"'"+"""
                                             )
                                     """
                                     cur.execute(sql)
@@ -995,7 +1019,24 @@ class IRC_Server:
                         else:
                             self.send_message_to_channel( ("True"), user)
                 if (command[0] == "add"):
-                    if ( admin != 'True' ):
+                    conn = sqlite3.connect('../db/register.db')
+                    cur = conn.cursor()
+                    sql = """SELECT * FROM register
+                            WHERE user = '"""+user+"'"+"""
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                    row = []
+                    for row in cur:
+                        pass
+                    cur.close()
+                    if user in row:
+                        if row[4] == 0:
+                            if re.search("^#", channel):
+                                self.send_message_to_channel( ("You are not authenticated"), channel)
+                            else:
+                                self.send_message_to_channel( ("You are not authenticated"), user)
+                    else:
                         if re.search("^#", channel):
                             self.send_message_to_channel( ("Your don't have permissions for this command"), channel)
                         else:
@@ -1045,7 +1086,7 @@ class IRC_Server:
                                         country = 'USA'
                                     sname = lines[a1].encode('utf-8').decode('utf-8')
                                     sname = str(sname)
-                                    games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1]+' - '+country
+                                    games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1].ljust(20)+' - '+country
                                     a1=a1+9
                                     loc=loc+9
                                     a2=a2+9
@@ -1085,7 +1126,7 @@ class IRC_Server:
                                         country = 'USA'
                                     sname = lines[a1].encode('utf-8').decode('utf-8')
                                     sname = str(sname)
-                                    games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1]+' - '+country
+                                    games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1].ljust(20)+' - '+country
                                     a1=a1+9
                                     loc=loc+9
                                     a2=a2+9
@@ -1137,7 +1178,7 @@ class IRC_Server:
                                             country = 'USA'
                                         sname = lines[a1].encode('utf-8').decode('utf-8')
                                         sname = str(sname)
-                                        games = '@ '+sname.lstrip().rstrip()[6:].lstrip()+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1]+' - '+country
+                                        games = '@ '+sname.lstrip().rstrip()[6:].lstrip()+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1].ljust(20)+' - '+country
                                         if re.search("^#", channel):
                                             self.send_message_to_channel( (games), channel)
                                         else:
@@ -1148,20 +1189,12 @@ class IRC_Server:
                                     a2=a2+9
                                     a3=a3+9
                                     a4=a4+9                 
-#           if re.search('http://*', command):
-#               length = len(command)
-#               for i in range(int(length)):
-#                   if re.search('http://*', command[i]):
-#                       link = command[i]
-#                       break
-#               os.system("wget "+link)
-#               part = len(link.split('//'))        
-#               if part == 2:
-#                   filename = 'index.html'
-#                   file = open(filename, 'r')
-#                   lines = file.readlines()
-    
             if ( len(command) == 1):
+                if (command[0] == "help"):
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Help: https://github.com/ihptru/orabot/wiki"), channel )
+                    else:
+                        self.send_message_to_channel( ("Help: https://github.com/ihptru/orabot/wiki"), user )
                 if (command[0] == "online"):
                     if not re.search("^#", channel):
                         conn = sqlite3.connect('../db/register.db')
@@ -1251,7 +1284,7 @@ class IRC_Server:
                                         country = 'USA' #whois does not show coutry code for most USA IPs and some Canadians (did not find a way to determine where USA and where Canada is)
                                     sname = lines[a1].encode('utf-8').decode('utf-8')
                                     sname = str(sname)
-                                    games = sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1]+' - '+country
+                                    games = sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1].ljust(20)+' - '+country
                                     if re.search("^#", channel):
                                         self.send_message_to_channel( (games), channel )
                                     else:
