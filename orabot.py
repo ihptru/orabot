@@ -1310,11 +1310,14 @@ class IRC_Server:
                 if (command[0] == "bop"):
                     self.send_message_to_channel( ("\x01ACTION bopz " + str(command[1]) + "\x01"), channel )
 
+class BotCrashed(Exception): # Raised if the bot has crashed.
+    pass
+
 def main():
     # Here begins the main programs flow:
     test2 = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
     test = IRC_Server("irc.freenode.net", 6667, "orabot", "##untitled")
-    run_test = multiprocessing.Process(None,test.connect )
+    run_test = multiprocessing.Process(None,test.connect,name="IRC Server" )
     run_test.start()
     try:
         while(test.should_reconnect):
@@ -1322,7 +1325,10 @@ def main():
         run_test.join()
     except KeyboardInterrupt: # Ctrl + C pressed
         pass # We're ignoring that Exception, so the user does not see that this Exception was raised.
-    #if run_test.is_alive():
-    #   print("Terminating process ...")
-    #   run_test.terminate()    # Terminate process
-    print("Bot exited.")
+    if run_test.is_alive:
+        run_test.terminate()
+        run_test.join() # Wait for terminate
+    if run_test.exitcode == 0 or run_test.exitcode < 0:
+        print("Bot exited.")
+    else:
+        raise BotCrashed("The bot has crashed")

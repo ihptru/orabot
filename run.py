@@ -53,9 +53,8 @@ while(True):
         orabot.main()
     except KeyboardInterrupt:
         break
-    except Exception as e:
+    except orabot.BotCrashed as e:
         print("Bot has crashed. Restarting it in 5 seconds.")
-        sys.stderr.write("Exception: " + e.__class__.__name__ + "(" + str(e) + ")\n")
         try:
             time.sleep(5) # Wait 5 seconds, so if the bot crashes on every time, it doesn't spam the console.
             continue # Restart
