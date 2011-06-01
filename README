@@ -1,8 +1,12 @@
 orabot is an entertainment irc bot mainly for #openra channel on freenode. It also provides current game list of openra games; makes channel's logs; translate texts; sends an offline messages; etc.
 
+More info: https://github.com/ihptru/orabot/wiki
+
 To start the bot:
 ./run.py
 
 But there must be made some changes in orabot.py:
-1) At the bottom of orabot.py change server/port/channel where to connect
-2) Uncomment 2 blocks of sql syntax of creating databases at first run (do not forget to comment them again afterwards)
+1) Change variable values: root_admin and root_admin_password
+2) At the bottom of orabot.py change server/port/channel where to connect and bot's name
+3) Uncomment all blocks of sql syntax of creating databases at first run
+4) After first run, when you sure that all databases were created, comment all sql syntax related to it (creating tables and insering first test data); also clear values of root_admin_password variable and run bot again

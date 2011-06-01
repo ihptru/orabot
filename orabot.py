@@ -1019,7 +1019,24 @@ class IRC_Server:
                         else:
                             self.send_message_to_channel( ("True"), user)
                 if (command[0] == "add"):
-                    if ( admin != 'True' ):
+                    conn = sqlite3.connect('../db/register.db')
+                    cur = conn.cursor()
+                    sql = """SELECT * FROM register
+                            WHERE user = '"""+user+"'"+"""
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                    row = []
+                    for row in cur:
+                        pass
+                    cur.close()
+                    if user in row:
+                        if row[4] == 0:
+                            if re.search("^#", channel):
+                                self.send_message_to_channel( ("You are not authenticated"), channel)
+                            else:
+                                self.send_message_to_channel( ("You are not authenticated"), user)
+                    else:
                         if re.search("^#", channel):
                             self.send_message_to_channel( ("Your don't have permissions for this command"), channel)
                         else:
