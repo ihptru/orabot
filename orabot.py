@@ -166,7 +166,8 @@ class IRC_Server:
                 #cur=conn.cursor()
                 #sql = """CREATE TABLE users (
                 #uid integer NOT NULL,
-                #user varchar(30) NOT NULL
+                #user varchar(30) NOT NULL,
+                #date date
                 #)               
                 #"""
                 #cur.execute(sql)
@@ -288,7 +289,16 @@ class IRC_Server:
                         
                         cur.execute(sql)
                         conn.commit()
-                        cur.close() 
+                        cur.close()
+                    conn = sqlite3.connect('../db/users.db')
+                    cur=conn.cursor()
+                    sql = """UPDATE users
+                            SET date = ''
+                            WHERE user = '"""+irc_join_nick+"'"+"""
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                    cur.close()
                 ###logs
                 if chan == '#openra' or chan == '#openra-dev':
                     row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_join_nick+' ('+irc_join_host+') has joined '+chan+'\n'
@@ -306,6 +316,58 @@ class IRC_Server:
                     file.write(row)
                     file.close()
                 ###
+            if str(recv).find ( "QUIT" ) != -1:
+                print (str(recv))
+                irc_quit_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
+                conn = sqlite3.connect('../db/register.db')
+                cur = conn.cursor()
+                sql = """SELECT * FROM register
+                        WHERE user = '"""+irc_quit_nick+"'"+"""
+                """
+                cur.execute(sql)
+                conn.commit()
+                row = []
+                for row in cur:
+                    pass
+                cur.close()
+                if irc_quit_nick in row:
+                    authenticated = row[4]
+                    if authenticated == 1:
+                        conn = sqlite3.connect('../db/register.db')
+                        cur = conn.cursor()
+                        sql = """UPDATE register
+                                SET authenticated = 0
+                                WHERE user = '"""+irc_quit_nick+"'"+"""
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                        cur.close()
+                ### for ]last              
+                conn = sqlite3.connect('../db/users.db')
+                cur=conn.cursor()
+                sql = """UPDATE users
+                        SET date = strftime('%Y-%m-%d-%H-%M-%S')
+                        WHERE user = '"""+str(irc_quit_nick)+"'"+"""
+                """
+                cur.execute(sql)
+                conn.commit()
+                cur.close()
+                ##logs
+                if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
+                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_quit_nick+' has quit\n'
+                    if chan == '#openra':
+                        chan_d = 'openra'
+                    elif chan == '#openra-dev':
+                        chan_d = 'openra-dev'
+                    else:
+                        chan_d = 'pms'
+                    filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
+                    dir = os.path.dirname(filename)
+                    if not os.path.exists(dir):
+                        os.makedirs(dir)
+                    file = open(filename,'a')
+                    file.write(row)
+                    file.close()
             if str(recv).find ( "PART" ) != -1:
                 print (str(recv))
                 irc_part_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
@@ -332,13 +394,22 @@ class IRC_Server:
                         """
                         cur.execute(sql)
                         conn.commit()
-                        cur.close()              
-                
+                        cur.close()
+                ### for ]last              
+                conn = sqlite3.connect('../db/users.db')
+                cur=conn.cursor()
+                sql = """UPDATE users
+                        SET date = strftime('%Y-%m-%d-%H-%M-%S')
+                        WHERE user = '"""+str(irc_part_nick)+"'"+"""
+                """
+                cur.execute(sql)
+                conn.commit()
+                cur.close()
                 ###logs
                 chan = str(recv).split( "PART" ) [ 1 ].split( " #" ) [ 1 ].split( " " ) [ 0 ]
                 chan = '#'+chan     #channel ex: #openra
                 if chan == '#openra' or chan == '#openra-dev':
-                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_part_nick+' has quit\n'
+                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_part_nick+' has left '+chan+'\n'
                     if chan == '#openra':
                         chan_d = 'openra'
                     elif chan == '#openra-dev':
@@ -708,7 +779,7 @@ class IRC_Server:
                                     time.sleep(0.5)
                     # These commands take parameters
                     else:
-                        if (len(command) == 2):
+                        if (len(command) == 2):                              
                             if (command[0] == "add"):
                                 nick = command[1]
                                 conn = sqlite3.connect('../db/users.db')
@@ -816,6 +887,11 @@ class IRC_Server:
                                         conn.commit()
                                         cur.close()
                                         self.send_message_to_channel( ("User "+register_nick+" added successfully, he can use ]register to set up a password"), user)
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("You are not authenticated"), channel)
+                    else:
+                        self.send_message_to_channel( ("You are not authenticated"), user)
                                     
     
             # All public commands go here
@@ -923,6 +999,32 @@ class IRC_Server:
                     else:
                         self.send_message_to_channel( ("You can use ]later only on a channel"), user)
             if ( len(command) == 2):
+                if (command[0] == "last"):
+                    if re.search("^#", channel):
+                        conn = sqlite3.connect('../db/users.db')
+                        cur = conn.cursor()
+                        sql = """SELECT * FROM users
+                                WHERE user = '"""+command[1]+"'"+"""
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                        row = []
+                        for row in cur:
+                            pass
+                        cur.close()
+                        if command[1] not in row:   #user not found
+                            self.send_message_to_channel( ("Error! No such user in my database"), channel)
+                        else:
+                            last_time = row[2]
+                            if last_time == None:
+                                self.send_message_to_channel( ("User is on the channel right now!"), channel)
+                            else:
+                                last_date = "-".join(last_time.split('-')[0:3])
+                                last_time = ":".join(last_time.split('-')[3:6])
+                                self.send_message_to_channel( (command[1]+" was last seen on "+channel+" at "+last_date+" "+last_time+" GMT"), channel)
+                    else:
+                        self.send_message_to_channel( ("You can use ]last only on a channel"), user)
+                        
                 if (command[0] == "register"):
                     if not re.search("^#", channel):
                         conn = sqlite3.connect('../db/register.db')
