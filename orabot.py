@@ -886,16 +886,22 @@ class IRC_Server:
                                         cur.execute(sql)
                                         conn.commit()
                                         cur.close()
-                                        self.send_message_to_channel( ("User "+register_nick+" added successfully, he can use ]register to set up a password"), user)
-                else:
-                    if re.search("^#", channel):
-                        self.send_message_to_channel( ("You are not authenticated"), channel)
-                    else:
-                        self.send_message_to_channel( ("You are not authenticated"), user)
-                                    
+                                        self.send_message_to_channel( ("User "+register_nick+" added successfully, he can use ]register to set up a password"), user)                                  
     
             # All public commands go here
             #########################################################################################
+            if ( len(command) > 1):
+                if (command[0] == "ana" ):
+                    word = " ".join(command[1:])
+                    os.system("python ../ana.py "+word)
+                    filename = 'anagram.txt'
+                    file = open(filename, 'r')
+                    w_choice = file.readline()
+                    file.close()
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( (w_choice), channel)
+                    else:
+                        self.send_message_to_channel( (w_choice), user)
             if ( len(command) > 3):
                 if ( command[0] == "randomteam" ):
                     team_names = " ".join(command[1:])
