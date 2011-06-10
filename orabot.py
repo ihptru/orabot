@@ -355,8 +355,8 @@ class IRC_Server:
                 ##logs
                 if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
                     row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_quit_nick+' has quit\n'
-                    if chan == '#openra':
-                        self.irc_channel = 'openra'
+                    if self.irc_channel == '#openra':
+                        chan_d = 'openra'
                     elif self.irc_channel == '#openra-dev':
                         chan_d = 'openra-dev'
                     else:
