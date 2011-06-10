@@ -300,11 +300,11 @@ class IRC_Server:
                     conn.commit()
                     cur.close()
                 ###logs
-                if chan == '#openra' or chan == '#openra-dev':
-                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_join_nick+' ('+irc_join_host+') has joined '+chan+'\n'
-                    if chan == '#openra':
+                if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
+                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_join_nick+' ('+irc_join_host+') has joined '+self.irc_channel+'\n'
+                    if self.irc_channel == '#openra':
                         chan_d = 'openra'
-                    elif chan == '#openra-dev':
+                    elif self.irc_channel == '#openra-dev':
                         chan_d = 'openra-dev'
                     else:
                         chan_d = 'pms'
@@ -356,8 +356,8 @@ class IRC_Server:
                 if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
                     row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_quit_nick+' has quit\n'
                     if chan == '#openra':
-                        chan_d = 'openra'
-                    elif chan == '#openra-dev':
+                        self.irc_channel = 'openra'
+                    elif self.irc_channel == '#openra-dev':
                         chan_d = 'openra-dev'
                     else:
                         chan_d = 'pms'
@@ -1424,7 +1424,7 @@ class BotCrashed(Exception): # Raised if the bot has crashed.
 def main():
     # Here begins the main programs flow:
     test2 = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
-    test = IRC_Server("irc.freenode.net", 6667, "orabot", "##untitled")
+    test = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
     run_test = multiprocessing.Process(None,test.connect,name="IRC Server" )
     run_test.start()
     try:
