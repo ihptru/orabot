@@ -213,7 +213,7 @@ class IRC_Server:
             #    user_nicks = user_nicks.replace('+','').replace('@','')
             #    user_nicks = user_nicks.split(' ')
             #    self.nicks = user_nicks
-            if str(recv).find ( "PRIVMSG" ) != -1:
+            if str(recv).find ( "PRIVMSG" ) != -1: 
                 irc_user_nick = str(recv).split ( '!' ) [ 0 ] . split ( ":")[1]
                 irc_user_host = str(recv).split ( '@' ) [ 1 ] . split ( ' ' ) [ 0 ]
                 irc_user_message = self.data_to_message(str(recv)).encode('utf-8').decode('utf-8')
@@ -243,13 +243,13 @@ class IRC_Server:
                     file.close()
                 ### logs end
                 print ( irc_user_nick + ": " + irc_user_message)
-                # "!" Indicated a command
+                # "]" Indicated a command
                 if ( str(irc_user_message[0]) == "]" ):
                     self.command = str(irc_user_message[1:])
                     # (str(recv)).split()[2] ) is simply the channel the command was heard on.
                     self.process_command(irc_user_nick, ( (str(recv)).split()[2] ))
-                ### when message cotains link to youtube, show video title
-                if re.search('http://www.youtube.com/*', str(irc_user_message)) or re.search('http://youtube.com/*', str(irc_user_message)):
+### when message cotains link to youtube, show video title
+                if re.search('http://www.youtube.com/watch*', str(irc_user_message)) or re.search('http://youtube.com/watch*', str(irc_user_message)):
                     if re.search("^#", chan):
                         link = str(irc_user_message).split('http://')[1].split()[0].split('&')[0]
                         dl_file = link.split('/')[1]
@@ -259,6 +259,7 @@ class IRC_Server:
                         file = open(filename, 'r')
                         lines = file.readlines()
                         file.close()
+                        os.remove(dl_file)
                         try:
                             video_title = lines[25].split('&#x202a;')[1].split('&#x202c;')[0].replace('&#39;', '\'')
                             self.send_message_to_channel( ("Youtube: "+video_title), chan )
@@ -419,7 +420,7 @@ class IRC_Server:
                 cur.close()
                 ##logs
                 if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
-                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_quit_nick+' has quit ('+irc_quit_message+')\n'
+                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_quit_nick+' has quit ('+irc_quit_message.rstrip()+')\n'
                     if self.irc_channel == '#openra':
                         chan_d = 'openra'
                     elif self.irc_channel == '#openra-dev':
@@ -501,7 +502,41 @@ class IRC_Server:
     def send_message_to_channel(self,data,channel):
         print ( ( "%s: %s") % (self.irc_nick, data) )
         self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (channel, data)).encode() )
-
+        ### for logs
+        a = date.today()
+        a = str(a)
+        a = a.split('-')
+        year = a[0]
+        month = a[1]
+        day = a[2]
+        b = time.localtime()
+        b = str(b)
+        hours = b.split('tm_hour=')[1].split(',')[0]
+        minutes = b.split('tm_min=')[1].split(',')[0]
+        if len(hours) == 1:
+            real_hours = '0'+hours
+        else:
+            real_hours = hours
+        if len(minutes) == 1:
+            real_minutes = '0'+minutes
+        else:
+            real_minutes = minutes
+        if channel == '#openra' or channel == '#openra-dev':
+            row = '['+real_hours+':'+real_minutes+'] '+self.irc_nick+': '+str(data)+'\n'
+            if channel == '#openra':
+                chan_d = 'openra'
+            elif channel == '#openra-dev':
+                chan_d = 'openra-dev'
+            else:
+                chan_d = 'trash'
+            filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
+            dir = os.path.dirname(filename)
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+            file = open(filename,'a')
+            file.write(row)
+            file.close()
+        ### for logs end
     # This function takes a channel, which must start with a #.
     def join_channel(self,channel):
         if (channel[0] == "#"):
@@ -1447,7 +1482,7 @@ class BotCrashed(Exception): # Raised if the bot has crashed.
 def main():
     # Here begins the main programs flow:
     test2 = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
-    test = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
+    test = IRC_Server("irc.freenode.net", 6667, "orabot", "##untitled")
     run_test = multiprocessing.Process(None,test.connect,name="IRC Server" )
     run_test.start()
     try:
