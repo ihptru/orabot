@@ -1,14 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # This code was written for Python 3.1.1
-# version 0.101
-
-# Changelog:
-# version 0.100
-# Basic framework
-#
-# version 0.101
-# Fixed an error if an admin used a command with an argument, that wasn't an admin-only command
 
 import socket, sys, multiprocessing, time
 import os
@@ -17,9 +9,123 @@ from datetime import date
 import sqlite3
 import hashlib
 
-# Hardcoding the root admin - it seems the best way for now
+# root admin
 root_admin = "ihptru"
-root_admin_password = "" #only for the successful first run, dont forget to remove it later
+root_admin_password = "password" #only for the successful first run, dont forget to remove it later
+
+### UNCOMMENT BELOW ON THE FIRST RUN
+                #conn = sqlite3.connect('../db/register.db')
+                #cur = conn.cursor()
+                #sql = """CREATE TABLE register (
+                #uid int NOT NULL,
+                #user varchar(20) NOT NULL,
+                #pass varchar(50),
+                #owner boolean NOT NULL DEFAULT '0',
+                #authenticated boolean NOT NULL DEFAULT '0'
+                #)
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #
+                #user_password = hashlib.md5(root_admin_password.encode('utf-8')).hexdigest()     
+                #sql = """INSERT INTO register
+                #        (uid,user,pass,owner)
+                #        VALUES
+                #        (
+                #        1,'"""+root_admin+"','"+str(user_password)+"'"+""",1
+                #        )       
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #cur.close()
+                #conn = sqlite3.connect('../db/black_list.db')
+                #cur=conn.cursor()
+                #sql = """CREATE TABLE black_list (
+                #    uid integer NOT NULL,
+                #    user varchar(30) NOT NULL,
+                #    date_time date NOT NULL,
+                #    count integer NOT NULL
+                #    )        
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #sql = """INSERT INTO black_list
+                #       (uid,user,date_time,count)
+                #       VALUES
+                #       (
+                #       1,'test',strftime('%Y-%m-%d-%H-%M'),1
+                #       )
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #cur.close()
+                # 
+                #conn = sqlite3.connect('../db/commands.db')
+                #cur=conn.cursor()
+                #sql = """CREATE TABLE commands (
+                #        uid integer NOT NULL,
+                #        user varchar(30) NOT NULL,
+                #        command varchar(300) NOT NULL,
+                #        date_time date NOT NULL
+                #)
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #for i in range(31):
+                #    sql = """INSERT INTO commands
+                #        (uid,user,command,date_time)
+                #        VALUES
+                #        (
+                #        1,'test','test_command',strftime('%Y-%m-%d-%H-%M-%S')
+                #        )
+                #    """
+                #    cur.execute(sql)
+                #    conn.commit()
+                #    cur.close()
+                #conn = sqlite3.connect('../db/users.db')
+                #cur=conn.cursor()
+                #sql = """CREATE TABLE users (
+                #uid integer NOT NULL,
+                #user varchar(30) NOT NULL,
+                #date date
+                #)               
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #sql= """INSERT INTO users
+                #        (uid,user)
+                #        VALUES
+                #        (
+                #        1,'test'
+                #        )
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #cur.close()
+                #conn = sqlite3.connect('../db/later.db')
+                #cur=conn.cursor()
+                #sql = """CREATE TABLE later (
+                #        uid integer NOT NULL,
+                #        sender varchar(30) NOT NULL,
+                #        reciever varchar(30) NOT NULL,
+                #        channel varchar(30) NOT NULL,
+                #        date date NOT NULL,
+                #        message varchar(1000) NOT NULL
+                #)             
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #sql = """INSERT INTO later
+                #        (uid,sender,reciever,channel,date,message)
+                #        VALUES
+                #        (
+                #        1,'test','test','#test',strftime('%Y-%m-%d-%H-%M-%S'),'Hello, how are you?'
+                #        )                
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #cur.close()
+###
 
 languages=['af','sq','ar','be','bg','ca','zh-CN','hr','cs','da','nl','en','et','tl','fi','fr','gl','de','el','iw','hi','hu','is','id','ga','it','ja','ko','lv','lt','mk','ml','mt','no','fa','pl','ro','ru','sr','sk','sl','es','sw','sv','th','tr','uk','vi','cy','yi']
 real_langs=['Afrikaans','Albanian','Arabic','Belarusian','Bulgarian','Catalan','Chinese_Simplified','Croatian','Czech','Danish','Dutch','English','Estonian','Filipino','Finnish','French','Galician','German','Greek','Hebrew','Hindi','Hungarian','Icelandic','Indonesian','Irish','Italian','Japanese','Korean','Latvian','Lithuanian','Macedonian','Malay','Maltese','Norwegian','Persian','Polish','Romanian','Russian','Serbian','Slovak','Slovenian','Spanish','Swahili','Swedish','Thai','Turkish','Ukrainian','Vietnamese','Welsh','Yiddish']
@@ -78,7 +184,7 @@ class IRC_Server:
     def listen(self):
         while self.is_connected:
             recv = self.irc_sock.recv( 4096 )
-            ###for logs
+            ### for logs
             a = date.today()
             a = str(a)
             a = a.split('-')
@@ -97,7 +203,7 @@ class IRC_Server:
                 real_minutes = '0'+minutes
             else:
                 real_minutes = minutes
-            ###
+            ### for logs end
             if str(recv).find ( "PING" ) != -1:
                 self.irc_sock.send ( "PONG ".encode() + recv.split() [ 1 ] + "\r\n".encode() )
             #recover all nicks on channel
@@ -127,7 +233,7 @@ class IRC_Server:
                     elif chan == '#openra-dev':
                         chan_d = 'openra-dev'
                     else:
-                        chan_d = 'pms'
+                        chan_d = 'trash'
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                     dir = os.path.dirname(filename)
                     if not os.path.exists(dir):
@@ -135,7 +241,7 @@ class IRC_Server:
                     file = open(filename,'a')
                     file.write(row)
                     file.close()
-                ###
+                ### logs end
                 print ( irc_user_nick + ": " + irc_user_message)
                 # "!" Indicated a command
                 if ( str(irc_user_message[0]) == "]" ):
@@ -153,59 +259,17 @@ class IRC_Server:
                         file = open(filename, 'r')
                         lines = file.readlines()
                         file.close()
-                        video_title = lines[25].split('&#x202a;')[1].split('&#x202c;')[0].replace('&#39;', '\'')
-                        self.send_message_to_channel( ("Youtube: "+video_title), chan )
+                        try:
+                            video_title = lines[25].split('&#x202a;')[1].split('&#x202c;')[0].replace('&#39;', '\'')
+                            self.send_message_to_channel( ("Youtube: "+video_title), chan )
+                        except:
+                            pass    #video is removed or something
             if str(recv).find ( "JOIN" ) != -1:
                 print (str(recv))
                 irc_join_nick = str(recv).split( '!' ) [ 0 ].split( ':' ) [ 1 ]
                 irc_join_host = str(recv).split( '!' ) [ 1 ].split( ' ' ) [ 0 ]
                 chan = str(recv).split( "JOIN" ) [ 1 ].lstrip().split( ":" )[1].rstrip()     #channle ex: #openra
-                
-                #uncomment below on the first run
-                #conn = sqlite3.connect('../db/users.db')
-                #cur=conn.cursor()
-                #sql = """CREATE TABLE users (
-                #uid integer NOT NULL,
-                #user varchar(30) NOT NULL,
-                #date date
-                #)               
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #sql= """INSERT INTO users
-                #        (uid,user)
-                #        VALUES
-                #        (
-                #        1,'test'
-                #        )
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #cur.close()
-                #conn = sqlite3.connect('../db/later.db')
-                #cur=conn.cursor()
-                #sql = """CREATE TABLE later (
-                #        uid integer NOT NULL,
-                #        sender varchar(30) NOT NULL,
-                #        reciever varchar(30) NOT NULL,
-                #        channel varchar(30) NOT NULL,
-                #        date date NOT NULL,
-                #        message varchar(1000) NOT NULL
-                #)             
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #sql = """INSERT INTO later
-                #        (uid,sender,reciever,channel,date,message)
-                #        VALUES
-                #        (
-                #        1,'test','test','#test',strftime('%Y-%m-%d-%H-%M-%S'),'Hello, how are you?'
-                #        )                
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #cur.close()
-                
+
                 conn = sqlite3.connect('../db/users.db')
                 cur=conn.cursor()
                 sql = """SELECT * FROM users
@@ -307,7 +371,7 @@ class IRC_Server:
                     elif self.irc_channel == '#openra-dev':
                         chan_d = 'openra-dev'
                     else:
-                        chan_d = 'pms'
+                        chan_d = 'trash'
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                     dir = os.path.dirname(filename)
                     if not os.path.exists(dir):
@@ -319,6 +383,7 @@ class IRC_Server:
             if str(recv).find ( "QUIT" ) != -1:
                 print (str(recv))
                 irc_quit_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
+                irc_quit_message = str(recv).split('QUIT :')[1].rstrip()
                 conn = sqlite3.connect('../db/register.db')
                 cur = conn.cursor()
                 sql = """SELECT * FROM register
@@ -354,13 +419,13 @@ class IRC_Server:
                 cur.close()
                 ##logs
                 if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
-                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_quit_nick+' has quit\n'
+                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_quit_nick+' has quit ('+irc_quit_message+')\n'
                     if self.irc_channel == '#openra':
                         chan_d = 'openra'
                     elif self.irc_channel == '#openra-dev':
                         chan_d = 'openra-dev'
                     else:
-                        chan_d = 'pms'
+                        chan_d = 'trash'
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                     dir = os.path.dirname(filename)
                     if not os.path.exists(dir):
@@ -406,16 +471,14 @@ class IRC_Server:
                 conn.commit()
                 cur.close()
                 ###logs
-                chan = str(recv).split( "PART" ) [ 1 ].split( " #" ) [ 1 ].split( " " ) [ 0 ]
-                chan = '#'+chan     #channel ex: #openra
-                if chan == '#openra' or chan == '#openra-dev':
+                if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
                     row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_part_nick+' has left '+chan+'\n'
-                    if chan == '#openra':
+                    if self.irc_channel == '#openra':
                         chan_d = 'openra'
-                    elif chan == '#openra-dev':
+                    elif self.irc_channel == '#openra-dev':
                         chan_d = 'openra-dev'
                     else:
-                        chan_d = 'pms'
+                        chan_d = 'trash'
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                     dir = os.path.dirname(filename)
                     if not os.path.exists(dir):
@@ -471,77 +534,8 @@ class IRC_Server:
         # Break the command into pieces, so we can interpret it with arguments
         command = command.split()
         string_command = " ".join(command)
-        
-        #uncomment strings below at first script run
-        #conn = sqlite3.connect('../db/register.db')
-        #cur = conn.cursor()
-        #sql = """CREATE TABLE register (
-        #uid int NOT NULL,
-        #user varchar(20) NOT NULL,
-        #pass varchar(50),
-        #owner boolean NOT NULL DEFAULT '0',
-        #authenticated boolean NOT NULL DEFAULT '0'
-        #)
-        #"""
-        #cur.execute(sql)
-        #conn.commit()
-        #
-        #user_password = hashlib.md5(root_admin_password.encode('utf-8')).hexdigest()     
-        #sql = """INSERT INTO register
-        #        (uid,user,pass,owner)
-        #        VALUES
-        #        (
-        #        1,'"""+root_admin+"','"+str(user_password)+"'"+""",1
-        #        )       
-        #"""
-        #cur.execute(sql)
-        #conn.commit()
-        #cur.close()
-        #conn = sqlite3.connect('../db/black_list.db')
-        #cur=conn.cursor()
-        #sql = """CREATE TABLE black_list (
-        #    uid integer NOT NULL,
-        #    user varchar(30) NOT NULL,
-        #    date_time date NOT NULL,
-        #    count integer NOT NULL
-        #    )        
-        #"""
-        #cur.execute(sql)
-        #conn.commit()
-        #sql = """INSERT INTO black_list
-        #       (uid,user,date_time,count)
-        #       VALUES
-        #       (
-        #       1,'test',strftime('%Y-%m-%d-%H-%M'),1
-        #       )
-        #"""
-        #cur.execute(sql)
-        #conn.commit()
-        #cur.close()
-        # 
-        #conn = sqlite3.connect('../db/commands.db')
-        #cur=conn.cursor()
-        #sql = """CREATE TABLE commands (
-        #        uid integer NOT NULL,
-        #        user varchar(30) NOT NULL,
-        #        command varchar(300) NOT NULL,
-        #        date_time date NOT NULL
-        #)
-        #"""
-        #cur.execute(sql)
-        #conn.commit()
-        #for i in range(31):
-        #    sql = """INSERT INTO commands
-        #        (uid,user,command,date_time)
-        #        VALUES
-        #        (
-        #        1,'test','test_command',strftime('%Y-%m-%d-%H-%M-%S')
-        #        )
-        #    """
-        #    cur.execute(sql)
-        #    conn.commit()
-        #    cur.close()     
 
+### START OF SPAM FILTER
         conn = sqlite3.connect('../db/black_list.db')
         cur=conn.cursor()
         sql = """SELECT * FROM black_list
@@ -728,7 +722,8 @@ class IRC_Server:
                         else:
                             self.send_message_to_channel( (user+", your actions are counted as spam, I will ignore you for "+str(ignore_minutes)+" minutes"), user )        
                         return
-############    commands
+### END OF SPAM FILTER
+############    COMMADS:
             conn = sqlite3.connect('../db/register.db')
             cur = conn.cursor()
             sql = """SELECT * FROM register
@@ -745,7 +740,6 @@ class IRC_Server:
                 authenticated = row[4]
                 if (authenticated == 1):    #he is also authenticated           
                     # All admin only commands go in here.
-                    # The first set of commands are ones that don't take parameters
                     if ( len(command) == 1):
     
                         #This command shuts the bot down.
@@ -957,7 +951,7 @@ class IRC_Server:
                                 user_nicks = user_nicks.split(' ')
                             
                             if user_nick in user_nicks:  #reciever is on the channel right now
-                                self.send_message_to_channel( (user+", "+user_nick+" is on the channel right now! Write to him using /msg or /query"), channel)
+                                self.send_message_to_channel( (user+", "+user_nick+" is on the channel right now!"), channel)
                             else:   #reciever is not on the channel
                                 #check if he exists in database
                                 conn = sqlite3.connect('../db/users.db')
@@ -1001,10 +995,35 @@ class IRC_Server:
                                     cur.execute(sql)
                                     conn.commit()
                                     cur.close()
-                                    self.send_message_to_channel( ("Message to "+user_nick+" has been sent. He will recieve it as soon as he is back"), channel)
+                                    self.send_message_to_channel( ("The operation succeeded"), channel)
                     else:
                         self.send_message_to_channel( ("You can use ]later only on a channel"), user)
             if ( len(command) == 2):
+                if (command[0] == "lang"):
+                    re_str = command[1]
+                    length = int(len(real_langs))
+                    lang = []
+                    code = []
+                    p = re.compile(re_str, re.IGNORECASE)
+                    for i in range(length):
+                        if p.search(real_langs[i]):
+                            lang.append(real_langs[i])
+                            code.append(languages[i])
+                    if len(lang) > 1:
+                        if re.search("^#", channel):
+                            self.send_message_to_channel( ("Too many matches, be more specific"), channel)
+                        else:
+                            self.send_message_to_channel( ("Too many matches, be more specific"), user)
+                    elif len(lang) == 0:
+                        if re.search("^#", channel):
+                            self.send_message_to_channel( ("No matches"), channel)
+                        else:
+                            self.send_message_to_channel( ("No matches"), user)
+                    else:
+                        if re.search("^#", channel):
+                            self.send_message_to_channel( (code[0] + "      " + lang[0]), channel)
+                        else:
+                            self.send_message_to_channel( (code[0] + "      " + lang[0]), user)
                 if (command[0] == "last"):
                     if re.search("^#", channel):
                         conn = sqlite3.connect('../db/users.db')
@@ -1089,7 +1108,7 @@ class IRC_Server:
                                     user_password = command[1]
                                     user_password_hash = hashlib.md5( user_password.encode('utf-8') ).hexdigest()
                                     user_password_hash_in_db = row[2]
-                                    if str(user_password_hash) == str(user_password_hash_in_db):    #password matches
+                                    if str(user_password_hash) == str(user_password_hash_in_db):    #hashes matches
                                         conn = sqlite3.connect('../db/register.db')
                                         cur = conn.cursor()
                                         sql = """UPDATE register
@@ -1298,6 +1317,22 @@ class IRC_Server:
                                     a3=a3+9
                                     a4=a4+9                 
             if ( len(command) == 1):
+                if (command[0] == "version"):
+                    os.system("python ../version.py")
+                    filename = 'version'
+                    file = open(filename, 'r')
+                    line = file.readline()
+                    file.close()
+                    os.remove('version')
+                    if int(line.split()[0].split('.')[0]) < int(line.split()[1].split('.')[0]):
+                        newer = 'playtest is newer then release'
+                    else:
+                        newer = 'release is newer then playtest'
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Latest release: "+line[0:4]+""+line[4:8]+" | Latest playtest: "+line[9:13]+""+line[13:17]+" | "+newer), channel )
+                    else:
+                        self.send_message_to_channel( ("Latest release: "+line[0:4]+""+line[4:8]+" | Latest playtest: "+line[9:13]+""+line[13:17]+" | "+newer), user )  
+                        
                 if (command[0] == "help"):
                     if re.search("^#", channel):
                         self.send_message_to_channel( ("Help: https://github.com/ihptru/orabot/wiki"), channel )
@@ -1328,23 +1363,11 @@ class IRC_Server:
                             self.send_message_to_channel( (str(num_users_online)+" authenticated users online: "+usrs), user)
                 if (command[0] == "hi"):
                     if re.search("^#", channel):
-                        self.send_message_to_channel( ("Hello, " + user), channel )
+                        self.send_message_to_channel( ("Yo " + user + "! Whats up?"), channel )
                     else:
                         self.send_message_to_channel( ("Hello, " + user), user)
                 if (command[0] == "tr"):
-                    self.send_message_to_channel( ("Usage: ]tr <from language> <to language> <text to translate>   |   To get a list of the available languages in private: ]langs   |   For example, to translate from English to German: ]tr en de Thank you"), user)
-                if (command[0] == "langs"):
-                    b=0
-                    for i in range(25):
-                        line1 = languages[b].ljust(8)+real_langs[b].ljust(20)
-                        b=b+1
-                        line2 = languages[b].ljust(8)+real_langs[b].ljust(20)
-                        line_output=line1+'| '+line2
-                        time.sleep(1)
-                        self.send_message_to_channel( (line_output), user)
-                        b=b+1
-                        if b == 50:
-                            break
+                    self.send_message_to_channel( ("Usage: ]tr <from language> <to language> <text to translate>   |   To get a language code, type ]lang <patter>  where <patter> is part of language name  |   For example, to translate from English to German: ]tr en de Thank you"), user)
                 if (command[0] == "games"):
                     try:
                         os.system("wget http://master.open-ra.org/list.php > /dev/null 2>&1")
