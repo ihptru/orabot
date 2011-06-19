@@ -14,7 +14,7 @@ root_admin = "ihptru"
 root_admin_password = "password" #only for the successful first run, dont forget to remove it later
 
 ### UNCOMMENT BELOW ON THE FIRST RUN
-                #conn = sqlite3.connect('../db/register.db')
+                #conn = sqlite3.connect('../db/openra.sqlite')
                 #cur = conn.cursor()
                 #sql = """CREATE TABLE register (
                 #uid int NOT NULL,
@@ -37,8 +37,6 @@ root_admin_password = "password" #only for the successful first run, dont forget
                 #"""
                 #cur.execute(sql)
                 #conn.commit()
-                #cur.close()
-                #conn = sqlite3.connect('../db/black_list.db')
                 #cur=conn.cursor()
                 #sql = """CREATE TABLE black_list (
                 #    uid integer NOT NULL,
@@ -58,9 +56,7 @@ root_admin_password = "password" #only for the successful first run, dont forget
                 #"""
                 #cur.execute(sql)
                 #conn.commit()
-                #cur.close()
-                # 
-                #conn = sqlite3.connect('../db/commands.db')
+                #
                 #cur=conn.cursor()
                 #sql = """CREATE TABLE commands (
                 #        uid integer NOT NULL,
@@ -81,8 +77,6 @@ root_admin_password = "password" #only for the successful first run, dont forget
                 #    """
                 #    cur.execute(sql)
                 #    conn.commit()
-                #    cur.close()
-                #conn = sqlite3.connect('../db/users.db')
                 #cur=conn.cursor()
                 #sql = """CREATE TABLE users (
                 #uid integer NOT NULL,
@@ -101,8 +95,6 @@ root_admin_password = "password" #only for the successful first run, dont forget
                 #"""
                 #cur.execute(sql)
                 #conn.commit()
-                #cur.close()
-                #conn = sqlite3.connect('../db/later.db')
                 #cur=conn.cursor()
                 #sql = """CREATE TABLE later (
                 #        uid integer NOT NULL,
@@ -267,12 +259,12 @@ class IRC_Server:
                             pass    #video is removed or something
             if str(recv).find ( "JOIN" ) != -1:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+                cur=conn.cursor()
                 print (str(recv))
                 irc_join_nick = str(recv).split( '!' ) [ 0 ].split( ':' ) [ 1 ]
                 irc_join_host = str(recv).split( '!' ) [ 1 ].split( ' ' ) [ 0 ]
                 chan = str(recv).split( "JOIN" ) [ 1 ].lstrip().split( ":" )[1].rstrip()     #channle ex: #openra
 
-                cur=conn.cursor()
                 sql = """SELECT * FROM users
                         WHERE user = '"""+irc_join_nick+"'"+"""
                 """
@@ -283,7 +275,6 @@ class IRC_Server:
                     pass
                 if irc_join_nick not in row:     #user NOT found, add him (if user is not in db, he could not have ]later message)
                     #get last uid
-                    cur=conn.cursor()
                     sql = """SELECT * FROM users
                             ORDER BY uid DESC LIMIT 1
                     """
@@ -294,7 +285,6 @@ class IRC_Server:
                         pass
                     uid_users = row[0]
                     uid_users = uid_users + 1   # uid + 1
-                    cur=conn.cursor()
                     sql = """INSERT INTO users
                             (uid,user)
                             VALUES
@@ -305,7 +295,6 @@ class IRC_Server:
                     cur.execute(sql)
                     conn.commit()
                 else:   #he can have ]later messages
-                    cur=conn.cursor()
                     sql = """SELECT reciever FROM later
                             WHERE reciever = '"""+irc_join_nick+"'"+"""
                     """
@@ -316,7 +305,6 @@ class IRC_Server:
                     for row in cur:
                         pass
                     if irc_join_nick in row:    #he has messages in database, read it
-                        cur=conn.cursor()
                         sql = """SELECT * FROM later
                                 WHERE reciever = '"""+irc_join_nick+"'"+"""
                         """
@@ -336,7 +324,6 @@ class IRC_Server:
                             self.send_message_to_channel( ("### From: "+who_sent+";  channel: "+on_channel+";  date: "+message_date), irc_join_nick )
                             self.send_message_to_channel( (offline_message.replace("~qq~","'")), irc_join_nick )
                         time.sleep(0.1)
-                        cur=conn.cursor()
                         sql = """DELETE FROM later
                                 WHERE reciever = '"""+irc_join_nick+"'"+"""
                         
@@ -344,7 +331,6 @@ class IRC_Server:
                         
                         cur.execute(sql)
                         conn.commit()
-                    cur=conn.cursor()
                     sql = """UPDATE users
                             SET date = ''
                             WHERE user = '"""+irc_join_nick+"'"+"""
@@ -371,10 +357,10 @@ class IRC_Server:
                 ###
             if str(recv).find ( "QUIT" ) != -1:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+                cur=conn.cursor()
                 print (str(recv))
                 irc_quit_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
                 irc_quit_message = str(recv).split('QUIT :')[1].rstrip()
-                cur = conn.cursor()
                 sql = """SELECT * FROM register
                         WHERE user = '"""+irc_quit_nick+"'"+"""
                 """
@@ -386,7 +372,6 @@ class IRC_Server:
                 if irc_quit_nick in row:
                     authenticated = row[4]
                     if authenticated == 1:
-                        cur = conn.cursor()
                         sql = """UPDATE register
                                 SET authenticated = 0
                                 WHERE user = '"""+irc_quit_nick+"'"+"""
@@ -394,7 +379,6 @@ class IRC_Server:
                         cur.execute(sql)
                         conn.commit()
                 ### for ]last              
-                cur=conn.cursor()
                 sql = """UPDATE users
                         SET date = strftime('%Y-%m-%d-%H-%M-%S')
                         WHERE user = '"""+str(irc_quit_nick)+"'"+"""
@@ -420,10 +404,10 @@ class IRC_Server:
                     file.close()
             if str(recv).find ( "PART" ) != -1:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+                cur=conn.cursor()
                 print (str(recv))
                 irc_part_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
                 ###logout
-                cur = conn.cursor()
                 sql = """SELECT * FROM register
                         WHERE user = '"""+irc_part_nick+"'"+"""
                 """
@@ -435,7 +419,6 @@ class IRC_Server:
                 if irc_part_nick in row:
                     authenticated = row[4]
                     if authenticated == 1:
-                        cur = conn.cursor()
                         sql = """UPDATE register
                                 SET authenticated = 0
                                 WHERE user = '"""+irc_part_nick+"'"+"""
@@ -443,7 +426,6 @@ class IRC_Server:
                         cur.execute(sql)
                         conn.commit()
                 ### for ]last              
-                cur=conn.cursor()
                 sql = """UPDATE users
                         SET date = strftime('%Y-%m-%d-%H-%M-%S')
                         WHERE user = '"""+str(irc_part_nick)+"'"+"""
@@ -593,7 +575,6 @@ class IRC_Server:
                 check_ignore = '0'
         if check_ignore == '0':
             #get last uid_commands
-            cur=conn.cursor()
             sql = """SELECT * FROM commands
                     ORDER BY uid DESC LIMIT 1
             """
@@ -606,15 +587,13 @@ class IRC_Server:
             
             uid_commands = uid_commands + 1
             #clear 'commands' table after each 1 000 000 record
-            if uid_commands >= 1000000:
+            if uid_commands >= 1000:
                 uid_commands = 1
-                cur=conn.cursor()
-                sql = """DELETE FROM commands"""
+                sql = """DELETE FROM commands WHERE uid > 1"""
                 cur.execute(sql)
                 conn.commit()
     
-            #write each command into 'commands' table
-            cur=conn.cursor()   
+            #write each command into 'commands' table 
             sql = """INSERT INTO commands
                     (uid,user,command,date_time)
                     VALUES
@@ -626,7 +605,6 @@ class IRC_Server:
             conn.commit()
             
             #extract last 30 records
-            cur=conn.cursor()
             sql = """SELECT * FROM commands
                 ORDER BY uid DESC LIMIT 30
             """
@@ -637,7 +615,6 @@ class IRC_Server:
             for row in cur:
                 var.append(row)
             var.reverse()
-            cur.close()
             actual=[]
             user_data=[]
             for i in range(30):
@@ -651,11 +628,10 @@ class IRC_Server:
                 #get player's (last - 10) record
                 user_data_len10 = user_data_length - 10
                 actual=user_data[user_data_len10]
-                first_date="".join(actual[1].split('-'))    #last - 10 record
+                first_date="".join(actual[1].split('-'))    #date and time of last - 10 record
                 last_date="".join(user_data[user_data_length-1][1].split('-'))  #current date/time
                 seconds_range=int(last_date)-int(first_date)  #how many seconds between player's commands
                 if seconds_range < 30:  #player made more then 10 commands in range of 30 seconds. It is too quick, spam!
-                    cur=conn.cursor()
                     sql = """SELECT * FROM black_list
                             WHERE user = '"""+user+"'"+"""
                     """
@@ -667,7 +643,7 @@ class IRC_Server:
                         pass
                     if user not in row:   #user does not exist in 'black_list' table yet
                         #get last uid_black_list
-                        cur=conn.cursor()
+
                         sql = """SELECT * FROM black_list
                                 ORDER BY uid DESC LIMIT 1
                         """
@@ -679,7 +655,6 @@ class IRC_Server:
                         uid_black_list=row[0]
                         uid_black_list = uid_black_list + 1
                         
-                        cur=conn.cursor()
                         sql = """INSERT INTO black_list
                             (uid,user,date_time,count)
                             VALUES
@@ -692,14 +667,12 @@ class IRC_Server:
                     else:   #in row : exists in 'black_table'
                         count_ignore = row[3]
                         count_ignore = count_ignore + 1
-                        cur=conn.cursor()
                         sql = """UPDATE black_list
                                 SET count = """+str(count_ignore)+", "+"""date_time = strftime('%Y-%m-%d-%H-%M')
                                 WHERE user = '"""+user+"'"+""" 
                         """
                         cur.execute(sql)
                         conn.commit()
-                    cur=conn.cursor()
                     sql = """SELECT * FROM black_list
                         WHERE user = '"""+user+"'"+"""
                     """
@@ -720,7 +693,7 @@ class IRC_Server:
                         return
 ### END OF SPAM FILTER
 ############    COMMADS:
-            cur = conn.cursor()
+            ### check if user is registered for privileged commands
             sql = """SELECT * FROM register
                     WHERE user = '"""+user+"'"+"""
             """
@@ -733,19 +706,17 @@ class IRC_Server:
                 owner = row[3]
                 authenticated = row[4]
                 if (authenticated == 1):    #he is also authenticated           
-                    # All admin only commands go in here.
-                    if ( len(command) == 1):
-    
-                        #This command shuts the bot down.
-                        if (command[0] == "quit"):
+                    ### All admin only commands go in here.
+                    if ( command[0].lower() == "quit" ):
+                        if ( len(command) == 1 ):
                             str_buff = ( "QUIT %s \r\n" ) % (channel)
                             self.irc_sock.send (str_buff.encode())
                             self.irc_sock.close()
                             self.is_connected = False
                             self.should_reconnect = False
-                        if (command[0] == "log"):
+                    if ( command[0].lower() == "log" ):
+                        if ( len(command) == 1 ):
                             if not re.search("^#", channel):
-                                cur = conn.cursor()
                                 sql = """SELECT * FROM commands
                                         ORDER BY uid DESC LIMIT 10
                                 """
@@ -763,74 +734,72 @@ class IRC_Server:
                                     self.send_message_to_channel( ("User: "+actual[0]+"; Date: "+actual[2]+"; Command: ]"+actual[1].replace("~qq~","'")), user)
                                     actual = []
                                     time.sleep(0.5)
-                    # These commands take parameters
-                    else:
-                        if (len(command) == 2):                              
-                            if (command[0] == "add"):
-                                nick = command[1]
-                                cur=conn.cursor()
-                                sql = """SELECT * FROM users
-                                        ORDER BY uid DESC LIMIT 1
-                                """
-                                cur.execute(sql)
-                                conn.commit()
-                                for row in cur:
-                                    pass
-                                uid_users=row[0]
-                                uid_users = uid_users + 1
+                            else:
+                                self.send_message_to_channel( ("]log can't be used on a channel"), channel)
+                    if ( command[0].lower() == "add" ):
+                        if ( len(command) == 2 ):
+                            nick = command[1]
+                            sql = """SELECT * FROM users
+                                    ORDER BY uid DESC LIMIT 1
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            for row in cur:
+                                pass
+                            uid_users=row[0]
+                            uid_users = uid_users + 1
                             
-                                cur = conn.cursor()
-                                sql = """SELECT * FROM users
-                                        WHERE user = '"""+nick+"'"+"""
+                            sql = """SELECT * FROM users
+                                    WHERE user = '"""+nick+"'"+"""
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            row = []
+                            for row in cur:
+                                pass
+                            if nick in row: #users exists in database already
+                                if re.search("^#", channel):
+                                    self.send_message_to_channel( ("Error! User already exists"), channel)
+                                else:
+                                    self.send_message_to_channel( ("Error! User already exists"), user)
+                            else:   
+                                sql = """INSERT INTO users
+                                    (uid,user)
+                                    VALUES
+                                    (
+                                    """+str(uid_users)+",'"+nick+"'"+"""
+                                    )
                                 """
                                 cur.execute(sql)
                                 conn.commit()
-                                row = []
-                                for row in cur:
-                                    pass
-                                if nick in row: #users exists in database already
-                                    if re.search("^#", channel):
-                                        self.send_message_to_channel( ("Error! User already exists"), channel)
-                                    else:
-                                        self.send_message_to_channel( ("Error! User already exists"), user)
-                                else:   
-                                    cur=conn.cursor()
-                                    sql = """INSERT INTO users
-                                        (uid,user)
-                                        VALUES
-                                        (
-                                        """+str(uid_users)+",'"+nick+"'"+"""
-                                        )
-                                    """
-                                    cur.execute(sql)
-                                    conn.commit()
-                                    if re.search("^#", channel):
-                                        self.send_message_to_channel( ("Confirmed"), channel)
-                                    else:
-                                        self.send_message_to_channel( ("Confirmed"), user)
-                            # This command makes the bot join a channel
-                            # This needs to be rewritten in a better way, to catch multiple channels
-                            if (command[0] == "join"):
-                                if ( (command[1])[0] == "#"):
-                                    irc_channel = command[1]
+                                if re.search("^#", channel):
+                                    self.send_message_to_channel( ("Confirmed"), channel)
                                 else:
-                                    irc_channel = "#" + command[1]
-                                self.join_channel(irc_channel)
-    
-                            # This command makes the bot part a channel
-                            # This needs to be rewritten in a better way, to catch multiple channels
-                            if (command[0] == "part"):
-                                if ( (command[1])[0] == "#"):
-                                    irc_channel = command[1]
-                                else:
-                                    irc_channel = "#" + command[1]
-                                self.quit_channel(irc_channel)
-                    if (owner == 1):    #owner commands go here
-                        if not re.search("^#", channel):    #owner commands only in private
-                            if (len(command) == 2):
-                                if (command[0] == "register"):      #owner command to allow users register
+                                    self.send_message_to_channel( ("Confirmed"), user)
+                        else:
+                            if re.search("^#", channel):
+                                self.send_message_to_channel( ("Error, wrong request"), channel )
+                            else:
+                                self.send_message_to_channel( ("Error, wrong request"), user )
+                    if ( command[0].lower() == "join" ):
+                        if ( len(command) == 2 ):
+                            if ( (command[1])[0] == "#"):
+                                irc_channel = command[1]
+                            else:
+                                irc_channel = "#" + command[1]
+                            self.join_channel(irc_channel)
+                    if ( command[0].lower() == "part" ):
+                        if ( len(command) == 2 ):
+                            if ( (command[1])[0] == "#"):
+                                irc_channel = command[1]
+                            else:
+                                irc_channel = "#" + command[1]
+                            self.quit_channel(irc_channel)
+                    if ( command[0].lower() == "register" ):      #owner command to allow users register
+                        if ( len(command) == 2 ):
+                            if ( owner == 1 ):
+                                if not re.search("^#", channel):    #owner commands only in private
                                     register_nick = command[1]
-                                    cur = conn.cursor()
                                     sql = """SELECT * FROM register
                                             WHERE user = '"""+register_nick+"'"+"""
                                     """
@@ -842,7 +811,6 @@ class IRC_Server:
                                     if register_nick in row:
                                         self.send_message_to_channel( ("User "+register_nick+" already exists"), user)
                                     else:
-                                        cur = conn.cursor()
                                         sql = """SELECT * FROM register
                                                 ORDER BY uid DESC LIMIT 1                                       
                                         """
@@ -864,7 +832,7 @@ class IRC_Server:
                                         conn.commit()
                                         self.send_message_to_channel( ("User "+register_nick+" added successfully, he can use ]register to set up a password"), user)
     
-            # All public commands go here
+            ### All public commands go here
             #########################################################################################
             if ( command[0].lower() == "games" ):
                 if ( len(command) == 1 ):
@@ -1291,7 +1259,6 @@ class IRC_Server:
                                 self.send_message_to_channel( (user+", "+user_nick+" is on the channel right now!"), channel)
                             else:   #reciever is not on the channel
                                 #check if he exists in database
-                                cur=conn.cursor()
                                 sql = """SELECT user FROM users
                                         WHERE user = '"""+user_nick+"'"+"""
                                 
@@ -1305,7 +1272,6 @@ class IRC_Server:
                                     self.send_message_to_channel( ("Error! No such user in my database"), channel)
                                 else:   #users exists
                                     #get uid
-                                    cur=conn.cursor()
                                     sql = """SELECT * FROM later
                                             ORDER BY uid DESC LIMIT 1
                                     """
@@ -1316,7 +1282,6 @@ class IRC_Server:
                                         pass
                                     uid_later=row[0]
                                     uid_later = uid_later + 1
-                                    cur=conn.cursor()
                                     sql = """INSERT INTO later
                                             (uid,sender,reciever,channel,date,message)
                                             VALUES
@@ -1337,7 +1302,6 @@ class IRC_Server:
             if ( command[0].lower() == "last" ):
                 if ( len(command) == 2 ):
                     if re.search("^#", channel):
-                        cur = conn.cursor()
                         sql = """SELECT * FROM users
                                 WHERE user = '"""+command[1]+"'"+"""
                         """
@@ -1371,7 +1335,6 @@ class IRC_Server:
             if ( command[0].lower() == "register" ):
                 if ( len(command) == 2 ):
                     if not re.search("^#", channel):
-                        cur = conn.cursor()
                         sql = """SELECT * FROM register
                                 WHERE user = '"""+user+"'"+"""
                         """
@@ -1388,7 +1351,6 @@ class IRC_Server:
                                 if row[2] == None:  #password field is empty - this user is set to be registered by owner
                                     user_password = command[1]
                                     pass_to_db = hashlib.md5( user_password.encode('utf-8') ).hexdigest()
-                                    cur = conn.cursor()
                                     sql = """UPDATE register
                                             SET pass = '"""+str(pass_to_db)+"'"+"""
                                             WHERE user = '"""+user+"'"+"""
@@ -1399,10 +1361,8 @@ class IRC_Server:
                                 else:
                                     self.send_message_to_channel( ("You are already registered"), user)
                     else:
-                        if re.search("^#", channel):
-                            self.send_message_to_channel( ("Error, ]register can't be used on a channel"), channel )
-                        else:
-                            self.send_message_to_channel( ("Error, ]register can't be used on a channel"), user )
+                        self.send_message_to_channel( ("Error, ]register can't be used on a channel"), channel )
+
                 elif ( len(command) == 1 ):
                     if re.search("^#", channel):
                         self.send_message_to_channel( ("Usage: ]register password"), channel )
@@ -1416,7 +1376,6 @@ class IRC_Server:
             if ( command[0].lower() == "login" ):
                 if ( len(command) == 2 ):
                     if not re.search("^#", channel):
-                        cur = conn.cursor()
                         sql = """SELECT * FROM register
                                 WHERE user = '"""+user+"'"+"""
                         """
@@ -1438,7 +1397,6 @@ class IRC_Server:
                                     user_password_hash = hashlib.md5( user_password.encode('utf-8') ).hexdigest()
                                     user_password_hash_in_db = row[2]
                                     if ( str(user_password_hash) == str(user_password_hash_in_db) ):    #hashes matches
-                                        cur = conn.cursor()
                                         sql = """UPDATE register
                                                 SET authenticated = 1
                                                 WHERE user = '"""+user+"'"+"""
@@ -1465,7 +1423,6 @@ class IRC_Server:
                         self.send_message_to_channel( ("Error, wrong request"), user )
             if ( command[0].lower() == "online"):
                 if ( len(command) == 1 ):
-                    cur = conn.cursor()
                     sql = """SELECT * FROM register
                             WHERE authenticated = 1
                     """
@@ -1498,7 +1455,6 @@ class IRC_Server:
             if ( command[0].lower() == "if" ):
                 if ( len(command) == 2 ):
                     nick = command[1]
-                    cur=conn.cursor()
                     sql = """SELECT * FROM users
                             WHERE user = '"""+nick+"'"+"""
                     """
@@ -1525,7 +1481,6 @@ class IRC_Server:
                         self.send_message_to_channel( ("Error, wrong request"), user )
             if ( command[0].lower() == "add" ):
                 if ( len(command) == 2 ):
-                    cur = conn.cursor()
                     sql = """SELECT * FROM register
                             WHERE user = '"""+user+"'"+"""
                     """
