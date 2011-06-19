@@ -213,7 +213,7 @@ class IRC_Server:
             #    user_nicks = user_nicks.replace('+','').replace('@','')
             #    user_nicks = user_nicks.split(' ')
             #    self.nicks = user_nicks
-            if str(recv).find ( "PRIVMSG" ) != -1: 
+            if str(recv).find ( "PRIVMSG" ) != -1:
                 irc_user_nick = str(recv).split ( '!' ) [ 0 ] . split ( ":")[1]
                 irc_user_host = str(recv).split ( '@' ) [ 1 ] . split ( ' ' ) [ 0 ]
                 irc_user_message = self.data_to_message(str(recv)).encode('utf-8').decode('utf-8')
@@ -565,7 +565,7 @@ class IRC_Server:
                 self.send_message_to_channel( (error), user)
             return
         # So the command isn't case sensitive
-        command = (self.command).lower()
+        command = (self.command)
         # Break the command into pieces, so we can interpret it with arguments
         command = command.split()
         string_command = " ".join(command)
@@ -919,8 +919,281 @@ class IRC_Server:
     
             # All public commands go here
             #########################################################################################
-            if ( len(command) > 1):
-                if (command[0] == "ana" ):
+            if ( command[0].lower() == "games" ):
+                if ( len(command) == 1 ):
+                    try:
+                        os.system("wget http://master.open-ra.org/list.php > /dev/null 2>&1")
+                        filename = "list.php"
+                        file = open(filename, 'r')
+                        lines = file.readlines()    #got a list
+                        file.close()
+                        os.system("rm list.php")
+                        length = len(lines)
+                        if ( length == 1 ):
+                            if re.search("^#", channel):
+                                self.send_message_to_channel( ("No games found"), channel )
+                            else:
+                                self.send_message_to_channel( ("No games found"), user )
+                        else:
+                            length = length / 9
+                            a1=2    #name
+                            loc=3   #ip
+                            a2=4    #state
+                            a3=5    #players
+                            a4=7    #version
+                            games=''
+                            count='0'
+                            for i in range(int(length)):
+                                if ( lines[a2].lstrip().rstrip() == 'State: 1' ):
+                                    count='1'   # lock - there are games in State: 1
+                                    state = '(W)'
+                                    ### for location
+                                    ip=lines[loc].split(':')[1].lstrip()    # ip address
+                                    os.system("whois "+ip+" > whois_info")
+                                    filename = 'whois_info'
+                                    file = open(filename,'r')
+                                    who = file.readlines()
+                                    file.close()
+                                    a =  str(who).split()
+                                    try:
+                                        index = a.index('\'country:')
+                                        index = int(index) + 1
+                                        code = a[index]
+                                        code = code[:-4].upper()    #got country code
+                                        code_index = codes.index(code)
+                                        country = match_codes[code_index]   #got country name
+                                    except:
+                                        country = 'USA' #whois does not show coutry code for most USA IPs and some Canadians (did not find a way to determine where USA and where Canada is)
+                                    sname = lines[a1].encode('utf-8').decode('utf-8')
+                                    sname = str(sname)
+                                    if ( len(sname) == 0 ):
+                                        sname = 'noname'
+                                    games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
+                                    if re.search("^#", channel):
+                                        self.send_message_to_channel( (games), channel )
+                                    else:
+                                        self.send_message_to_channel( (games), user )
+                                a1=a1+9 
+                                loc=loc+9
+                                a2=a2+9
+                                a3=a3+9
+                                a4=a4+9
+                            if ( count == "0" ):    #appeared no games in State: 1
+                                if re.search("^#", channel):
+                                    self.send_message_to_channel( ("No games waiting for players found"), channel )
+                                else:
+                                    self.send_message_to_channel( ("No games waiting for players found"), user )
+                    except:
+                        exc = "]games crashed; Request: "+str(command)+"\n"
+                        filename = 'except_log.txt'
+                        file = open(filename, 'a')
+                        file.write(exc)
+                        file.close()            
+                elif ( len(command) == 2 ):   # ]games with args
+                    try:
+                        os.system("wget http://master.open-ra.org/list.php > /dev/null 2>&1")
+                        filename = 'list.php'
+                        file = open(filename, 'r')
+                        lines = file.readlines()
+                        file.close()
+                        os.system("rm list.php")
+                        length = len(lines)
+                        if ( length == 1 ):
+                            if re.search("^#", channel):
+                                self.send_message_to_channel( ("No games found"), channel)
+                            else:
+                                self.send_message_to_channel( ("No games found"), user)
+                        else:   # there are one or more games
+                            if ( command[1] == "1" ):   #request games in State = 1
+                                length = length / 9 # number of games
+                                a1=2    #name
+                                loc=3   #ip
+                                a2=4    #state
+                                a3=5    #players
+                                a4=7    #version
+                                count='0'
+                                for i in range(int(length)):
+                                    if ( lines[a2].lstrip().rstrip() == 'State: 1' ):
+                                        count='1'   # lock - there are games in State: 1
+                                        state = '(W)'
+                                        ### for location
+                                        ip=lines[loc].split(':')[1].lstrip()    # ip address
+                                        os.system("whois "+ip+" > whois_info")
+                                        filename = 'whois_info'
+                                        file = open(filename,'r')
+                                        who = file.readlines()
+                                        file.close()
+                                        a =  str(who).split()
+                                        try:
+                                            index = a.index('\'country:')
+                                            index = int(index) + 1
+                                            code = a[index]
+                                            code = code[:-4].upper()    #got country code
+                                            code_index = codes.index(code)
+                                            country = match_codes[code_index]
+                                        except:
+                                            country = 'USA'
+                                        sname = lines[a1].encode('utf-8').decode('utf-8')
+                                        sname = str(sname)
+                                        if ( len(sname) == 0 ):
+                                            sname = 'noname'
+                                        games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
+                                        if re.search("^#", channel):
+                                            self.send_message_to_channel( (games), channel )
+                                        else:
+                                            self.send_message_to_channel( (games), user )
+                                    a1=a1+9
+                                    loc=loc+9
+                                    a2=a2+9
+                                    a3=a3+9
+                                    a4=a4+9
+                                if ( count == "0" ):
+                                    if re.search("^#", channel):
+                                        self.send_message_to_channel( ("No games waiting for players found"), channel )
+                                    else:
+                                        self.send_message_to_channel( ("No games waiting for players found"), user )           
+                            elif ( command[1] == "2" ):     # request games in State = 2
+                                length = length / 9 # number of games
+                                a1=2    #name
+                                loc=3   #ip
+                                a2=4    #state
+                                a3=5    #players
+                                a4=7    #version
+                                count = '0'
+                                for i in range(int(length)):
+                                    if ( lines[a2].lstrip().rstrip() == 'State: 2' ):
+                                        count='1'   # lock - there are games in State: 2
+                                        state = '(P)'
+                                        ### for location
+                                        ip=lines[loc].split(':')[1].lstrip()    # ip address
+                                        os.system("whois "+ip+" > whois_info")
+                                        filename = 'whois_info'
+                                        file = open(filename,'r')
+                                        who = file.readlines()
+                                        file.close()
+                                        a =  str(who).split()
+                                        try:
+                                            index = a.index('\'country:')
+                                            index = int(index) + 1
+                                            code = a[index]
+                                            code = code[:-4].upper()    #got country code
+                                            code_index = codes.index(code)
+                                            country = match_codes[code_index]
+                                        except:
+                                            country = 'USA'
+                                        sname = lines[a1].encode('utf-8').decode('utf-8')
+                                        sname = str(sname)
+                                        if ( len(sname) == 0 ):
+                                            sname = 'noname'
+                                        games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
+                                        if re.search("^#", channel):
+                                            self.send_message_to_channel( (games), channel )
+                                        else:
+                                            self.send_message_to_channel( (games), user )
+                                    a1=a1+9
+                                    loc=loc+9
+                                    a2=a2+9
+                                    a3=a3+9
+                                    a4=a4+9
+                                if ( count == "0" ):    #appeared no games in State: 2
+                                    if re.search("^#", channel):
+                                        self.send_message_to_channel( ("No started games found"), channel )
+                                    else:
+                                        self.send_message_to_channel( ("No started games found"), user )
+                            else:   #it is pattern
+                                chars=['*','.','$','^','@','{','}','+','?'] # chars to ignore
+                                for i in range(int(len(chars))):
+                                    if chars[i] in command[1]:
+                                        check = 'tru'
+                                        break
+                                    else:
+                                        check = 'fals'
+                                if ( check == 'fals' ):     #requested pattern does not contain any of 'forbidden' chars
+                                    p = re.compile(command[1], re.IGNORECASE)
+                                    length = length / 9 # number of games
+                                    a1=2    #name
+                                    loc=3   #ip
+                                    a2=4    #state
+                                    a3=5    #players
+                                    a4=7    #version
+                                    count='0'
+                                    for i in range(int(length)):
+                                        if p.search(lines[a1]):
+                                            count='1'   # lock
+                                            if ( lines[a2].lstrip().rstrip() == 'State: 1' ):
+                                                state = '(W)'
+                                            elif ( lines[a2].lstrip().rstrip() == 'State: 2' ):
+                                                state = '(P)'
+                                            ### for location
+                                            ip=lines[loc].split(':')[1].lstrip()    # ip address
+                                            os.system("whois "+ip+" > whois_info")
+                                            filename = 'whois_info'
+                                            file = open(filename,'r')
+                                            who = file.readlines()
+                                            file.close()
+                                            a =  str(who).split()
+                                            try:
+                                                index = a.index('\'country:')
+                                                index = int(index) + 1
+                                                code = a[index]
+                                                code = code[:-4].upper()    #got country code
+                                                code_index = codes.index(code)
+                                                country = match_codes[code_index]
+                                            except:
+                                                country = 'USA'
+                                            sname = lines[a1].encode('utf-8').decode('utf-8')
+                                            sname = str(sname)
+                                            if ( len(sname) == 0 ):
+                                                sname = 'noname'
+                                            games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
+                                            if re.search("^#", channel):
+                                                self.send_message_to_channel( (games), channel)
+                                            else:
+                                                self.send_message_to_channel( (games), user)
+                                        a1=a1+9
+                                        loc=loc+9
+                                        a2=a2+9
+                                        a3=a3+9
+                                        a4=a4+9
+                                if ( count == "0" ):    #appeared no matches
+                                    if re.search("^#", channel):
+                                        self.send_message_to_channel( ("No matches"), channel )
+                                    else:
+                                        self.send_message_to_channel( ("No matches"), user )
+                    except:
+                        exc = "]games crashed; Request: "+str(command)+"\n"
+                        filename = 'except_log.txt'
+                        file = open(filename, 'a')
+                        file.write(exc)
+                        file.close()
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Error, wrong request"), channel )
+                    else:
+                        self.send_message_to_channel( ("Error, wrong request"), user )
+            if ( command[0].lower() == "version" ):
+                if ( len(command) == 1 ):
+                    os.system("python ../version.py")
+                    filename = 'version'
+                    file = open(filename, 'r')
+                    line = file.readline()
+                    file.close()
+                    os.remove('version')
+                    if ( int(line.split()[0].split('.')[0]) < int(line.split()[1].split('.')[0]) ):
+                        newer = 'playtest is newer then release'
+                    else:
+                        newer = 'release is newer then playtest'
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Latest release: "+line[0:4]+""+line[4:8]+" | Latest playtest: "+line[9:13]+""+line[13:17]+" | "+newer), channel )
+                    else:
+                        self.send_message_to_channel( ("Latest release: "+line[0:4]+""+line[4:8]+" | Latest playtest: "+line[9:13]+""+line[13:17]+" | "+newer), user )
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Error, wrong request"), channel )
+                    else:
+                        self.send_message_to_channel( ("Error, wrong request"), user )
+            if ( command[0].lower() == "ana" ):
+                if ( len(command) > 1 ):
                     word = " ".join(command[1:])
                     os.system("python ../ana.py "+word)
                     filename = 'anagram.txt'
@@ -931,8 +1204,35 @@ class IRC_Server:
                         self.send_message_to_channel( (w_choice), channel)
                     else:
                         self.send_message_to_channel( (w_choice), user)
-            if ( len(command) > 3):
-                if ( command[0] == "randomteam" ):
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("You must specify some text"), channel )
+                    else:
+                        self.send_message_to_channel( ("You must specify some text"), user )
+            if ( command[0].lower() == "help" ):
+                if ( len(command) == 1 ):
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Help: https://github.com/ihptru/orabot/wiki"), channel )
+                    else:
+                        self.send_message_to_channel( ("Help: https://github.com/ihptru/orabot/wiki"), user )
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("I don't know anything about '"+" ".join(command[1:])+"'"), channel )
+                    else:
+                        self.send_message_to_channel( ("I don't know anything about '"+" ".join(command[1:])+"'"), user )
+            if ( command[0].lower() == "hi" ):
+                if ( len(command) == 1 ):
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Yo " + user + "! Whats up?"), channel )
+                    else:
+                        self.send_message_to_channel( ("Yo " + user + "! Whats up?"), user)
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Yo " + user + "! Whats up? And wth is '"+" ".join(command[1:])+"'"), channel )
+                    else:
+                        self.send_message_to_channel( ("Yo " + user + "! Whats up? And wth is '"+" ".join(command[1:])+"'"), user )
+            if ( command[0].lower() == "randomteam" ):
+                if ( len(command) > 3 ):
                     team_names = " ".join(command[1:])
                     os.system("python ../pyrand.py "+team_names)
                     filename = 'pyrand.txt'
@@ -943,7 +1243,17 @@ class IRC_Server:
                         self.send_message_to_channel( (result_pyrand.rstrip()), channel)
                     else:
                         self.send_message_to_channel( (result_pyrand.rstrip()), user)
-                if ( command[0] == "tr"):
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("You must specify at least 3 teams"), channel)
+                    else:
+                        self.send_message_to_channel( ("You must specify at least 3 teams"), user)
+            if ( command[0].lower() == "tr" ):
+                if ( len(command) == 1 ):
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("I sent you pm in private with 'Usage'"), channel)
+                    self.send_message_to_channel( ("Usage: ]tr <from language> <to language> <text to translate>   |   To get a language code, type ]lang <patter>  where <patter> is part of language name  |   For example, to translate from English to German: ]tr en de Thank you"), user)
+                elif ( len(command) > 3 ):
                     if command[1] in languages:
                         if command[2] in languages:
                             filename = 'tr.temp'
@@ -956,7 +1266,6 @@ class IRC_Server:
                             file.write(line)
                             file.close()
                             os.system("python ../tr.py")
-                            time.sleep(0.5)
                             filename = 'tr.text'
                             file = open(filename, 'r')
                             text = file.readline()
@@ -965,11 +1274,57 @@ class IRC_Server:
                                 self.send_message_to_channel( (text), channel)
                             else:
                                 self.send_message_to_channel( (text), user)
-            if ( len(command) > 2):
-                if ( command[0] == "later" ):
+                        else:
+                            if re.search("^#", channel):
+                                self.send_message_to_channel( ("I don't know such a language: "+command[2]), channel )
+                            else:
+                                self.send_message_to_channel( ("I don't know such a language: "+command[2]), user )
+                    else:
+                        if re.search("^#", channel):
+                            self.send_message_to_channel( ("I don't know such a language: "+command[1]), channel )
+                        else:
+                            self.send_message_to_channel( ("I don't know such a language: "+command[1]), user )
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Error, wrong request"), channel )
+                    else:
+                        self.send_message_to_channel( ("Error, wrong request"), user )
+            if ( command[0].lower() == "lang" ):
+                if ( len(command) == 2 ):
+                    re_str = command[1]
+                    length = int(len(real_langs))
+                    lang = []
+                    code = []
+                    p = re.compile(re_str, re.IGNORECASE)
+                    for i in range(length):
+                        if p.search(real_langs[i]):
+                            lang.append(real_langs[i])
+                            code.append(languages[i])
+                    if ( len(lang) > 1 ):
+                        if re.search("^#", channel):
+                            self.send_message_to_channel( ("Too many matches, be more specific"), channel)
+                        else:
+                            self.send_message_to_channel( ("Too many matches, be more specific"), user)
+                    elif ( len(lang) == 0 ):
+                        if re.search("^#", channel):
+                            self.send_message_to_channel( ("No matches"), channel)
+                        else:
+                            self.send_message_to_channel( ("No matches"), user)
+                    else:
+                        if re.search("^#", channel):
+                            self.send_message_to_channel( (code[0] + "      " + lang[0]), channel)
+                        else:
+                            self.send_message_to_channel( (code[0] + "      " + lang[0]), user)
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Error, wrong request"), channel )
+                    else:
+                        self.send_message_to_channel( ("Error, wrong request"), user )
+            if ( command[0].lower() == "later" ):
+                if ( len(command) > 2 ):
                     if re.search("^#", channel):
                         user_nick = command[1] #reciever
-                        if user_nick == user:
+                        if ( user_nick == user ):
                             self.send_message_to_channel( (user+", you can not send a message to yourself"), channel)
                         else:
                             user_message = " ".join(command[2:])  #message
@@ -1033,33 +1388,13 @@ class IRC_Server:
                                     self.send_message_to_channel( ("The operation succeeded"), channel)
                     else:
                         self.send_message_to_channel( ("You can use ]later only on a channel"), user)
-            if ( len(command) == 2):
-                if (command[0] == "lang"):
-                    re_str = command[1]
-                    length = int(len(real_langs))
-                    lang = []
-                    code = []
-                    p = re.compile(re_str, re.IGNORECASE)
-                    for i in range(length):
-                        if p.search(real_langs[i]):
-                            lang.append(real_langs[i])
-                            code.append(languages[i])
-                    if len(lang) > 1:
-                        if re.search("^#", channel):
-                            self.send_message_to_channel( ("Too many matches, be more specific"), channel)
-                        else:
-                            self.send_message_to_channel( ("Too many matches, be more specific"), user)
-                    elif len(lang) == 0:
-                        if re.search("^#", channel):
-                            self.send_message_to_channel( ("No matches"), channel)
-                        else:
-                            self.send_message_to_channel( ("No matches"), user)
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Usage: ]later nick message"), channel )
                     else:
-                        if re.search("^#", channel):
-                            self.send_message_to_channel( (code[0] + "      " + lang[0]), channel)
-                        else:
-                            self.send_message_to_channel( (code[0] + "      " + lang[0]), user)
-                if (command[0] == "last"):
+                        self.send_message_to_channel( ("Usage: ]later nick message"), user )
+            if ( command[0].lower() == "last" ):
+                if ( len(command) == 2 ):
                     if re.search("^#", channel):
                         conn = sqlite3.connect('../db/users.db')
                         cur = conn.cursor()
@@ -1077,15 +1412,25 @@ class IRC_Server:
                         else:
                             last_time = row[2]
                             if last_time == None:
-                                self.send_message_to_channel( ("User is on the channel right now!"), channel)
+                                self.send_message_to_channel( ("User is online!"), channel)
                             else:
                                 last_date = "-".join(last_time.split('-')[0:3])
                                 last_time = ":".join(last_time.split('-')[3:6])
-                                self.send_message_to_channel( (command[1]+" was last seen on "+channel+" at "+last_date+" "+last_time+" GMT"), channel)
+                                self.send_message_to_channel( (command[1]+" was last seen at "+last_date+" "+last_time+" GMT"), channel)
                     else:
                         self.send_message_to_channel( ("You can use ]last only on a channel"), user)
-                        
-                if (command[0] == "register"):
+                elif ( len(command) == 1 ):
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Usage: ]last nick"), channel )
+                    else:
+                        self.send_message_to_channel( ("Usage: ]last nick"), user )
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Error, wrong request"), channel )
+                    else:
+                        self.send_message_to_channel( ("Error, wrong request"), user )
+            if ( command[0].lower() == "register" ):
+                if ( len(command) == 2 ):
                     if not re.search("^#", channel):
                         conn = sqlite3.connect('../db/register.db')
                         cur = conn.cursor()
@@ -1115,10 +1460,26 @@ class IRC_Server:
                                     cur.execute(sql)
                                     conn.commit()
                                     cur.close()
-                                    self.send_message_to_channel( ("Congratulations! You are registered. Don't forget your password, you need it to authenticate with ]login"), user)
+                                    self.send_message_to_channel( ("Congratulations! You are registered. Don't forget your password, you need it to authenticate over ]login password"), user)
                                 else:
                                     self.send_message_to_channel( ("You are already registered"), user)
-                if (command[0] == "login"):
+                    else:
+                        if re.search("^#", channel):
+                            self.send_message_to_channel( ("Error, ]register can't be used on a channel"), channel )
+                        else:
+                            self.send_message_to_channel( ("Error, ]register can't be used on a channel"), user )
+                elif ( len(command) == 1 ):
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Usage: ]register password"), channel )
+                    else:
+                        self.send_message_to_channel( ("Usage: ]register password"), user )
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Error, wrong request"), channel )
+                    else:
+                        self.send_message_to_channel( ("Error, wrong request"), user )
+            if ( command[0].lower() == "login" ):
+                if ( len(command) == 2 ):
                     if not re.search("^#", channel):
                         conn = sqlite3.connect('../db/register.db')
                         cur = conn.cursor()
@@ -1131,19 +1492,19 @@ class IRC_Server:
                         for row in cur:
                             pass
                         cur.close()
-                        if user not in row:
+                        if ( user not in row ):
                             self.send_message_to_channel( ("You are not registered!"), user)
                         else:
-                            if row[2] == None:
+                            if ( row[2] == None ):  #password empty = not registered yet but allowed to
                                 self.send_message_to_channel( ("You are not registered!"), user)
                             else:   #he is registered
-                                if row[4] == 1:
+                                if ( row[4] == 1 ):
                                     self.send_message_to_channel( ("You are already authenticated!"), user)
                                 else:
                                     user_password = command[1]
                                     user_password_hash = hashlib.md5( user_password.encode('utf-8') ).hexdigest()
                                     user_password_hash_in_db = row[2]
-                                    if str(user_password_hash) == str(user_password_hash_in_db):    #hashes matches
+                                    if ( str(user_password_hash) == str(user_password_hash_in_db) ):    #hashes matches
                                         conn = sqlite3.connect('../db/register.db')
                                         cur = conn.cursor()
                                         sql = """UPDATE register
@@ -1156,7 +1517,57 @@ class IRC_Server:
                                         self.send_message_to_channel( ("Successful!"), user)
                                     else:
                                         self.send_message_to_channel( ("Password incorrect!"), user)
-                if (command[0] == "if"):
+                    else:
+                        if re.search("^#", channel):
+                            self.send_message_to_channel( ("Error, ]login can't be used on a channel"), channel )
+                        else:
+                            self.send_message_to_channel( ("Error, ]login can't be used on a channel"), user )
+                elif ( len(command) == 1 ):
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Usage: ]login password"), channel )
+                    else:
+                        self.send_message_to_channel( ("Usage: ]login password"), user )
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Error, wrong request"), channel )
+                    else:
+                        self.send_message_to_channel( ("Error, wrong request"), user )
+            if ( command[0].lower() == "online"):
+                if ( len(command) == 1 ):
+                    conn = sqlite3.connect('../db/register.db')
+                    cur = conn.cursor()
+                    sql = """SELECT * FROM register
+                            WHERE authenticated = 1
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                    row = []
+                    online = []
+                    for row in cur:
+                        online.append(row)
+                    cur.close()
+                    actual = []
+                    for i in range(int(len(online))):
+                        actual.append(online[i][1])
+                    num_users_online = int(len(actual))
+                    if ( num_users_online == 0 ):
+                        if re.search("^#", channel):
+                            self.send_message_to_channel( ("No any authenticated users online"), channel )
+                        else:
+                            self.send_message_to_channel( ("No any authenticated users online"), user )
+                    else:
+                        usrs = ", ".join(actual)
+                        if re.search("^#", channel):
+                            self.send_message_to_channel( (str(num_users_online)+" authenticated users online: "+usrs), channel )
+                        else:
+                            self.send_message_to_channel( (str(num_users_online)+" authenticated users online: "+usrs), user )
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Error, wrong request"), channel )
+                    else:
+                        self.send_message_to_channel( ("Error, wrong request"), user )
+            if ( command[0].lower() == "if" ):
+                if ( len(command) == 2 ):
                     nick = command[1]
                     conn = sqlite3.connect('../db/users.db')
                     cur=conn.cursor()
@@ -1170,7 +1581,7 @@ class IRC_Server:
                     for row in cur:
                         pass
                     cur.close()
-                    if nick not in row:
+                    if ( nick not in row ):
                         if re.search("^#", channel):
                             self.send_message_to_channel( ("False"), channel)
                         else:
@@ -1180,7 +1591,13 @@ class IRC_Server:
                             self.send_message_to_channel( ("True"), channel)
                         else:
                             self.send_message_to_channel( ("True"), user)
-                if (command[0] == "add"):
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Error, wrong request"), channel )
+                    else:
+                        self.send_message_to_channel( ("Error, wrong request"), user )
+            if ( command[0].lower() == "add" ):
+                if ( len(command) == 2 ):
                     conn = sqlite3.connect('../db/register.db')
                     cur = conn.cursor()
                     sql = """SELECT * FROM register
@@ -1203,279 +1620,14 @@ class IRC_Server:
                             self.send_message_to_channel( ("Your don't have permissions for this command"), channel)
                         else:
                             self.send_message_to_channel( ("Your don't have permissions for this command"), user)
-                    
-                if (command[0] == "games"):
-                    os.system("wget http://master.open-ra.org/list.php > /dev/null 2>&1")
-                    filename = 'list.php'
-                    file = open(filename, 'r')
-                    lines = file.readlines()
-                    file.close()
-                    os.system("rm list.php")
-                    length = len(lines)
-                    if length == 1:
-                        if re.search("^#", channel):
-                            self.send_message_to_channel( ("No games found"), channel)
-                        else:
-                            self.send_message_to_channel( ("No games found"), user)
-                    else:   # there are one or more games
-                        if (command[1] == "1"):
-                            length = length / 9 # number of games
-                            a1=2
-                            loc=3
-                            a2=4
-                            a3=5
-                            a4=7
-                            for i in range(int(length)):
-                                if lines[a2].lstrip().rstrip() == 'State: 1':
-                                    state = '(W)'
-                                    ### for location
-                                    ip=lines[loc].split(':')[1].lstrip()    # ip address
-                                    os.system("whois "+ip+" > whois_info")
-                                    time.sleep(1)
-                                    filename = 'whois_info'
-                                    file = open(filename,'r')
-                                    who = file.readlines()
-                                    file.close()
-                                    a =  str(who).split()
-                                    try:
-                                        index = a.index('\'country:')
-                                        index = int(index) + 1
-                                        code = a[index]
-                                        code = code[:-4].upper()    #got country code
-                                        code_index = codes.index(code)
-                                        country = match_codes[code_index]
-                                    except:
-                                        country = 'USA'
-                                    sname = lines[a1].encode('utf-8').decode('utf-8')
-                                    sname = str(sname)
-                                    games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1].ljust(20)+' - '+country
-                                    a1=a1+9
-                                    loc=loc+9
-                                    a2=a2+9
-                                    a3=a3+9
-                                    a4=a4+9
-                                    if re.search("^#", channel):
-                                        self.send_message_to_channel( (games), channel )
-                                    else:
-                                        self.send_message_to_channel( (games), user )
-                        elif (command[1] == "2"):
-                            length = length / 9 # number of games
-                            a1=2
-                            loc=3
-                            a2=4
-                            a3=5
-                            a4=7
-                            for i in range(int(length)):
-                                if lines[a2].lstrip().rstrip() == 'State: 2':
-                                    state = '(P)'
-                                    ### for location
-                                    ip=lines[loc].split(':')[1].lstrip()    # ip address
-                                    os.system("whois "+ip+" > whois_info")
-                                    time.sleep(1)
-                                    filename = 'whois_info'
-                                    file = open(filename,'r')
-                                    who = file.readlines()
-                                    file.close()
-                                    a =  str(who).split()
-                                    try:
-                                        index = a.index('\'country:')
-                                        index = int(index) + 1
-                                        code = a[index]
-                                        code = code[:-4].upper()    #got country code
-                                        code_index = codes.index(code)
-                                        country = match_codes[code_index]
-                                    except:
-                                        country = 'USA'
-                                    sname = lines[a1].encode('utf-8').decode('utf-8')
-                                    sname = str(sname)
-                                    games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1].ljust(20)+' - '+country
-                                    a1=a1+9
-                                    loc=loc+9
-                                    a2=a2+9
-                                    a3=a3+9
-                                    a4=a4+9
-                                    if re.search("^#", channel):
-                                        self.send_message_to_channel( (games), channel )
-                                    else:
-                                        self.send_message_to_channel( (games), user )
-                        else:   #it is pattern
-                            chars=['*','.','$','^','@','{','}','+','?']
-                            for i in range(int(len(chars))):
-                                if chars[i] in command[1]:
-                                    check = 'tru'
-                                    break
-                                else:
-                                    check = 'fals'
-                            if check == 'fals':
-                                p = re.compile(command[1], re.IGNORECASE)
-                                length = length / 9 # number of games
-                                a1=2
-                                loc=3
-                                a2=4
-                                a3=5
-                                a4=7
-                                for i in range(int(length)):
-                                    if p.search(lines[a1]):
-                                        if lines[a2].lstrip().rstrip() == 'State: 1':
-                                            state = '(W)'
-                                        elif lines[a2].lstrip().rstrip() == 'State: 2':
-                                            state = '(P)'
-                                        ### for location
-                                        ip=lines[loc].split(':')[1].lstrip()    # ip address
-                                        os.system("whois "+ip+" > whois_info")
-                                        time.sleep(1)
-                                        filename = 'whois_info'
-                                        file = open(filename,'r')
-                                        who = file.readlines()
-                                        file.close()
-                                        a =  str(who).split()
-                                        try:
-                                            index = a.index('\'country:')
-                                            index = int(index) + 1
-                                            code = a[index]
-                                            code = code[:-4].upper()    #got country code
-                                            code_index = codes.index(code)
-                                            country = match_codes[code_index]
-                                        except:
-                                            country = 'USA'
-                                        sname = lines[a1].encode('utf-8').decode('utf-8')
-                                        sname = str(sname)
-                                        games = '@ '+sname.lstrip().rstrip()[6:].lstrip()+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1].ljust(20)+' - '+country
-                                        if re.search("^#", channel):
-                                            self.send_message_to_channel( (games), channel)
-                                        else:
-                                            self.send_message_to_channel( (games), user)
-                                        break
-                                    a1=a1+9
-                                    loc=loc+9
-                                    a2=a2+9
-                                    a3=a3+9
-                                    a4=a4+9                 
-            if ( len(command) == 1):
-                if (command[0] == "version"):
-                    os.system("python ../version.py")
-                    filename = 'version'
-                    file = open(filename, 'r')
-                    line = file.readline()
-                    file.close()
-                    os.remove('version')
-                    if int(line.split()[0].split('.')[0]) < int(line.split()[1].split('.')[0]):
-                        newer = 'playtest is newer then release'
-                    else:
-                        newer = 'release is newer then playtest'
+                else:
                     if re.search("^#", channel):
-                        self.send_message_to_channel( ("Latest release: "+line[0:4]+""+line[4:8]+" | Latest playtest: "+line[9:13]+""+line[13:17]+" | "+newer), channel )
+                        self.send_message_to_channel( ("Error, wrong request"), channel )
                     else:
-                        self.send_message_to_channel( ("Latest release: "+line[0:4]+""+line[4:8]+" | Latest playtest: "+line[9:13]+""+line[13:17]+" | "+newer), user )  
-                        
-                if (command[0] == "help"):
-                    if re.search("^#", channel):
-                        self.send_message_to_channel( ("Help: https://github.com/ihptru/orabot/wiki"), channel )
-                    else:
-                        self.send_message_to_channel( ("Help: https://github.com/ihptru/orabot/wiki"), user )
-                if (command[0] == "online"):
-                    if not re.search("^#", channel):
-                        conn = sqlite3.connect('../db/register.db')
-                        cur = conn.cursor()
-                        sql = """SELECT * FROM register
-                                WHERE authenticated = 1
-                        """
-                        cur.execute(sql)
-                        conn.commit()
-                        row = []
-                        online = []
-                        for row in cur:
-                            online.append(row)
-                        cur.close()
-                        actual = []
-                        for i in range(int(len(online))):
-                            actual.append(online[i][1])
-                        num_users_online = int(len(actual))
-                        if num_users_online == 0:
-                            self.send_message_to_channel( ("No any authenticated users online"), user)
-                        else:
-                            usrs = ", ".join(actual)
-                            self.send_message_to_channel( (str(num_users_online)+" authenticated users online: "+usrs), user)
-                if (command[0] == "hi"):
-                    if re.search("^#", channel):
-                        self.send_message_to_channel( ("Yo " + user + "! Whats up?"), channel )
-                    else:
-                        self.send_message_to_channel( ("Hello, " + user), user)
-                if (command[0] == "tr"):
-                    self.send_message_to_channel( ("Usage: ]tr <from language> <to language> <text to translate>   |   To get a language code, type ]lang <patter>  where <patter> is part of language name  |   For example, to translate from English to German: ]tr en de Thank you"), user)
-                if (command[0] == "games"):
-                    try:
-                        os.system("wget http://master.open-ra.org/list.php > /dev/null 2>&1")
-                        filename = "list.php"
-                        file = open(filename, 'r')
-                        lines = file.readlines()    #got a list
-                        file.close()
-                        os.system("rm list.php")
-                        length = len(lines)
-                        if length == 1:
-                            if re.search("^#", channel):
-                                self.send_message_to_channel( ("No games found"), channel )
-                            else:
-                                self.send_message_to_channel( ("No games found"), user )
-                        else:
-                            length = length / 9
-                            a1=2
-                            loc=3
-                            a2=4
-                            a3=5
-                            a4=7
-                            games=''
-                            count='0'
-                            for i in range(int(length)):
-                                if lines[a2].lstrip().rstrip() == 'State: 1':
-                                    count='1'   # lock - there are games in State: 1
-                                    state = '(W)'
-                                    ### for location
-                                    ip=lines[loc].split(':')[1].lstrip()    # ip address
-                                    os.system("whois "+ip+" > whois_info")
-                                    time.sleep(0.4)
-                                    filename = 'whois_info'
-                                    file = open(filename,'r')
-                                    who = file.readlines()
-                                    file.close()
-                                    a =  str(who).split()
-                                    try:
-                                        index = a.index('\'country:')
-                                        index = int(index) + 1
-                                        code = a[index]
-                                        code = code[:-4].upper()    #got country code
-                                        code_index = codes.index(code)
-                                        country = match_codes[code_index]   #got country name
-                                    except:
-                                        country = 'USA' #whois does not show coutry code for most USA IPs and some Canadians (did not find a way to determine where USA and where Canada is)
-                                    sname = lines[a1].encode('utf-8').decode('utf-8')
-                                    sname = str(sname)
-                                    games = sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+lines[a4].lstrip().rstrip().split(' ')[1].ljust(20)+' - '+country
-                                    if re.search("^#", channel):
-                                        self.send_message_to_channel( (games), channel )
-                                    else:
-                                        self.send_message_to_channel( (games), user )
-                                a1=a1+9 
-                                loc=loc+9
-                                a2=a2+9
-                                a3=a3+9
-                                a4=a4+9
-                            if count == "0":    #appeared no games in State: 1
-                                if re.search("^#", channel):
-                                    self.send_message_to_channel( ("No games waiting for players found"), channel )
-                                else:
-                                    self.send_message_to_channel( ("No games waiting for players found"), user )
-                    except:
-                        exc = ']games crashed\n'
-                        filename = 'except_log.txt'
-                        file = open(filename, 'a')
-                        file.write(exc)
-                        file.close()
-                        
-            else:
-                if (command[0] == "bop"):
-                    self.send_message_to_channel( ("\x01ACTION bopz " + str(command[1]) + "\x01"), channel )
+                        self.send_message_to_channel( ("Error, wrong request"), user )
 
+
+#####
 class BotCrashed(Exception): # Raised if the bot has crashed.
     pass
 
