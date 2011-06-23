@@ -113,6 +113,86 @@ root_admin_password = "password" #only for the successful first run, dont forget
                 #"""
                 #cur.execute(sql)
                 #conn.commit()
+                ###
+                #sql = """CREATE TABLE "pickup_1v1" (
+                #"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+                #"name" VARCHAR NOT NULL ,
+                #"host" BOOL NOT NULL  DEFAULT 0,
+                #"timeout" DATETIME NOT NULL
+                #)
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #sql = """CREATE TABLE "pickup_2v2" (
+                #"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+                #"name" VARCHAR NOT NULL ,
+                #"host" BOOL NOT NULL  DEFAULT 0,
+                #"timeout" DATETIME NOT NULL
+                #)
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #sql = """CREATE TABLE "pickup_3v3" (
+                #"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+                #"name" VARCHAR NOT NULL ,
+                #"host" BOOL NOT NULL  DEFAULT 0,
+                #"timeout" DATETIME NOT NULL
+                #)
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #sql = """CREATE TABLE "pickup_4v4 (
+                #"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+                #"name" VARCHAR NOT NULL ,
+                #"host" BOOL NOT NULL  DEFAULT 0,
+                #"timeout" DATETIME NOT NULL
+                #)
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #sql = """CREATE TABLE "pickup_game_start" (
+                #"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+                #"team1" VARCHAR NOT NULL ,
+                #"team2" VARCHAR NOT NULL ,
+                #"type" VARCHAR NOT NULL ,
+                #"host" VARCHAR NOT NULL ,
+                #"map" VARCHAR NOT NULL ,
+                #"time" DATETIME NOT NULL
+                #)
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #sql = """CREATE TABLE "pickup_maps" (
+                #"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+                #"name" VARCHAR NOT NULL ,
+                #"1v1" BOOL NOT NULL ,
+                #"2v2" BOOL NOT NULL ,
+                #"3v3" BOOL NOT NULL ,
+                #"4v4" BOOL NOT NULL ,
+                #"5v5" BOOL NOT NULL
+                #)
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #sql = """INSERT INTO "pickup_maps"
+                #       (name,1v1,2v2,3v3,4v4,5v5)
+                #       VALUES
+                #       (
+                #       'East vs West',1,1,0,0,0
+                #       )
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
+                #sql = """CREATE TABLE "pickup_stats" (
+                #"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+                #"name" VARCHAR NOT NULL ,
+                #"games" INTEGER NOT NULL  DEFAULT 0,
+                #"hosts" INTEGER NOT NULL  DEFAULT 0,
+                #"complaints" INTEGER NOT NULL  DEFAULT 0
+                #)
+                #"""
+                #cur.execute(sql)
+                #conn.commit()
                 #cur.close()
 ###
 
@@ -358,6 +438,7 @@ class IRC_Server:
                 print (str(recv))
                 irc_quit_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
                 irc_quit_message = str(recv).split('QUIT :')[1].rstrip()
+                #change authenticated status
                 sql = """SELECT * FROM register
                         WHERE user = '"""+irc_quit_nick+"'"+"""
                 """
@@ -383,6 +464,15 @@ class IRC_Server:
                 cur.execute(sql)
                 conn.commit()
                 cur.close()
+                ### for ]pick
+                modes = ['1v1','2v2','3v3','4v4']
+                diff_mode = ''
+                for diff_mode in modes:
+                    sql = """DELETE FROM pickup_"""+diff_mode+"""
+                            WHERE name = '"""+irc_quit_nick+"""'
+                    """
+                    cur.execute(sql)
+                    conn.commit()
                 ##logs
                 if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
                     row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_quit_nick+' has quit ('+irc_quit_message.rstrip()+')\n'
@@ -430,6 +520,15 @@ class IRC_Server:
                 cur.execute(sql)
                 conn.commit()
                 cur.close()
+                ### for ]pick
+                modes = ['1v1','2v2','3v3','4v4']
+                diff_mode = ''
+                for diff_mode in modes:
+                    sql = """DELETE FROM pickup_"""+diff_mode+"""
+                            WHERE name = '"""+irc_part_nick+"""'
+                    """
+                    cur.execute(sql)
+                    conn.commit()
                 ###logs
                 if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
                     row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_part_nick+' has left '+chan+'\n'
@@ -1194,9 +1293,9 @@ class IRC_Server:
                         self.send_message_to_channel( ("You must specify at least 3 teams"), user)
             if ( command[0].lower() == "tr" ):
                 if ( len(command) == 1 ):
-                    if re.search("^#", channel):
-                        self.send_message_to_channel( ("I sent you pm in private with 'Usage'"), channel)
-                    self.send_message_to_channel( ("Usage: ]tr <from language> <to language> <text to translate>   |   To get a language code, type ]lang <patter>  where <patter> is part of language name  |   For example, to translate from English to German: ]tr en de Thank you"), user)
+                    message = "Usage: ]tr <from language> <to language> <text to translate>   |   To get a language code, type ]lang <patter>  where <patter> is part of language name  |   For example, to translate from English to German: ]tr en de Thank you"
+                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                    self.irc_sock.send (str_buff.encode())
                 elif ( len(command) > 3 ):
                     if command[1] in languages:
                         if command[2] in languages:
@@ -1998,14 +2097,17 @@ class IRC_Server:
                                             amount_players_required = 6
                                         elif ( temp_mode == '4v4' ):
                                             amount_players_required = 8
-                                        sql = """SELECT name FROM pickup_"""+temp_mode+"""
+                                        sql = """SELECT name,host FROM pickup_"""+temp_mode+"""
                                         """
                                         cur.execute(sql)
                                         conn.commit()
                                         row = []
                                         name = []
                                         for row in cur:
-                                            name.append(row[0])
+                                            if ( row[1] == 1 ):
+                                                name.append(row[0]+"[h]")
+                                            else:
+                                                name.append(row[0])
                                         if name != []:
                                             names.append(temp_mode + " ["+str(len(name))+"/"+str(amount_players_required)+"]: " + ", ".join(name))
                                     if names == []:
@@ -2027,14 +2129,17 @@ class IRC_Server:
                                             amount_players_required = 6
                                         elif ( mode == '4v4' ):
                                             amount_players_required = 8
-                                        sql = """SELECT name FROM pickup_"""+mode+"""
+                                        sql = """SELECT name,host FROM pickup_"""+mode+"""
                                         """
                                         cur.execute(sql)
                                         conn.commit()
                                         row = []
                                         name = []
                                         for row in cur:
-                                            name.append(row[0])
+                                            if ( row[1] == 1 ):
+                                                name.append(row[0]+"[h]")
+                                            else:
+                                                name.append(row[0])
                                         if name == []:
                                             message = "No players detected for :: "+mode+" ::"
                                             str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
