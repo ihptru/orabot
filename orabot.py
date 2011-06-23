@@ -340,8 +340,8 @@ class IRC_Server:
                 print (str(recv))
                 irc_join_nick = str(recv).split( '!' ) [ 0 ].split( ':' ) [ 1 ]
                 irc_join_host = str(recv).split( '!' ) [ 1 ].split( ' ' ) [ 0 ]
-                chan = str(recv).split( "JOIN" ) [ 1 ].lstrip().split( ":" )[1].rstrip()     #channle ex: #openra
-
+                #chan = str(recv).split( "JOIN" ) [ 1 ].lstrip().split( ":" )[1].rstrip()     #channle ex: #openra
+                chan = str(recv).split()[2].replace(':','').rstrip()
                 sql = """SELECT * FROM users
                         WHERE user = '"""+irc_join_nick+"'"+"""
                 """
@@ -408,19 +408,19 @@ class IRC_Server:
                         
                         cur.execute(sql)
                         conn.commit()
-                    #sql = """UPDATE users
-                    #        SET date = ''
-                    #        WHERE user = '"""+irc_join_nick+"'"+"""
-                    #"""
-                    #cur.execute(sql)
-                    #conn.commit()
+                    sql = """UPDATE users
+                            SET date = ''
+                            WHERE user = '"""+irc_join_nick+"'"+"""
+                    """
+                    cur.execute(sql)
+                    conn.commit()
                     cur.close()
                 ###logs
-                if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
-                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_join_nick+' ('+irc_join_host+') has joined '+self.irc_channel+'\n'
-                    if self.irc_channel == '#openra':
+                if chan == '#openra' or chan == '#openra-dev':
+                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_join_nick+' ('+irc_join_host+') has joined '+chan+'\n'
+                    if chan == '#openra':
                         chan_d = 'openra'
-                    elif self.irc_channel == '#openra-dev':
+                    elif chan == '#openra-dev':
                         chan_d = 'openra-dev'
                     else:
                         chan_d = 'trash'
@@ -494,6 +494,7 @@ class IRC_Server:
                 cur=conn.cursor()
                 print (str(recv))
                 irc_part_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
+                chan = str(recv).split()[2].replace(':','')
                 ###logout
                 sql = """SELECT * FROM register
                         WHERE user = '"""+irc_part_nick+"'"+"""
@@ -530,11 +531,11 @@ class IRC_Server:
                     cur.execute(sql)
                     conn.commit()
                 ###logs
-                if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
+                if chan == '#openra' or chan == '#openra-dev':
                     row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_part_nick+' has left '+chan+'\n'
-                    if self.irc_channel == '#openra':
+                    if chan == '#openra':
                         chan_d = 'openra'
-                    elif self.irc_channel == '#openra-dev':
+                    elif chan == '#openra-dev':
                         chan_d = 'openra-dev'
                     else:
                         chan_d = 'trash'
