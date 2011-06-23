@@ -1799,10 +1799,12 @@ class IRC_Server:
                                             for row in cur:
                                                 name.append(row[0])
                                             map_to_play = random.choice(name)
-                                            self.send_message_to_channel( ("@ "+mode+" || Hoster: "+hoster+" || Map: "+map_to_play+" || Team 1: "+", ".join(list(team1))+" || Team 2: "+", ".join(list(team2))), channel )
+                                            message = "@ "+mode+" || Hoster: "+hoster+" || Map: "+map_to_play+" || Team 1: "+", ".join(list(team1))+" || Team 2: "+", ".join(list(team2))
+                                            self.send_message_to_channel( (message), channel )
                                             team = team1+team2
                                             name = ''
                                             for name in team:
+                                                self.send_message_to_channel( (message), name )
                                                 if ( hoster == name ):
                                                     host = 1
                                                 else:
@@ -1911,10 +1913,12 @@ class IRC_Server:
                                                 for row in cur:
                                                     name.append(row[0])
                                                 map_to_play = random.choice(name)
-                                                self.send_message_to_channel( ("@ "+mode+" || Hoster: "+hoster+" || Map: "+map_to_play+" || Team 1: "+", ".join(list(team1))+" || Team 2: "+", ".join(list(team2))), channel )
+                                                message = "@ "+mode+" || Hoster: "+hoster+" || Map: "+map_to_play+" || Team 1: "+", ".join(list(team1))+" || Team 2: "+", ".join(list(team2))
+                                                self.send_message_to_channel( (message), channel )
                                                 team = team1+team2
                                                 name = ''
                                                 for name in team:
+                                                    self.send_message_to_channel( (message), name )
                                                     if ( hoster == name ):
                                                         host = 1
                                                     else:
