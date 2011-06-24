@@ -834,7 +834,7 @@ class IRC_Server:
                                     time.sleep(0.5)
                             else:
                                 self.send_message_to_channel( ("]log can't be used on a channel"), channel)
-                    if ( command[0].lower() == "add" ):
+                    if ( command[0].lower() == "adduser" ):
                         if ( len(command) == 2 ):
                             nick = command[1]
                             sql = """SELECT * FROM users
@@ -1609,7 +1609,7 @@ class IRC_Server:
                         self.send_message_to_channel( ("Error, wrong request"), channel )
                     else:
                         self.send_message_to_channel( ("Error, wrong request"), user )
-            if ( command[0].lower() == "add" ):
+            if ( command[0].lower() == "adduser" ):
                 if ( len(command) == 2 ):
                     sql = """SELECT * FROM register
                             WHERE user = '"""+user+"'"+"""
@@ -1635,544 +1635,144 @@ class IRC_Server:
                         self.send_message_to_channel( ("Error, wrong request"), channel )
                     else:
                         self.send_message_to_channel( ("Error, wrong request"), user )
-            if ( command[0].lower() == "pick" ):
-                if ( len(command) >= 2 ):
-                    if re.search("^#", channel):
-                        ### ADD ###
-                        if ( command[1].lower() == "add" ):
-                            if ( len(command) > 2 ) and ( len(command) < 5 ):   #normal about of arguments
-                                modes = ['1v1','2v2','3v3','4v4']
-                                if ( command[2] not in modes ):
-                                    self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
-                                    return
-                                else:
-                                    host = '0'
-                                    if ( len(command) == 4 ):
-                                        if ( command[3] == 'host' ):
-                                            host = '1'  #user can host a game
-                                        else:
-                                            self.send_message_to_channel( ("What is '"+command[3]+"'? Try again"), channel )
-                                            return
-                                    if ( command[2] == '1v1' ):
-                                        amount_players_required = 2
-                                    elif ( command[2] == '2v2' ):
-                                        amount_players_required = 4
-                                    elif ( command[2] == '3v3' ):
-                                        amount_players_required = 6
-                                    elif ( command[2] == '4v4' ):
-                                        amount_players_required = 8
-                                    #check complaints
-                                    sql = """SELECT name,complaints FROM pickup_stats
-                                            WHERE name = '"""+user+"'"+"""
-                                    """
-                                    cur.execute(sql)
-                                    conn.commit()
-                                    row = []
-                                    for row in cur:
-                                        pass
-                                    if user in row:
-                                        num_complaints = row[1]
-                                        if ( int(num_complaints) > 100 ):
-                                            self.send_message_to_channel( ("You have too many complaints, please contact more privileged user to figure out this issue"), channel )
-                                            return
-                                    mode = command[2]
-                                    sql = """SELECT name FROM pickup_"""+mode+"""
-                                            WHERE name = '"""+user+"'"+"""
-                                    """
-                                    cur.execute(sql)
-                                    conn.commit()
-                                    row = []
-                                    for row in cur:
-                                        pass
-                                    if user in row:
-                                        self.send_message_to_channel( ("You are already added for :: "+mode+" :: - Operation failed"), channel )
-                                        return
-                                    modes.remove(mode)
-                                    diff_mode = ''
-                                    for diff_mode in modes:
-                                        sql = """SELECT name FROM pickup_"""+diff_mode+"""
-                                                WHERE name = '"""+user+"'"+"""
-                                        """
-                                        cur.execute(sql)
-                                        conn.commit()
-                                        row = []
-                                        for row in cur:
-                                            pass
-                                        if user in row:
-                                            self.send_message_to_channel( ("You are already added for :: "+diff_mode+" :: - Operation failed"), channel )
-                                            return
-                                    ### timeout check
-                                    sql = """SELECT name,timeout FROM pickup_"""+mode+"""
-                                    """
-                                    cur.execute(sql)
-                                    conn.commit()
-                                    row = []
-                                    data = []
-                                    for row in cur:
-                                        data.append(row)
-                                    if row != []:   #players exist
-                                        a = date.today()
-                                        a = str(a)
-                                        a = a.split('-')
-                                        year = a[0]
-                                        month = a[1]
-                                        day = a[2]
-                                        b = time.localtime()
-                                        b = str(b)
-                                        hours = b.split('tm_hour=')[1].split(',')[0]
-                                        minutes = b.split('tm_min=')[1].split(',')[0]
-                                        if len(hours) == 1:
-                                            hours = '0'+hours
-                                        else:
-                                            hours = hours
-                                        if len(minutes) == 1:
-                                            minutes = '0'+minutes
-                                        else:
-                                            minutes = minutes
-                                        localtime = year+month+day+hours+minutes
-                                        data_length = len(data)
-                                        for i in range(int(data_length)):
-                                            add_time = "".join(str(data[i][1]).split('-'))
-                                            remove_user = data[i][0]
-                                            difference = int(localtime) - int(add_time)
-                                            if ( difference > 180 ):    #some player was added more then 3 hours ago, remove him
-                                                sql = """DELETE FROM pickup_"""+mode+"""
-                                                        WHERE name = '"""+remove_user+"'"+"""
-                                                """
-                                                cur.execute(sql)
-                                                conn.commit()
-                                                self.send_message_to_channel( ("@ "+remove_user+" was removed. Reason: Time Out"), channel )
-                                    #generating match
-                                    sql = """SELECT name FROM pickup_"""+mode+"""
-                                    """
-                                    cur.execute(sql)
-                                    conn.commit()
-                                    row = []
-                                    data = []
-                                    for row in cur:
-                                        data.append(row)
-                                    data_length = len(data)
-                                    amount_players_left = int(amount_players_required) - int(data_length)
-                                    if ( amount_players_left == 1 ):    # this player is last, check hosts and generate match
-                                        if ( host == '1' ):
-                                            sql = """INSERT INTO pickup_"""+mode+"""
-                                                    (name,host,timeout)
-                                                    VALUES
-                                                    ('"""+user+"',"+host+""",strftime('%Y-%m-%d-%H-%M')
-                                                    )
-                                            """
-                                            cur.execute(sql)
-                                            conn.commit()
-                                            self.send_message_to_channel( ("@ "+user+" is successfully added for :: "+mode+" ::"), channel )
-                                            self.send_message_to_channel( ("@ Enough player detected for :: "+mode+" ::"), channel )
-                                            sql = """SELECT name FROM pickup_"""+mode+"""
-                                                    WHERE host = 1
-                                            """
-                                            cur.execute(sql)
-                                            conn.commit()
-                                            row = []
-                                            random_host = []
-                                            for row in cur:
-                                                random_host.append(row[0])
-                                            hoster = random.choice(random_host)
-                                            sql = """SELECT name FROM pickup_"""+mode+"""
-                                            """
-                                            cur.execute(sql)
-                                            conn.commit()
-                                            row = []
-                                            name = []
-                                            for row in cur:
-                                                name.append(row[0])
-                                            team1 = []
-                                            team2 = []
-                                            while ( len(name) > amount_players_required/2  ):
-                                                temp_name = random.choice(name)
-                                                team1.append(temp_name)
-                                                name.remove(temp_name)
-                                            team2 = name
-                                            sql = """SELECT name FROM pickup_maps
-                                                    WHERE """+"\""+mode+"\""+""" = 1
-                                            """
-                                            cur.execute(sql)
-                                            conn.commit()
-                                            row = []
-                                            name = []
-                                            for row in cur:
-                                                name.append(row[0])
-                                            map_to_play = random.choice(name)
-                                            message = "@ "+mode+" || Hoster: "+hoster+" || Map: "+map_to_play+" || Team 1: "+", ".join(list(team1))+" || Team 2: "+", ".join(list(team2))
-                                            self.send_message_to_channel( (message), channel )
-                                            team = team1+team2
-                                            name = ''
-                                            for name in team:
-                                                self.send_message_to_channel( (message), name )
-                                                if ( hoster == name ):
-                                                    host = 1
-                                                else:
-                                                    host = 0
-                                                sql = """SELECT name FROM pickup_stats
-                                                        WHERE name = '"""+name+"""'
-                                                """
-                                                cur.execute(sql)
-                                                conn.commit()
-                                                row = []
-                                                for row in cur:
-                                                    pass
-                                                if name not in row:
-                                                    sql = """INSERT INTO pickup_stats
-                                                            (name,games,hosts,complaints)
-                                                            VALUES
-                                                            ('"""+name+"""',1,"""+str(host)+""",0
-                                                            )
-                                                    """
-                                                    cur.execute(sql)
-                                                    conn.commit()
-                                                else:
-                                                    sql = """SELECT games,hosts FROM pickup_stats
-                                                            WHERE name = '"""+name+"""'
-                                                    """
-                                                    cur.execute(sql)
-                                                    conn.commit()
-                                                    row = []
-                                                    for row in cur:
-                                                        pass
-                                                    games = row[0]
-                                                    hosts = row[1]
-                                                    games = str(int(games) + 1)
-                                                    hosts = str(int(hosts) + int(host))
-                                                    sql = """UPDATE pickup_stats
-                                                            SET games = """+games+""", hosts = """+hosts+"""
-                                                            WHERE name = '"""+name+"""'
-                                                    """
-                                                    cur.execute(sql)
-                                                    conn.commit()
-                                            sql = """DELETE FROM pickup_"""+mode+"""
-                                            """
-                                            cur.execute(sql)
-                                            conn.commit()
-                                            sql = """INSERT INTO pickup_game_start
-                                                    (team1,team2,type,host,map,time)
-                                                    VALUES
-                                                    ('"""+", ".join(list(team1))+"','"+", ".join(list(team2))+"','"+mode+"','"+hoster+"','"+map_to_play+"',"+"""strftime('%Y-%m-%d-%H-%M')
-                                                    )
-                                            """
-                                            cur.execute(sql)
-                                            conn.commit()
-                                        else:
-                                            sql = """SELECT name FROM pickup_"""+mode+"""
-                                                    WHERE host = 1
-                                            """
-                                            cur.execute(sql)
-                                            conn.commit()
-                                            row = []
-                                            random_host = []
-                                            for row in cur:
-                                                random_host.append(row)
-                                            if ( len(random_host) != 0 ):   #there are hosters
-                                                sql = """INSERT INTO pickup_"""+mode+"""
-                                                    (name,host,timeout)
-                                                    VALUES
-                                                    ('"""+user+"',"+host+""",strftime('%Y-%m-%d-%H-%M')
-                                                    )
-                                                """
-                                                cur.execute(sql)
-                                                conn.commit()
-                                                self.send_message_to_channel( ("@ "+user+" is successfully added for :: "+mode+" ::"), channel )
-                                                self.send_message_to_channel( ("@ Enough player detected for :: "+mode+" ::"), channel )
-                                                sql = """SELECT name FROM pickup_"""+mode+"""
-                                                        WHERE host = 1
-                                                """
-                                                cur.execute(sql)
-                                                conn.commit()
-                                                row = []
-                                                random_host = []
-                                                for row in cur:
-                                                    random_host.append(row[0])
-                                                hoster = random.choice(random_host)
-                                                sql = """SELECT name FROM pickup_"""+mode+"""
-                                                """
-                                                cur.execute(sql)
-                                                conn.commit()
-                                                row = []
-                                                name = []
-                                                for row in cur:
-                                                    name.append(row[0])
-                                                team1 = []
-                                                team2 = []
-                                                while ( len(name) > amount_players_required/2  ):
-                                                    temp_name = random.choice(name)
-                                                    team1.append(temp_name)
-                                                    name.remove(temp_name)
-                                                team2 = name
-                                                sql = """SELECT name FROM pickup_maps
-                                                        WHERE """+"\""+mode+"\""+""" = 1
-                                                """
-                                                cur.execute(sql)
-                                                conn.commit()
-                                                row = []
-                                                name = []
-                                                for row in cur:
-                                                    name.append(row[0])
-                                                map_to_play = random.choice(name)
-                                                message = "@ "+mode+" || Hoster: "+hoster+" || Map: "+map_to_play+" || Team 1: "+", ".join(list(team1))+" || Team 2: "+", ".join(list(team2))
-                                                self.send_message_to_channel( (message), channel )
-                                                team = team1+team2
-                                                name = ''
-                                                for name in team:
-                                                    self.send_message_to_channel( (message), name )
-                                                    if ( hoster == name ):
-                                                        host = 1
-                                                    else:
-                                                        host = 0
-                                                    sql = """SELECT name FROM pickup_stats
-                                                            WHERE name = '"""+name+"""'
-                                                    """
-                                                    cur.execute(sql)
-                                                    conn.commit()
-                                                    row = []
-                                                    for row in cur:
-                                                        pass
-                                                    if name not in row:
-                                                        sql = """INSERT INTO pickup_stats
-                                                                (name,games,hosts,complaints)
-                                                                VALUES
-                                                                ('"""+name+"""',1,"""+str(host)+""",0
-                                                                )
-                                                        """
-                                                        cur.execute(sql)
-                                                        conn.commit()
-                                                    else:
-                                                        sql = """SELECT games,hosts FROM pickup_stats
-                                                                WHERE name = '"""+name+"""'
-                                                        """
-                                                        cur.execute(sql)
-                                                        conn.commit()
-                                                        row = []
-                                                        for row in cur:
-                                                            pass
-                                                        games = row[0]
-                                                        hosts = row[1]
-                                                        games = str(int(games) + 1)
-                                                        hosts = str(int(hosts) + int(host))
-                                                        sql = """UPDATE pickup_stats
-                                                                SET games = """+games+""", hosts = """+hosts+"""
-                                                                WHERE name = '"""+name+"""'
-                                                        """
-                                                        cur.execute(sql)
-                                                        conn.commit()
-                                                sql = """DELETE FROM pickup_"""+mode+"""
-                                                """
-                                                cur.execute(sql)
-                                                conn.commit()
-                                                sql = """INSERT INTO pickup_game_start
-                                                    (team1,team2,type,host,map,time)
-                                                    VALUES
-                                                    ('"""+", ".join(list(team1))+"','"+", ".join(list(team2))+"','"+mode+"','"+hoster+"','"+map_to_play+"',"+"""strftime('%Y-%m-%d-%H-%M')
-                                                    )
-                                                """
-                                                cur.execute(sql)
-                                                conn.commit()
-                                            else:
-                                                self.send_message_to_channel( ("@ No any players added, want to be hosters and you are last. You can play only if you can host. Try again"), channel )
-                                                return
-                                            
-                                    else:
-                                        sql = """INSERT INTO pickup_"""+mode+"""
-                                                (name,host,timeout)
-                                                VALUES
-                                                ('"""+user+"',"+host+""",strftime('%Y-%m-%d-%H-%M')
-                                                )
-                                        """
-                                        cur.execute(sql)
-                                        conn.commit()
-                                        self.send_message_to_channel( ("@ "+user+" is successfully added for :: "+mode+" ::"), channel )
-                            else:
-                                self.send_message_to_channel( ("Error, wrong request"), channel )
-                        if ( command[1].lower() == "lastgame" ):
-                            if ( len(command) >= 2 ) and ( len(command) < 4 ):
-                                if ( len(command) == 2 ):
-                                    sql = """SELECT team1,team2,type,host,map,time FROM pickup_game_start
-                                            ORDER BY uid DESC LIMIT 1
-                                    """
-                                    cur.execute(sql)
-                                    conn.commit()
-                                    row = []
-                                    for row in cur:
-                                        pass
-                                    last_date = "-".join(row[5].split('-')[0:3])
-                                    last_time = ":".join(row[5].split('-')[3:5])
-                                    message = "@ "+row[2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+row[3]+" || Map: "+row[4]+" || Team 1: "+row[0]+" || Team 2: "+row[1]
-                                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                    self.irc_sock.send (str_buff.encode())
-                                else:
-                                    modes = ['1v1','2v2','3v3','4v4']
-                                    if command[2] in modes:
-                                        mode = command[2]
-                                        sql = """SELECT team1,team2,type,host,map,time FROM pickup_game_start
-                                            WHERE type = '"""+mode+"""'
-                                            ORDER BY uid DESC LIMIT 1
-                                        """
-                                        cur.execute(sql)
-                                        conn.commit()
-                                        row = []
-                                        for row in cur:
-                                            pass
-                                        if row != []:
-                                            last_date = "-".join(row[5].split('-')[0:3])
-                                            last_time = ":".join(row[5].split('-')[3:5])
-                                            message = "@ "+row[2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+row[3]+" || Map: "+row[4]+" || Team 1: "+row[0]+" || Team 2: "+row[1]
-                                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                            self.irc_sock.send (str_buff.encode())
-                                        else:
-                                            message = "No "+mode+" games played"
-                                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                            self.irc_sock.send (str_buff.encode())
-                                    else:
-                                        self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
-                                        return
-                            else:
-                                self.send_message_to_channel( ("Error, wrong request"), channel )
-                        if ( command[1].lower() == "remove" ):
-                            if ( len(command) >= 2 ) and ( len(command) < 4 ):
-                                modes = ['1v1','2v2','3v3','4v4']
-                                if ( len(command) == 2 ):
-                                    temp_mode = ''
-                                    for temp_mode in modes:
-                                        sql = """SELECT name FROM pickup_"""+temp_mode+"""
-                                                WHERE name = '"""+user+"""'
-                                        """
-                                        cur.execute(sql)
-                                        conn.commit()
-                                        row = []
-                                        for row in cur:
-                                            pass
-                                        if user in row:
-                                            sql = """DELETE FROM pickup_"""+temp_mode+"""
-                                                    WHERE name = '"""+user+"""'
-                                            """
-                                            cur.execute(sql)
-                                            conn.commit()
-                                            message = "You are removed from :: "+temp_mode+" ::"
-                                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                            self.irc_sock.send (str_buff.encode())
-                                            return
-                                    message = "Error, you are not detected added to any game"
-                                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                    self.irc_sock.send (str_buff.encode())
-                                else:
-                                    if command[2] in modes:
-                                        mode = command[2]
-                                        sql = """SELECT name FROM pickup_"""+mode+"""
-                                                WHERE name = '"""+user+"""'
-                                        """
-                                        cur.execute(sql)
-                                        conn.commit()
-                                        row = []
-                                        for row in cur:
-                                            pass
-                                        if user in row:
-                                            sql = """DELETE FROM pickup_"""+mode+"""
-                                                    WHERE name = '"""+user+"""'
-                                            """
-                                            cur.execute(sql)
-                                            conn.commit()
-                                            message = "You are removed from :: "+mode+" ::"
-                                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                            self.irc_sock.send (str_buff.encode())
-                                            return
-                                        message = "Error, you are not detected added to :: "+mode+" ::"
-                                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                        self.irc_sock.send (str_buff.encode())
-                                    else:
-                                        self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
-                                        return
-                            else:
-                                self.send_message_to_channel( ("Error, wrong request"), channel )
-                        if ( command[1].lower() == "who" ):
-                            if ( len(command) >= 2 ) and ( len(command) < 4 ):
-                                modes = ['1v1','2v2','3v3','4v4']
-                                if ( len(command) == 2 ):
-                                    temp_mode = ''
-                                    names = []
-                                    for temp_mode in modes:
-                                        if ( temp_mode == '1v1' ):
-                                            amount_players_required = 2
-                                        elif ( temp_mode == '2v2' ):
-                                            amount_players_required = 4
-                                        elif ( temp_mode == '3v3' ):
-                                            amount_players_required = 6
-                                        elif ( temp_mode == '4v4' ):
-                                            amount_players_required = 8
-                                        sql = """SELECT name,host FROM pickup_"""+temp_mode+"""
-                                        """
-                                        cur.execute(sql)
-                                        conn.commit()
-                                        row = []
-                                        name = []
-                                        for row in cur:
-                                            if ( row[1] == 1 ):
-                                                name.append(row[0]+"[h]")
-                                            else:
-                                                name.append(row[0])
-                                        if name != []:
-                                            names.append(temp_mode + " ["+str(len(name))+"/"+str(amount_players_required)+"]: " + ", ".join(name))
-                                    if names == []:
-                                        message = "No game going on!"
-                                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                        self.irc_sock.send (str_buff.encode())
-                                    else:
-                                        message = "All games: "+" || ".join(names)
-                                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                        self.irc_sock.send (str_buff.encode())
-                                else:
-                                    if command[2] in modes:
-                                        mode = command[2]
-                                        if ( mode == '1v1' ):
-                                            amount_players_required = 2
-                                        elif ( mode == '2v2' ):
-                                            amount_players_required = 4
-                                        elif ( mode == '3v3' ):
-                                            amount_players_required = 6
-                                        elif ( mode == '4v4' ):
-                                            amount_players_required = 8
-                                        sql = """SELECT name,host FROM pickup_"""+mode+"""
-                                        """
-                                        cur.execute(sql)
-                                        conn.commit()
-                                        row = []
-                                        name = []
-                                        for row in cur:
-                                            if ( row[1] == 1 ):
-                                                name.append(row[0]+"[h]")
-                                            else:
-                                                name.append(row[0])
-                                        if name == []:
-                                            message = "No players detected for :: "+mode+" ::"
-                                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                            self.irc_sock.send (str_buff.encode())
-                                        else:
-                                            message = "@ " + mode + " ["+str(len(name))+"/"+str(amount_players_required)+"]: " + ", ".join(name)
-                                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                            self.irc_sock.send (str_buff.encode())
-                                    else:
-                                        self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
-                                        return
-                                    
-                            else:
-                                self.send_message_to_channel( ("Error, wrong request"), channel )
-                        if ( command[1].lower() == "promote" ):
+### start pickup code
+            if ( command[0].lower() == "add" ):                        
+                if re.search("^#", channel):
+                    if ( len(command) > 1 ) and ( len(command) < 4 ):   #normal about of arguments
+                        modes = ['1v1','2v2','3v3','4v4']
+                        if ( command[1] not in modes ):
+                            self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
+                            return
+                        else:
+                            host = '0'
                             if ( len(command) == 3 ):
-                                modes = ['1v1','2v2','3v3','4v4']
-                                mode = command[2]
-                                if mode in modes:
-                                    if ( mode == '1v1' ):
-                                        amount_players_required = 2
-                                    elif ( mode == '2v2' ):
-                                        amount_players_required = 4
-                                    elif ( mode == '3v3' ):
-                                        amount_players_required = 6
-                                    elif ( mode == '4v4' ):
-                                        amount_players_required = 8
+                                if ( command[2] == 'host' ):
+                                    host = '1'  #user can host a game
+                                else:
+                                    self.send_message_to_channel( ("What is '"+command[2]+"'? Try again"), channel )
+                                    return
+                            if ( command[1] == '1v1' ):
+                                amount_players_required = 2
+                            elif ( command[1] == '2v2' ):
+                                amount_players_required = 4
+                            elif ( command[1] == '3v3' ):
+                                amount_players_required = 6
+                            elif ( command[1] == '4v4' ):
+                                amount_players_required = 8
+                            #check complaints
+                            sql = """SELECT name,complaints FROM pickup_stats
+                                    WHERE name = '"""+user+"'"+"""
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            row = []
+                            for row in cur:
+                                pass
+                            if user in row:
+                                num_complaints = row[1]
+                                if ( int(num_complaints) > 100 ):
+                                    self.send_message_to_channel( ("You have too many complaints, please contact more privileged user to figure out this issue"), channel )
+                                    return
+                            mode = command[1]
+                            sql = """SELECT name FROM pickup_"""+mode+"""
+                                    WHERE name = '"""+user+"'"+"""
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            row = []
+                            for row in cur:
+                                pass
+                            if user in row:
+                                self.send_message_to_channel( ("You are already added for :: "+mode+" :: - Operation failed"), channel )
+                                return
+                            modes.remove(mode)
+                            diff_mode = ''
+                            for diff_mode in modes:
+                                sql = """SELECT name FROM pickup_"""+diff_mode+"""
+                                        WHERE name = '"""+user+"'"+"""
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                row = []
+                                for row in cur:
+                                    pass
+                                if user in row:
+                                    self.send_message_to_channel( ("You are already added for :: "+diff_mode+" :: - Operation failed"), channel )
+                                    return
+                            ### timeout check
+                            sql = """SELECT name,timeout FROM pickup_"""+mode+"""
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            row = []
+                            data = []
+                            for row in cur:
+                                data.append(row)
+                            if row != []:   #players exist
+                                a = date.today()
+                                a = str(a)
+                                a = a.split('-')
+                                year = a[0]
+                                month = a[1]
+                                day = a[2]
+                                b = time.localtime()
+                                b = str(b)
+                                hours = b.split('tm_hour=')[1].split(',')[0]
+                                minutes = b.split('tm_min=')[1].split(',')[0]
+                                if len(hours) == 1:
+                                    hours = '0'+hours
+                                else:
+                                    hours = hours
+                                if len(minutes) == 1:
+                                    minutes = '0'+minutes
+                                else:
+                                    minutes = minutes
+                                localtime = year+month+day+hours+minutes
+                                data_length = len(data)
+                                for i in range(int(data_length)):
+                                    add_time = "".join(str(data[i][1]).split('-'))
+                                    remove_user = data[i][0]
+                                    difference = int(localtime) - int(add_time)
+                                    if ( difference > 180 ):    #some player was added more then 3 hours ago, remove him
+                                        sql = """DELETE FROM pickup_"""+mode+"""
+                                                WHERE name = '"""+remove_user+"'"+"""
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                        self.send_message_to_channel( ("@ "+remove_user+" was removed. Reason: Time Out"), channel )
+                            #generating match
+                            sql = """SELECT name FROM pickup_"""+mode+"""
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            row = []
+                            data = []
+                            for row in cur:
+                                data.append(row)
+                            data_length = len(data)
+                            amount_players_left = int(amount_players_required) - int(data_length)
+                            if ( amount_players_left == 1 ):    # this player is last, check hosts and generate match
+                                if ( host == '1' ):
+                                    sql = """INSERT INTO pickup_"""+mode+"""
+                                            (name,host,timeout)
+                                            VALUES
+                                            ('"""+user+"',"+host+""",strftime('%Y-%m-%d-%H-%M')
+                                            )
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    self.send_message_to_channel( ("@ "+user+" is successfully added for :: "+mode+" ::"), channel )
+                                    self.send_message_to_channel( ("@ Enough player detected for :: "+mode+" ::"), channel )
+                                    sql = """SELECT name FROM pickup_"""+mode+"""
+                                            WHERE host = 1
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    row = []
+                                    random_host = []
+                                    for row in cur:
+                                        random_host.append(row[0])
+                                    hoster = random.choice(random_host)
                                     sql = """SELECT name FROM pickup_"""+mode+"""
                                     """
                                     cur.execute(sql)
@@ -2181,23 +1781,435 @@ class IRC_Server:
                                     name = []
                                     for row in cur:
                                         name.append(row[0])
-                                    message = "Please add up for :: "+mode+" :: ! "+ str(amount_players_required-int(len(name))) + " more people needed! (Type ]pick add "+mode+")"
+                                    team1 = []
+                                    team2 = []
+                                    while ( len(name) > amount_players_required/2  ):
+                                        temp_name = random.choice(name)
+                                        team1.append(temp_name)
+                                        name.remove(temp_name)
+                                    team2 = name
+                                    sql = """SELECT name FROM pickup_maps
+                                             WHERE """+"\""+mode+"\""+""" = 1
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    row = []
+                                    name = []
+                                    for row in cur:
+                                        name.append(row[0])
+                                    map_to_play = random.choice(name)
+                                    message = "@ "+mode+" || Hoster: "+hoster+" || Map: "+map_to_play+" || Team 1: "+", ".join(list(team1))+" || Team 2: "+", ".join(list(team2))
                                     self.send_message_to_channel( (message), channel )
+                                    team = team1+team2
+                                    name = ''
+                                    for name in team:
+                                        self.send_message_to_channel( (message), name )
+                                        if ( hoster == name ):
+                                            host = 1
+                                        else:
+                                            host = 0
+                                        sql = """SELECT name FROM pickup_stats
+                                                WHERE name = '"""+name+"""'
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                        row = []
+                                        for row in cur:
+                                            pass
+                                        if name not in row:
+                                            sql = """INSERT INTO pickup_stats
+                                                    (name,games,hosts,complaints)
+                                                    VALUES
+                                                    ('"""+name+"""',1,"""+str(host)+""",0
+                                                    )
+                                            """
+                                            cur.execute(sql)
+                                            conn.commit()
+                                        else:
+                                            sql = """SELECT games,hosts FROM pickup_stats
+                                                    WHERE name = '"""+name+"""'
+                                            """
+                                            cur.execute(sql)
+                                            conn.commit()
+                                            row = []
+                                            for row in cur:
+                                                pass
+                                            games = row[0]
+                                            hosts = row[1]
+                                            games = str(int(games) + 1)
+                                            hosts = str(int(hosts) + int(host))
+                                            sql = """UPDATE pickup_stats
+                                                    SET games = """+games+""", hosts = """+hosts+"""
+                                                    WHERE name = '"""+name+"""'
+                                            """
+                                            cur.execute(sql)
+                                            conn.commit()
+                                    sql = """DELETE FROM pickup_"""+mode+"""
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    sql = """INSERT INTO pickup_game_start
+                                            (team1,team2,type,host,map,time)
+                                            VALUES
+                                            ('"""+", ".join(list(team1))+"','"+", ".join(list(team2))+"','"+mode+"','"+hoster+"','"+map_to_play+"',"+"""strftime('%Y-%m-%d-%H-%M')
+                                            )
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
                                 else:
-                                    self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
-                                    return
+                                    sql = """SELECT name FROM pickup_"""+mode+"""
+                                            WHERE host = 1
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    row = []
+                                    random_host = []
+                                    for row in cur:
+                                        random_host.append(row)
+                                    if ( len(random_host) != 0 ):   #there are hosters
+                                        sql = """INSERT INTO pickup_"""+mode+"""
+                                            (name,host,timeout)
+                                            VALUES
+                                            ('"""+user+"',"+host+""",strftime('%Y-%m-%d-%H-%M')
+                                            )
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                        self.send_message_to_channel( ("@ "+user+" is successfully added for :: "+mode+" ::"), channel )
+                                        self.send_message_to_channel( ("@ Enough player detected for :: "+mode+" ::"), channel )
+                                        sql = """SELECT name FROM pickup_"""+mode+"""
+                                                WHERE host = 1
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                        row = []
+                                        random_host = []
+                                        for row in cur:
+                                            random_host.append(row[0])
+                                        hoster = random.choice(random_host)
+                                        sql = """SELECT name FROM pickup_"""+mode+"""
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                        row = []
+                                        name = []
+                                        for row in cur:
+                                            name.append(row[0])
+                                        team1 = []
+                                        team2 = []
+                                        while ( len(name) > amount_players_required/2  ):
+                                            temp_name = random.choice(name)
+                                            team1.append(temp_name)
+                                            name.remove(temp_name)
+                                        team2 = name
+                                        sql = """SELECT name FROM pickup_maps
+                                                WHERE """+"\""+mode+"\""+""" = 1
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                        row = []
+                                        name = []
+                                        for row in cur:
+                                            name.append(row[0])
+                                        map_to_play = random.choice(name)
+                                        message = "@ "+mode+" || Hoster: "+hoster+" || Map: "+map_to_play+" || Team 1: "+", ".join(list(team1))+" || Team 2: "+", ".join(list(team2))
+                                        self.send_message_to_channel( (message), channel )
+                                        team = team1+team2
+                                        name = ''
+                                        for name in team:
+                                            self.send_message_to_channel( (message), name )
+                                            if ( hoster == name ):
+                                                host = 1
+                                            else:
+                                                host = 0
+                                            sql = """SELECT name FROM pickup_stats
+                                                    WHERE name = '"""+name+"""'
+                                            """
+                                            cur.execute(sql)
+                                            conn.commit()
+                                            row = []
+                                            for row in cur:
+                                                pass
+                                            if name not in row:
+                                                sql = """INSERT INTO pickup_stats
+                                                        (name,games,hosts,complaints)
+                                                        VALUES
+                                                        ('"""+name+"""',1,"""+str(host)+""",0
+                                                        )
+                                                """
+                                                cur.execute(sql)
+                                                conn.commit()
+                                            else:
+                                                sql = """SELECT games,hosts FROM pickup_stats
+                                                        WHERE name = '"""+name+"""'
+                                                """
+                                                cur.execute(sql)
+                                                conn.commit()
+                                                row = []
+                                                for row in cur:
+                                                    pass
+                                                games = row[0]
+                                                hosts = row[1]
+                                                games = str(int(games) + 1)
+                                                hosts = str(int(hosts) + int(host))
+                                                sql = """UPDATE pickup_stats
+                                                        SET games = """+games+""", hosts = """+hosts+"""
+                                                        WHERE name = '"""+name+"""'
+                                                """
+                                                cur.execute(sql)
+                                                conn.commit()
+                                        sql = """DELETE FROM pickup_"""+mode+"""
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                        sql = """INSERT INTO pickup_game_start
+                                            (team1,team2,type,host,map,time)
+                                            VALUES
+                                            ('"""+", ".join(list(team1))+"','"+", ".join(list(team2))+"','"+mode+"','"+hoster+"','"+map_to_play+"',"+"""strftime('%Y-%m-%d-%H-%M')
+                                            )
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                    else:
+                                        self.send_message_to_channel( ("@ No any players added, want to be hosters and you are last. You can play only if you can host. Try again"), channel )
+                                        return
+                                            
                             else:
-                                message = "Specify mode type to promote! 1v1, 2v2, 3v3 or 4v4"
+                                sql = """INSERT INTO pickup_"""+mode+"""
+                                        (name,host,timeout)
+                                        VALUES
+                                        ('"""+user+"',"+host+""",strftime('%Y-%m-%d-%H-%M')
+                                        )
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                self.send_message_to_channel( ("@ "+user+" is successfully added for :: "+mode+" ::"), channel )
+                    else:
+                        self.send_message_to_channel( ("Error, wrong request"), channel )
+                else:
+                    self.send_message_to_channel( ("]add can be used only on a channel"), user )
+            if ( command[0].lower() == "lastgame" ):
+                if re.search("^#", channel):
+                    if ( len(command) >= 1 ) and ( len(command) < 3 ):
+                        if ( len(command) == 1 ):
+                            sql = """SELECT team1,team2,type,host,map,time FROM pickup_game_start
+                                    ORDER BY uid DESC LIMIT 1
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            row = []
+                            for row in cur:
+                                pass
+                            last_date = "-".join(row[5].split('-')[0:3])
+                            last_time = ":".join(row[5].split('-')[3:5])
+                            message = "@ "+row[2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+row[3]+" || Map: "+row[4]+" || Team 1: "+row[0]+" || Team 2: "+row[1]
+                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                            self.irc_sock.send (str_buff.encode())
+                        else:
+                            modes = ['1v1','2v2','3v3','4v4']
+                            if command[1] in modes:
+                                mode = command[1]
+                                sql = """SELECT team1,team2,type,host,map,time FROM pickup_game_start
+                                    WHERE type = '"""+mode+"""'
+                                    ORDER BY uid DESC LIMIT 1
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                row = []
+                                for row in cur:
+                                    pass
+                                if row != []:
+                                    last_date = "-".join(row[5].split('-')[0:3])
+                                    last_time = ":".join(row[5].split('-')[3:5])
+                                    message = "@ "+row[2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+row[3]+" || Map: "+row[4]+" || Team 1: "+row[0]+" || Team 2: "+row[1]
+                                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                    self.irc_sock.send (str_buff.encode())
+                                else:
+                                    message = "No "+mode+" games played"
+                                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                    self.irc_sock.send (str_buff.encode())
+                            else:
+                                self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
+                                return
+                    else:
+                        self.send_message_to_channel( ("Error, wrong request"), channel )
+                else:
+                    self.send_message_to_channel( ("]lastgame can be used only on a channel"), user )
+            if ( command[0].lower() == "remove" ):
+                if re.search("^#", channel):
+                    if ( len(command) >= 1 ) and ( len(command) < 3 ):
+                        modes = ['1v1','2v2','3v3','4v4']
+                        if ( len(command) == 1 ):
+                            temp_mode = ''
+                            for temp_mode in modes:
+                                sql = """SELECT name FROM pickup_"""+temp_mode+"""
+                                        WHERE name = '"""+user+"""'
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                row = []
+                                for row in cur:
+                                    pass
+                                if user in row:
+                                    sql = """DELETE FROM pickup_"""+temp_mode+"""
+                                            WHERE name = '"""+user+"""'
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    message = "You are removed from :: "+temp_mode+" ::"
+                                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                    self.irc_sock.send (str_buff.encode())
+                                    return
+                            message = "Error, you are not detected added to any game"
+                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                            self.irc_sock.send (str_buff.encode())
+                        else:
+                            if command[1] in modes:
+                                mode = command[1]
+                                sql = """SELECT name FROM pickup_"""+mode+"""
+                                        WHERE name = '"""+user+"""'
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                row = []
+                                for row in cur:
+                                    pass
+                                if user in row:
+                                    sql = """DELETE FROM pickup_"""+mode+"""
+                                            WHERE name = '"""+user+"""'
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    message = "You are removed from :: "+mode+" ::"
+                                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                    self.irc_sock.send (str_buff.encode())
+                                    return
+                                message = "Error, you are not detected added to :: "+mode+" ::"
                                 str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
                                 self.irc_sock.send (str_buff.encode())
-
+                            else:
+                                self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
+                                return
                     else:
-                        self.send_message_to_channel( ("]pick * can be used only on a channel"), user )
+                        self.send_message_to_channel( ("Error, wrong request"), channel )
                 else:
-                    if re.search("^#", channel):
+                    self.send_message_to_channel( ("]remove can be used only on a channel"), user )
+            if ( command[0].lower() == "who" ):
+                if re.search("^#", channel):
+                    if ( len(command) >= 1 ) and ( len(command) < 3 ):
+                        modes = ['1v1','2v2','3v3','4v4']
+                        if ( len(command) == 1 ):
+                            temp_mode = ''
+                            names = []
+                            for temp_mode in modes:
+                                if ( temp_mode == '1v1' ):
+                                    amount_players_required = 2
+                                elif ( temp_mode == '2v2' ):
+                                    amount_players_required = 4
+                                elif ( temp_mode == '3v3' ):
+                                    amount_players_required = 6
+                                elif ( temp_mode == '4v4' ):
+                                    amount_players_required = 8
+                                sql = """SELECT name,host FROM pickup_"""+temp_mode+"""
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                row = []
+                                name = []
+                                for row in cur:
+                                    if ( row[1] == 1 ):
+                                        name.append(row[0]+"[h]")
+                                    else:
+                                        name.append(row[0])
+                                if name != []:
+                                    names.append(temp_mode + " ["+str(len(name))+"/"+str(amount_players_required)+"]: " + ", ".join(name))
+                            if names == []:
+                                message = "No game going on!"
+                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                self.irc_sock.send (str_buff.encode())
+                            else:
+                                message = "All games: "+" || ".join(names)
+                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                self.irc_sock.send (str_buff.encode())
+                        else:
+                            if command[1] in modes:
+                                mode = command[1]
+                                if ( mode == '1v1' ):
+                                    amount_players_required = 2
+                                elif ( mode == '2v2' ):
+                                    amount_players_required = 4
+                                elif ( mode == '3v3' ):
+                                    amount_players_required = 6
+                                elif ( mode == '4v4' ):
+                                    amount_players_required = 8
+                                sql = """SELECT name,host FROM pickup_"""+mode+"""
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                row = []
+                                name = []
+                                for row in cur:
+                                    if ( row[1] == 1 ):
+                                        name.append(row[0]+"[h]")
+                                    else:
+                                        name.append(row[0])
+                                if name == []:
+                                    message = "No players detected for :: "+mode+" ::"
+                                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                    self.irc_sock.send (str_buff.encode())
+                                else:
+                                    message = "@ " + mode + " ["+str(len(name))+"/"+str(amount_players_required)+"]: " + ", ".join(name)
+                                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                    self.irc_sock.send (str_buff.encode())
+                            else:
+                                self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
+                                return
+                                    
+                    else:
+                        self.send_message_to_channel( ("Error, wrong request"), channel )
+                else:
+                    self.send_message_to_channel( ("]who can be used only on a channel"), user )
+            if ( command[0].lower() == "promote" ):
+                if re.search("^#", channel):
+                    if ( len(command) == 2 ):
+                        modes = ['1v1','2v2','3v3','4v4']
+                        mode = command[1]
+                        if mode in modes:
+                            if ( mode == '1v1' ):
+                                amount_players_required = 2
+                            elif ( mode == '2v2' ):
+                                amount_players_required = 4
+                            elif ( mode == '3v3' ):
+                                amount_players_required = 6
+                            elif ( mode == '4v4' ):
+                                amount_players_required = 8
+                            sql = """SELECT name FROM pickup_"""+mode+"""
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            row = []
+                            name = []
+                            for row in cur:
+                                name.append(row[0])
+                            if ( name == [] ):
+                                message = "Promote Error, no players added for "+mode
+                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                self.irc_sock.send (str_buff.encode())
+                            else:
+                                message = "Please add up for :: "+mode+" :: ! "+ str(amount_players_required-int(len(name))) + " more people needed! (Type ]add "+mode+")"
+                                self.send_message_to_channel( (message), channel )
+                        else:
+                            self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
+                            return
+                    elif ( len(command) > 2 ):
                         self.send_message_to_channel( ("Error, wrong request"), channel )
                     else:
-                        self.send_message_to_channel( ("Error, wrong request"), user )                    
+                        message = "Specify mode type to promote! 1v1, 2v2, 3v3 or 4v4"
+                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                        self.irc_sock.send (str_buff.encode())
+                else:
+                    self.send_message_to_channel( ("]promote can be used only on a channel"), user )
+### end pickup code                  
             if ( command[0].lower() == "weather" ):
                 if ( len(command) == 1 ):
                     message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
