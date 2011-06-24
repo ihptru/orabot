@@ -9,6 +9,7 @@ from datetime import date
 import sqlite3
 import hashlib
 import random
+import pywapi
 
 # root admin
 root_admin = "ihptru"
@@ -2196,9 +2197,101 @@ class IRC_Server:
                     if re.search("^#", channel):
                         self.send_message_to_channel( ("Error, wrong request"), channel )
                     else:
-                        self.send_message_to_channel( ("Error, wrong request"), user )
-                            
-                    
+                        self.send_message_to_channel( ("Error, wrong request"), user )                    
+            if ( command[0].lower() == "weather" ):
+                if ( len(command) == 1 ):
+                    message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
+                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                    self.irc_sock.send (str_buff.encode())
+                elif ( len(command) > 1 ):
+                    if ( command[1] == "--current" ):
+                        if ( len(command) == 2 ):
+                            message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
+                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                            self.irc_sock.send (str_buff.encode())
+                        else:
+                            try:
+                                location = command[2]
+                                data = pywapi.get_weather_from_google(location)
+                                city = data.get("forecast_information").get("city")
+                                current = data.get("current_conditions")
+                                message = "Current weather for "+city+" | Temperature: "+current.get("temp_c")+"°C; "+current.get("humidity")+"; Conditions: "+current.get("condition")+"; "+current.get("wind_condition")
+                                if re.search("^#", channel):
+                                    self.send_message_to_channel( (message), channel )
+                                else:
+                                    self.send_message_to_channel( (message), user )
+                            except:
+                                message = "Error: No such location could be found."
+                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                self.irc_sock.send (str_buff.encode())
+                    elif (command[1] == "--forecast" ):
+                        if ( len(command) == 2 ):
+                            message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
+                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                            self.irc_sock.send (str_buff.encode())
+                        else:
+                            try:
+                                location = command[2]
+                                data = pywapi.get_weather_from_google(location)
+                                city = data.get("forecast_information").get("city")
+                                length = len(data.get("forecasts"))
+                                weathers = []
+                                for i in range(int(length)):
+                                    day_of_week = data.get("forecasts")[i].get("day_of_week")
+                                    conditions = data.get("forecasts")[i].get("condition")
+                                    high_temp = str(int(round((int(data.get("forecasts")[i].get("high"))-32)/1.8)))
+                                    low_temp = str(int(round((int(data.get("forecasts")[i].get("low"))-32)/1.8)))
+                                    weathers.append(day_of_week+": "+conditions+"; High of "+high_temp+"°C; Low of "+low_temp+"°C")
+
+                                message = "Forecast for " +city+" | "+" | ".join(weathers)
+                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                self.irc_sock.send (str_buff.encode())
+                            except:
+                                message = "Error: No such location could be found."
+                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                self.irc_sock.send (str_buff.encode())
+                    elif (command[1] == "--all" ):
+                        if ( len(command) == 2 ):
+                            message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
+                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                            self.irc_sock.send (str_buff.encode())
+                        else:
+                            try:
+                                location = command[2]
+                                data = pywapi.get_weather_from_google(location)
+                                city = data.get("forecast_information").get("city")
+                                current = data.get("current_conditions")
+                                length = len(data.get("forecasts"))
+                                weathers = []
+                                weathers.append("Weather for "+city+" | Temperature: "+current.get("temp_c")+"°C; "+current.get("humidity")+"; Conditions: "+current.get("condition")+"; "+current.get("wind_condition"))
+                                for i in range(int(length)):
+                                    day_of_week = data.get("forecasts")[i].get("day_of_week")
+                                    conditions = data.get("forecasts")[i].get("condition")
+                                    high_temp = str(int(round((int(data.get("forecasts")[i].get("high"))-32)/1.8)))
+                                    low_temp = str(int(round((int(data.get("forecasts")[i].get("low"))-32)/1.8)))
+                                    weathers.append(day_of_week+": "+conditions+"; High of "+high_temp+"°C; Low of "+low_temp+"°C")
+                                message = " | ".join(weathers)
+                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                self.irc_sock.send (str_buff.encode())
+                            except:
+                                message = "Error: No such location could be found."
+                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                self.irc_sock.send (str_buff.encode())   
+                    else:
+                        try:
+                            location = command[1]
+                            data = pywapi.get_weather_from_google(location)
+                            city = data.get("forecast_information").get("city")
+                            current = data.get("current_conditions")
+                            message = "Current weather for "+city+" | Temperature: "+current.get("temp_c")+"°C; "+current.get("humidity")+"; Conditions: "+current.get("condition")+"; "+current.get("wind_condition")
+                            if re.search("^#", channel):
+                                self.send_message_to_channel( (message), channel )
+                            else:
+                                self.send_message_to_channel( (message), user )
+                        except:
+                            message = "Error: No such location could be found."
+                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                            self.irc_sock.send (str_buff.encode())
         
         cur.close()
 
