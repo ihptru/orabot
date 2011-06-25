@@ -961,7 +961,33 @@ class IRC_Server:
                                         cur.execute(sql)
                                         conn.commit()
                                         self.send_message_to_channel( ("User "+register_nick+" added successfully, he can use ]register to set up a password"), user)
-    
+                    if ( command[0].lower() == "remove" ):
+                        if ( len(command) == 2 ):
+                            modes = ['1v1','2v2','3v3','4v4']
+                            temp_mode = ''
+                            for temp_mode in modes:
+                                sql = """SELECT name FROM pickup_"""+temp_mode+"""
+                                        WHERE name = '"""+command[1]+"""'
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                row = []
+                                for row in cur:
+                                    pass
+                                if command[1] in row:
+                                    sql = """DELETE FROM pickup_"""+temp_mode+"""
+                                            WHERE name = '"""+command[1]+"""'
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    message = "You removed "+command[1]+" from :: "+temp_mode+" ::"
+                                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                    self.irc_sock.send (str_buff.encode())
+                                    return
+                            message = "Error, "+command[1]+" is not detected added to any game"
+                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                            self.irc_sock.send (str_buff.encode())
+                            return
             ### All public commands go here
             #########################################################################################
             if ( command[0].lower() == "games" ):
@@ -2314,7 +2340,7 @@ class BotCrashed(Exception): # Raised if the bot has crashed.
 def main():
     # Here begins the main programs flow:
     test2 = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
-    test = IRC_Server("irc.freenode.net", 6667, "orabot", "##untitled")
+    test = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
     run_test = multiprocessing.Process(None,test.connect,name="IRC Server" )
     run_test.start()
     try:
