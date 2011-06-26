@@ -1075,7 +1075,7 @@ class IRC_Server:
                             else:
                                 self.send_message_to_channel( ("No games found"), user)
                         else:   # there are one or more games
-                            if ( command[1] == "1" ):   #request games in State = 1
+                            if ( command[1] == "-w" ):   #request games in State = 1
                                 length = length / 9 # number of games
                                 a1=2    #name
                                 loc=3   #ip
@@ -1123,7 +1123,7 @@ class IRC_Server:
                                         self.send_message_to_channel( ("No games waiting for players found"), channel )
                                     else:
                                         self.send_message_to_channel( ("No games waiting for players found"), user )           
-                            elif ( command[1] == "2" ):     # request games in State = 2
+                            elif ( command[1] == "-p" ):     # request games in State = 2
                                 length = length / 9 # number of games
                                 a1=2    #name
                                 loc=3   #ip
@@ -1171,6 +1171,49 @@ class IRC_Server:
                                         self.send_message_to_channel( ("No started games found"), channel )
                                     else:
                                         self.send_message_to_channel( ("No started games found"), user )
+                            elif ( command[1] == "--all" ): # request games in both states
+                                length = length / 9 # number of games
+                                a1=2    #name
+                                loc=3   #ip
+                                a2=4    #state
+                                a3=5    #players
+                                a4=7    #version
+                                for i in range(int(length)):
+                                    if ( lines[a2].lstrip().rstrip() == 'State: 1' ):
+                                        state = '(W)'
+                                    elif ( lines[a2].lstrip().rstrip() == 'State: 2' ):
+                                        state = '(P)'
+                                    ### for location
+                                    ip=lines[loc].split(':')[1].lstrip()    # ip address
+                                    os.system("whois "+ip+" > whois_info")
+                                    filename = 'whois_info'
+                                    file = open(filename,'r')
+                                    who = file.readlines()
+                                    file.close()
+                                    a =  str(who).split()
+                                    try:
+                                        index = a.index('\'country:')
+                                        index = int(index) + 1
+                                        code = a[index]
+                                        code = code[:-4].upper()    #got country code
+                                        code_index = codes.index(code)
+                                        country = match_codes[code_index]
+                                    except:
+                                        country = 'USA'
+                                    sname = lines[a1].encode('utf-8').decode('utf-8')
+                                    sname = str(sname)
+                                    if ( len(sname) == 0 ):
+                                        sname = 'noname'
+                                    games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
+                                    if re.search("^#", channel):
+                                        self.send_message_to_channel( (games), channel )
+                                    else:
+                                        self.send_message_to_channel( (games), user )
+                                    a1=a1+9
+                                    loc=loc+9
+                                    a2=a2+9
+                                    a3=a3+9
+                                    a4=a4+9
                             else:   #it is pattern
                                 chars=['*','.','$','^','@','{','}','+','?'] # chars to ignore
                                 for i in range(int(len(chars))):
