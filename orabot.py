@@ -291,16 +291,17 @@ class IRC_Server:
                 # if PRIVMSG is still in string - message from person with ipv6
                 suit = re.compile('PRIVMSG')
                 if suit.search(irc_user_message):
-                    irc_user_message = str(recv).split ( 'PRIVMSG' ) [ 1 ] . split ( ' :') [ 1 ]
+                    irc_user_message = str(recv).split ( 'PRIVMSG' ) [ 1 ] . split ( ' :') [ 1: ]
+                    irc_user_message = " ".join(irc_user_message)
                     irc_user_message = irc_user_message[:-5].encode('utf-8').decode('utf-8')
                     irc_user_message = str(irc_user_message)
                 ###logs
                 chan = str(recv).split ( 'PRIVMSG' ) [ 1 ] . lstrip() . split(' :')[0]  #channel ex: #openra
-                if chan == '#openra' or chan == '#openra-dev':
+                if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
                     row = '['+real_hours+':'+real_minutes+'] '+irc_user_nick+': '+str(irc_user_message)+'\n'
-                    if chan == '#openra':
+                    if self.irc_channel == '#openra':
                         chan_d = 'openra'
-                    elif chan == '#openra-dev':
+                    elif self.irc_channel == '#openra-dev':
                         chan_d = 'openra-dev'
                     else:
                         chan_d = 'trash'
@@ -319,22 +320,26 @@ class IRC_Server:
                     # (str(recv)).split()[2] ) is simply the channel the command was heard on.
                     self.process_command(irc_user_nick, ( (str(recv)).split()[2] ))
 ### when message cotains link to youtube, show video title
-                if re.search('http://www.youtube.com/watch*', str(irc_user_message)) or re.search('http://youtube.com/watch*', str(irc_user_message)):
+                if re.search('http.*youtube.com/watch*', str(irc_user_message)):
                     if re.search("^#", chan):
-                        link = str(irc_user_message).split('http://')[1].split()[0].split('&')[0]
+                        link = str(irc_user_message).split('://')[1].split()[0].split('&')[0]
+                        #http = str(irc_user_message).split('://')[0].split()[-1]
                         dl_file = link.split('/')[1]
                         link = 'http://'+link
-                        os.system("wget "+link+" > /dev/null 2>&1")
-                        filename = dl_file
-                        file = open(filename, 'r')
-                        lines = file.readlines()
-                        file.close()
-                        os.remove(dl_file)
                         try:
-                            video_title = lines[25].split('&#x202a;')[1].split('&#x202c;')[0].replace('&#39;', '\'')
-                            self.send_message_to_channel( ("Youtube: "+video_title), chan )
+                            os.system("wget "+link+" > /dev/null 2>&1")
+                            filename = dl_file
+                            file = open(filename, 'r')
+                            lines = file.readlines()
+                            file.close()
+                            os.remove(dl_file)
+                            try:
+                                video_title = lines[25].split('&#x202a;')[1].split('&#x202c;')[0].replace('&#39;', '\'')
+                                self.send_message_to_channel( ("Youtube: "+video_title), chan )
+                            except:
+                                pass    #video is removed or something
                         except:
-                            pass    #video is removed or something
+                            pass
             if str(recv).find ( "JOIN" ) != -1:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
@@ -342,7 +347,7 @@ class IRC_Server:
                 irc_join_nick = str(recv).split( '!' ) [ 0 ].split( ':' ) [ 1 ]
                 irc_join_host = str(recv).split( '!' ) [ 1 ].split( ' ' ) [ 0 ]
                 #chan = str(recv).split( "JOIN" ) [ 1 ].lstrip().split( ":" )[1].rstrip()     #channle ex: #openra
-                chan = str(recv).split()[2].replace(':','').rstrip()
+                #chan = str(recv).split()[2].replace(':','').rstrip()
                 sql = """SELECT * FROM users
                         WHERE user = '"""+irc_join_nick+"'"+"""
                 """
@@ -417,11 +422,11 @@ class IRC_Server:
                     conn.commit()
                     cur.close()
                 ###logs
-                if chan == '#openra' or chan == '#openra-dev':
-                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_join_nick+' ('+irc_join_host+') has joined '+chan+'\n'
-                    if chan == '#openra':
+                if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
+                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_join_nick+' ('+irc_join_host+') has joined '+self.irc_channel+'\n'
+                    if self.irc_channel == '#openra':
                         chan_d = 'openra'
-                    elif chan == '#openra-dev':
+                    elif self.irc_channel == '#openra-dev':
                         chan_d = 'openra-dev'
                     else:
                         chan_d = 'trash'
@@ -495,7 +500,7 @@ class IRC_Server:
                 cur=conn.cursor()
                 print (str(recv))
                 irc_part_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
-                chan = str(recv).split()[2].replace(':','')
+                #chan = str(recv).split()[2].replace(':','')
                 ###logout
                 sql = """SELECT * FROM register
                         WHERE user = '"""+irc_part_nick+"'"+"""
@@ -532,11 +537,11 @@ class IRC_Server:
                     cur.execute(sql)
                     conn.commit()
                 ###logs
-                if chan == '#openra' or chan == '#openra-dev':
-                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_part_nick+' has left '+chan+'\n'
-                    if chan == '#openra':
+                if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
+                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_part_nick+' has left '+self.irc_channel+'\n'
+                    if self.irc_channel == '#openra':
                         chan_d = 'openra'
-                    elif chan == '#openra-dev':
+                    elif self.irc_channel == '#openra-dev':
                         chan_d = 'openra-dev'
                     else:
                         chan_d = 'trash'
@@ -961,6 +966,29 @@ class IRC_Server:
                                         cur.execute(sql)
                                         conn.commit()
                                         self.send_message_to_channel( ("User "+register_nick+" added successfully, he can use ]register to set up a password"), user)
+                    if ( command[0].lower() == "unregister" ):      #owner command to unregister user
+                        if ( len(command) == 2 ):
+                            if ( owner == 1 ):
+                                if not re.search("^#", channel):    #owner commands only in private
+                                    unregister_nick = command[1]
+                                    sql = """SELECT * FROM register
+                                            WHERE user = '"""+unregister_nick+"'"+"""
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    row = []
+                                    for row in cur:
+                                        pass
+                                    if unregister_nick not in row:
+                                        self.send_message_to_channel( ("User "+unregister_nick+" does not exist"), user)
+                                    else:
+                                        sql = """DELETE FROM register
+                                                WHERE user = '"""+unregister_nick+"""'
+                                        
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                        self.send_message_to_channel( ("User "+unregister_nick+" unregistered successfully"), user)
                     if ( command[0].lower() == "remove" ):
                         if ( len(command) == 2 ):
                             modes = ['1v1','2v2','3v3','4v4']
@@ -1435,7 +1463,7 @@ class IRC_Server:
                     else:
                         self.send_message_to_channel( ("Error, wrong request"), user )
             if ( command[0].lower() == "later" ):
-                if ( len(command) > 2 ):
+                if ( len(command) >= 3 ):
                     if re.search("^#", channel):
                         user_nick = command[1] #reciever
                         if ( user_nick == user ):
