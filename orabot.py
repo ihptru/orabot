@@ -10,197 +10,211 @@ import sqlite3
 import hashlib
 import random
 import pywapi
+import urllib.request
 
 # root admin
 root_admin = "ihptru"
 root_admin_password = "password" #only for the successful first run, dont forget to remove it later
 
 ### UNCOMMENT BELOW ON THE FIRST RUN
-                #conn = sqlite3.connect('../db/openra.sqlite')
-                #cur = conn.cursor()
-                #sql = """CREATE TABLE register (
-                #uid int NOT NULL,
-                #user varchar(20) NOT NULL,
-                #pass varchar(50),
-                #owner boolean NOT NULL DEFAULT '0',
-                #authenticated boolean NOT NULL DEFAULT '0'
-                #)
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #
-                #user_password = hashlib.md5(root_admin_password.encode('utf-8')).hexdigest()     
-                #sql = """INSERT INTO register
-                #        (uid,user,pass,owner)
-                #        VALUES
-                #        (
-                #        1,'"""+root_admin+"','"+str(user_password)+"'"+""",1
-                #        )       
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #sql = """CREATE TABLE black_list (
-                #    uid integer NOT NULL,
-                #    user varchar(30) NOT NULL,
-                #    date_time date NOT NULL,
-                #    count integer NOT NULL
-                #    )        
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #sql = """INSERT INTO black_list
-                #       (uid,user,date_time,count)
-                #       VALUES
-                #       (
-                #       1,'test',strftime('%Y-%m-%d-%H-%M'),1
-                #       )
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #
-                #sql = """CREATE TABLE commands (
-                #        uid integer NOT NULL,
-                #        user varchar(30) NOT NULL,
-                #        command varchar(300) NOT NULL,
-                #        date_time date NOT NULL
-                #)
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #for i in range(31):
-                #    sql = """INSERT INTO commands
-                #        (uid,user,command,date_time)
-                #        VALUES
-                #        (
-                #        1,'test','test_command',strftime('%Y-%m-%d-%H-%M-%S')
-                #        )
-                #    """
-                #    cur.execute(sql)
-                #    conn.commit()
-                #sql = """CREATE TABLE users (
-                #uid integer NOT NULL,
-                #user varchar(30) NOT NULL,
-                #date date
-                #)               
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #sql= """INSERT INTO users
-                #        (uid,user)
-                #        VALUES
-                #        (
-                #        1,'test'
-                #        )
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #sql = """CREATE TABLE later (
-                #        uid integer NOT NULL,
-                #        sender varchar(30) NOT NULL,
-                #        reciever varchar(30) NOT NULL,
-                #        channel varchar(30) NOT NULL,
-                #        date date NOT NULL,
-                #        message varchar(1000) NOT NULL
-                #)             
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #sql = """INSERT INTO later
-                #        (uid,sender,reciever,channel,date,message)
-                #        VALUES
-                #        (
-                #        1,'test','test','#test',strftime('%Y-%m-%d-%H-%M-%S'),'Hello, how are you?'
-                #        )                
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                ###
-                #sql = """CREATE TABLE "pickup_1v1" (
-                #"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-                #"name" VARCHAR NOT NULL ,
-                #"host" BOOL NOT NULL  DEFAULT 0,
-                #"timeout" DATETIME NOT NULL
-                #)
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #sql = """CREATE TABLE "pickup_2v2" (
-                #"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-                #"name" VARCHAR NOT NULL ,
-                #"host" BOOL NOT NULL  DEFAULT 0,
-                #"timeout" DATETIME NOT NULL
-                #)
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #sql = """CREATE TABLE "pickup_3v3" (
-                #"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-                #"name" VARCHAR NOT NULL ,
-                #"host" BOOL NOT NULL  DEFAULT 0,
-                #"timeout" DATETIME NOT NULL
-                #)
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #sql = """CREATE TABLE "pickup_4v4 (
-                #"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-                #"name" VARCHAR NOT NULL ,
-                #"host" BOOL NOT NULL  DEFAULT 0,
-                #"timeout" DATETIME NOT NULL
-                #)
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #sql = """CREATE TABLE "pickup_game_start" (
-                #"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-                #"team1" VARCHAR NOT NULL ,
-                #"team2" VARCHAR NOT NULL ,
-                #"type" VARCHAR NOT NULL ,
-                #"host" VARCHAR NOT NULL ,
-                #"map" VARCHAR NOT NULL ,
-                #"time" DATETIME NOT NULL
-                #)
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #sql = """CREATE TABLE "pickup_maps" (
-                #"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-                #"name" VARCHAR NOT NULL ,
-                #"1v1" BOOL NOT NULL ,
-                #"2v2" BOOL NOT NULL ,
-                #"3v3" BOOL NOT NULL ,
-                #"4v4" BOOL NOT NULL ,
-                #"5v5" BOOL NOT NULL
-                #)
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #sql = """INSERT INTO "pickup_maps"
-                #       (name,1v1,2v2,3v3,4v4,5v5)
-                #       VALUES
-                #       (
-                #       'East vs West',1,1,0,0,0
-                #       )
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #sql = """CREATE TABLE "pickup_stats" (
-                #"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-                #"name" VARCHAR NOT NULL ,
-                #"games" INTEGER NOT NULL  DEFAULT 0,
-                #"hosts" INTEGER NOT NULL  DEFAULT 0,
-                #"complaints" INTEGER NOT NULL  DEFAULT 0
-                #)
-                #"""
-                #cur.execute(sql)
-                #conn.commit()
-                #cur.close()
+#conn = sqlite3.connect('db/openra.sqlite')
+#cur = conn.cursor()
+#sql = """CREATE TABLE register (
+#uid int NOT NULL,
+#user varchar(20) NOT NULL,
+#pass varchar(50),
+#owner boolean NOT NULL DEFAULT '0',
+#authenticated boolean NOT NULL DEFAULT '0'
+#)
+#"""
+#cur.execute(sql)
+#conn.commit()
+#
+#user_password = hashlib.md5(root_admin_password.encode('utf-8')).hexdigest()     
+#sql = """INSERT INTO register
+#        (uid,user,pass,owner)
+#        VALUES
+#        (
+#        1,'"""+root_admin+"','"+str(user_password)+"'"+""",1
+#        )       
+#"""
+#cur.execute(sql)
+#conn.commit()
+#sql = """CREATE TABLE black_list (
+#    uid integer NOT NULL,
+#    user varchar(30) NOT NULL,
+#    date_time date NOT NULL,
+#    count integer NOT NULL
+#    )        
+#"""
+#cur.execute(sql)
+#conn.commit()
+#sql = """INSERT INTO black_list
+#       (uid,user,date_time,count)
+#       VALUES
+#       (
+#       1,'test',strftime('%Y-%m-%d-%H-%M'),1
+#       )
+#"""
+#cur.execute(sql)
+#conn.commit()
+#
+#sql = """CREATE TABLE commands (
+#        uid integer NOT NULL,
+#        user varchar(30) NOT NULL,
+#        command varchar(300) NOT NULL,
+#        date_time date NOT NULL
+#)
+#"""
+#cur.execute(sql)
+#conn.commit()
+#for i in range(31):
+#    sql = """INSERT INTO commands
+#        (uid,user,command,date_time)
+#        VALUES
+#        (
+#        1,'test','test_command',strftime('%Y-%m-%d-%H-%M-%S')
+#        )
+#    """
+#    cur.execute(sql)
+#    conn.commit()
+#sql = """CREATE TABLE users (
+#uid integer NOT NULL,
+#user varchar(30) NOT NULL,
+#date date
+#)               
+#"""
+#cur.execute(sql)
+#conn.commit()
+#sql= """INSERT INTO users
+#        (uid,user)
+#        VALUES
+#        (
+#        1,'test'
+#        )
+#"""
+#cur.execute(sql)
+#conn.commit()
+#sql = """CREATE TABLE later (
+#        uid integer NOT NULL,
+#        sender varchar(30) NOT NULL,
+#        reciever varchar(30) NOT NULL,
+#        channel varchar(30) NOT NULL,
+#        date date NOT NULL,
+#        message varchar(1000) NOT NULL
+#)             
+#"""
+#cur.execute(sql)
+#conn.commit()
+#sql = """INSERT INTO later
+#        (uid,sender,reciever,channel,date,message)
+#        VALUES
+#        (
+#        1,'test','test','#test',strftime('%Y-%m-%d-%H-%M-%S'),'Hello, how are you?'
+#        )                
+#"""
+#cur.execute(sql)
+#conn.commit()
+###
+#sql = """CREATE TABLE "pickup_1v1" (
+#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+#"name" VARCHAR NOT NULL ,
+#"host" BOOL NOT NULL  DEFAULT 0,
+#"timeout" DATETIME NOT NULL
+#)
+#"""
+#cur.execute(sql)
+#conn.commit()
+#sql = """CREATE TABLE "pickup_2v2" (
+#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+#"name" VARCHAR NOT NULL ,
+#"host" BOOL NOT NULL  DEFAULT 0,
+#"timeout" DATETIME NOT NULL
+#)
+#"""
+#cur.execute(sql)
+#conn.commit()
+#sql = """CREATE TABLE "pickup_3v3" (
+#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+#"name" VARCHAR NOT NULL ,
+#"host" BOOL NOT NULL  DEFAULT 0,
+#"timeout" DATETIME NOT NULL
+#)
+#"""
+#cur.execute(sql)
+#conn.commit()
+#sql = """CREATE TABLE "pickup_4v4 (
+#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+#"name" VARCHAR NOT NULL ,
+#"host" BOOL NOT NULL  DEFAULT 0,
+#"timeout" DATETIME NOT NULL
+#)
+#"""
+#cur.execute(sql)
+#conn.commit()
+#sql = """CREATE TABLE "pickup_game_start" (
+#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+#"team1" VARCHAR NOT NULL ,
+#"team2" VARCHAR NOT NULL ,
+#"type" VARCHAR NOT NULL ,
+#"host" VARCHAR NOT NULL ,
+#"map" VARCHAR NOT NULL ,
+#"time" DATETIME NOT NULL
+#)
+#"""
+#cur.execute(sql)
+#conn.commit()
+#sql = """CREATE TABLE "pickup_maps" (
+#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+#"name" VARCHAR NOT NULL ,
+#"1v1" BOOL NOT NULL ,
+#"2v2" BOOL NOT NULL ,
+#"3v3" BOOL NOT NULL ,
+#"4v4" BOOL NOT NULL ,
+#"5v5" BOOL NOT NULL
+#)
+#"""
+#cur.execute(sql)
+#conn.commit()
+#sql = """INSERT INTO "pickup_maps"
+#       (name,1v1,2v2,3v3,4v4,5v5)
+#       VALUES
+#       (
+#       'East vs West',1,1,0,0,0
+#       )
+#"""
+#cur.execute(sql)
+#conn.commit()
+#sql = """CREATE TABLE "pickup_stats" (
+#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+#"name" VARCHAR NOT NULL ,
+#"games" INTEGER NOT NULL  DEFAULT 0,
+#"hosts" INTEGER NOT NULL  DEFAULT 0,
+#"complaints" INTEGER NOT NULL  DEFAULT 0
+#)
+#"""
+#cur.execute(sql)
+#conn.commit()
+#sql = """CREATE TABLE "notify" (
+#uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
+#user VARCHAR NOT NULL,
+#date DATETIME NOT NULL,
+#mod VARCHAR NOT NULL DEFAULT "all",
+#version VARCHAR NOT NULL DEFAULT "all",
+#timeout VARCHAR NOT NULL DEFAULT "all",
+#timezone VARCHAR NOT NULL DEFAULT "GMT"
+#)                
+#"""
+#cur.execute(sql)
+#conn.commit()
+#cur.close()
 ###
 
 languages=['af','sq','ar','be','bg','ca','zh-CN','hr','cs','da','nl','en','et','tl','fi','fr','gl','de','el','iw','hi','hu','is','id','ga','it','ja','ko','lv','lt','mk','ml','mt','no','fa','pl','ro','ru','sr','sk','sl','es','sw','sv','th','tr','uk','vi','cy','yi']
 real_langs=['Afrikaans','Albanian','Arabic','Belarusian','Bulgarian','Catalan','Chinese_Simplified','Croatian','Czech','Danish','Dutch','English','Estonian','Filipino','Finnish','French','Galician','German','Greek','Hebrew','Hindi','Hungarian','Icelandic','Indonesian','Irish','Italian','Japanese','Korean','Latvian','Lithuanian','Macedonian','Malay','Maltese','Norwegian','Persian','Polish','Romanian','Russian','Serbian','Slovak','Slovenian','Spanish','Swahili','Swedish','Thai','Turkish','Ukrainian','Vietnamese','Welsh','Yiddish']
 codes=['AF','AX','AL','DZ','AS','AD','AO','AI','AQ','AG','AR','AM','AW','AU','AT','AZ','BS','BH','BD','BB','BY','BE','BZ','BJ','BM','BT','BO','BQ','BA','BW','BV','BR','IO','BN','BG','BF','BI','KH','CM','CA','CV','KY','CF','TD','CL','CN','CX','CC','CO','KM','CG','CD','CK','CR','CI','HR','CU','CW','CY','CZ','DK','DJ','DM','DO','EC','EG','SV','GQ','ER','EE','ET','FK','FO','FJ','FI','FR','GF','PF','TF','GA','GM','GE','DE','GH','GI','GR','GL','GD','GP','GU','GT','GG','GN','GW','GY','HT','HM','VA','HN','HK','HU','IS','IN','ID','IR','IQ','IE','IM','IL','IT','JM','JP','JE','JO','KZ','KE','KI','KP','KR','KW','KG','LA','LV','LB','LS','LR','LY','LI','LT','LU','MO','MK','MG','MW','MY','MV','ML','MT','MH','MQ','MR','MU','YT','MX','FM','MD','MC','MN','ME','MS','MA','MZ','MM','NA','NR','NP','NL','NC','NZ','NI','NE','NG','NU','NF','MP','NO','OM','PK','PW','PS','PA','PG','PY','PE','PH','PN','PL','PT','PR','QA','RE','RO','RU','RW','BL','SH','KN','LC','MF','PM','VC','WS','SM','ST','SA','SN','RS','SC','SL','SG','SX','SK','SI','SB','SO','ZA','GS','ES','LK','SD','SR','SJ','SZ','SE','CH','SY','TW','TJ','TZ','TH','TL','TG','TK','TO','TT','TN','TR','TM','TC','TV','UG','UA','AE','GB','US','UM','UY','UZ','VU','VE','VN','VG','VI','WF','EH','YE','ZM','ZW']
 match_codes=['AFGHANISTAN','ALAND ISLANDS','ALBANIA','ALGERIA','AMERICAN SAMOA','ANDORRA','ANGOLA','ANGUILLA','ANTARCTICA','ANTIGUA and BARBUDA','ARGENTINA','ARMENIA','ARUBA','AUSTRALIA','AUSTRIA','AZERBAIJAN','BAHAMAS','BAHRAIN','BANGLADESH','BARBADOS','BELARUS','BELGIUM','BELIZE','BENIN','BERMUDA','BHUTAN','BOLIVIA, PLURINATIONAL STATE OF','BONAIRE, SAINT EUSTATIUS and SABA','BOSNIA and HERZEGOVINA','BOTSWANA','BOUVET ISLAND','BRAZIL','BRITISH INDIAN OCEAN TERRITORY','BRUNEI DARUSSALAM','BULGARIA','BURKINA FASO','BURUNDI','CAMBODIA','CAMEROON','CANADA','CAPE VERDE','CAYMAN ISLANDS','CENTRAL AFRICAN REPUBLIC','CHAD','CHILE','CHINA','CHRISTMAS ISLAND','COCOS (KEELING) ISLANDS','COLOMBIA','COMOROS','CONGO','CONGO, THE DEMOCRATIC REPUBLIC OF THE','COOK ISLANDS','COSTA RICA',"COTE D'IVOIRE",'CROATIA','CUBA','CURACAO','CYPRUS','CZECH REPUBLIC','DENMARK','DJIBOUTI','DOMINICA','DOMINICAN REPUBLIC','ECUADOR','EGYPT','EL SALVADOR','EQUATORIAL GUINEA','ERITREA','ESTONIA','ETHIOPIA','FALKLAND ISLANDS (MALVINAS)','FAROE ISLANDS','FIJI','FINLAND','FRANCE','FRENCH GUIANA','FRENCH POLYNESIA','FRENCH SOUTHERN TERRITORIES','GABON','GAMBIA','GEORGIA','GERMANY','GHANA','GIBRALTAR','GREECE','GREENLAND','GRENADA','GUADELOUPE','GUAM','GUATEMALA','GUERNSEY','GUINEA','GUINEA-BISSAU','GUYANA','HAITI','HEARD ISLAND AND MCDONALD ISLANDS','HOLY SEE (VATICAN CITY STATE)','HONDURAS','HONG KONG','HUNGARY','ICELAND','INDIA','INDONESIA','IRAN, ISLAMIC REPUBLIC OF','IRAQ','IRELAND','ISLE OF MAN','ISRAEL','ITALY','JAMAICA','JAPAN','JERSEY','JORDAN','KAZAKHSTAN','KENYA','KIRIBATI',"KOREA, DEMOCRATIC PEOPLE'S REPUBLIC OF",'KOREA, REPUBLIC OF','KUWAIT','KYRGYZSTAN',"LAO PEOPLE'S DEMOCRATIC REPUBLIC",'LATVIA','LEBANON','LESOTHO','LIBERIA','LIBYAN ARAB JAMAHIRIYA','LIECHTENSTEIN','LITHUANIA','LUXEMBOURG','MACAO','MACEDONIA, THE FORMER YUGOSLAV REPUBLIC OF','MADAGASCAR','MALAWI','MALAYSIA','MALDIVES','MALI','MALTA','MARSHALL ISLANDS','MARTINIQUE','MAURITANIA','MAURITIUS','MAYOTTE','MEXICO','MICRONESIA, FEDERATED STATES OF','MOLDOVA, REPUBLIC OF','MONACO','MONGOLIA','MONTENEGRO','MONTSERRAT','MOROCCO','MOZAMBIQUE','MYANMAR','NAMIBIA','NAURU','NEPAL','NETHERLANDS','NEW CALEDONIA','NEW ZEALAND','NICARAGUA','NIGER','NIGERIA','NIUE','NORFOLK ISLAND','NORTHERN MARIANA ISLANDS','NORWAY','OMAN','PAKISTAN','PALAU','PALESTINIAN TERRITORY, OCCUPIED','PANAMA','PAPUA NEW GUINEA','PARAGUAY','PERU','PHILIPPINES','PITCAIRN','POLAND','PORTUGAL','PUERTO RICO','QATAR','REUNION','ROMANIA','RUSSIAN FEDERATION','RWANDA','SAINT BARTHELEMY','SAINT HELENA, ASCENSION and TRISTAN DA CUNHA','SAINT KITTS and NEVIS','SAINT LUCIA','SAINT MARTIN (FRENCH PART)','SAINT PIERRE and MIQUELON','SAINT VINCENT and THE GRENADINES','SAMOA','SAN MARINO','SAO TOME and PRINCIPE','SAUDI ARABIA','SENEGAL','SERBIA','SEYCHELLES','SIERRA LEONE','SINGAPORE','SINT MAARTEN (DUTCH PART)','SLOVAKIA','SLOVENIA','SOLOMON ISLANDS','SOMALIA','SOUTH AFRICA','SOUTH GEORGIA and THE SOUTH SANDWICH ISLANDS','SPAIN','SRI LANKA','SUDAN','SURINAME','SVALBARD and JAN MAYEN','SWAZILAND','SWEDEN','SWITZERLAND','SYRIAN ARAB REPUBLIC','TAIWAN, PROVINCE OF CHINA','TAJIKISTAN','TANZANIA, UNITED REPUBLIC OF','THAILAND','TIMOR-LESTE','TOGO','TOKELAU','TONGA','TRINIDAD and TOBAGO','TUNISIA','TURKEY','TURKMENISTAN','TURKS and CAICOS ISLANDS','TUVALU','UGANDA','UKRAINE','UNITED ARAB EMIRATES','UNITED KINGDOM','UNITED STATES','NITED STATES MINOR OUTLYING ISLANDS','URUGUAY','UZBEKISTAN','VANUATU','VENEZUELA, BOLIVARIAN REPUBLIC OF','VIET NAM','VIRGIN ISLANDS, BRITISH','VIRGIN ISLANDS, U.S.','WALLIS and FUTUNA','WESTERN SAHARA','YEMEN','ZAMBIA','ZIMBABWE']
+notify_ip_list = []
 
 # Defining a class to run the server. One per connection. This class will do most of our work.
 class IRC_Server:
@@ -217,6 +231,7 @@ class IRC_Server:
         self.is_connected = False
         self.should_reconnect = False
         self.command = ""
+        
 
     ## The destructor - Close socket.
     def __del__(self):
@@ -224,7 +239,7 @@ class IRC_Server:
 
     # This is the bit that controls connection to a server & channel.
     # It should be rewritten to allow multiple channels in a single server.
-    # This needs to have an "auto identify" as part of its script, or support a custom connect message.
+    # This needs to have an "auto identify" as part of its script, or support a custom connect message.       
     def connect(self):
         self.should_reconnect = True
         try:
@@ -249,7 +264,7 @@ class IRC_Server:
         self.irc_sock.send (str_buff.encode())
         print ("Joining channel " + str(self.irc_channel) )
         self.is_connected = True
-        self.listen()
+        self.listen()          
         
     def listen(self):
         while self.is_connected:
@@ -275,7 +290,8 @@ class IRC_Server:
                 real_minutes = minutes
             ### for logs end
             if str(recv).find ( "PING" ) != -1:
-                self.irc_sock.send ( "PONG ".encode() + recv.split() [ 1 ] + "\r\n".encode() )
+                self.irc_sock.send ( "PONG ".encode() + recv.split() [ 1 ] + "\r\n".encode() )             
+             
             #recover all nicks on channel
             #if str(recv).find ( "353 orabot =" ) != -1:
             #    print (str(recv))
@@ -553,7 +569,7 @@ class IRC_Server:
                     file.write(row)
                     file.close()
                 ###
-                
+
         if self.should_reconnect:
             self.connect()
 
@@ -2401,7 +2417,64 @@ class IRC_Server:
                             message = "Error: No such location could be found."
                             str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
                             self.irc_sock.send (str_buff.encode())
-        
+            if ( command[0].lower() == "notify" ):
+                if ( len(command) == 1 ):
+                    sql = """SELECT user FROM notify
+                            WHERE user = '"""+user+"""'
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                    row = []
+                    for row in cur:
+                        pass
+                    if ( user in row ):
+                        message = "You are already subscribed for new games notification"
+                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                        self.irc_sock.send (str_buff.encode())
+                    else:
+                        sql = """INSERT INTO notify
+                                (user,date)
+                                VALUES
+                                (
+                                '"""+user+"',"+"""strftime('%Y-%m-%d-%H-%M-%S')
+                                )
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                        message = "You are subscribed for new games notification"
+                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                        self.irc_sock.send (str_buff.encode())
+                else:
+                    message = "Error arguments"
+                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                    self.irc_sock.send (str_buff.encode())
+            if ( command[0].lower() == "unnotify" ):
+                if ( len(command) == 1 ):
+                    sql = """SELECT user FROM notify
+                            WHERE user = '"""+user+"""'
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                    row = []
+                    for row in cur:
+                        pass
+                    if ( user in row ):
+                        sql = """DELETE FROM notify
+                                WHERE user = '"""+user+"""'
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                        message = "You are unsubscribed from new games notification"
+                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                        self.irc_sock.send (str_buff.encode())
+                    else:
+                        message = "You are not subscribed for new games notification"
+                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                        self.irc_sock.send (str_buff.encode())
+                else:
+                    message = "Error arguments"
+                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                    self.irc_sock.send (str_buff.encode())
         cur.close()
 
 #####
@@ -2414,6 +2487,67 @@ def main():
     test = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
     run_test = multiprocessing.Process(None,test.connect,name="IRC Server" )
     run_test.start()
+    
+    def notify(self):
+        while True:
+            time.sleep(3)
+### NOTIFICATIONS
+            ip_current_games = []
+            url = 'http://master.open-ra.org/list.php'
+            stream = urllib.request.urlopen(url).read()
+            if ( stream != b'' ):
+                split_games = str(stream).split('\\nGame')
+                length_games = len(split_games)
+                for i in range(int(length_games)):
+                    ip = split_games[i].split('\\n\\t')[3].split()[1].split(':')[0]
+                    ip_current_games.append(ip)
+                    state = split_games[i].split('\\n\\t')[4]
+                    if ( ip in notify_ip_list ):
+                        if ( state == 'State: 2' ):
+                            #game in list but started, remove from `notify_ip_list`
+                            ip_index = notify_ip_list.index(ip)
+                            del notify_ip_list[ip_index]
+                            ip_index = ip_current_games.index(ip)
+                            del ip_current_games[ip_index]
+                    else:   #ip is not in a list
+                        if ( state == 'State: 1' ):
+                            notify_ip_list.append(ip)
+                            name = " ".join(split_games[i].split('\\n\\t')[2].split()[1:])
+                            mod = split_games[i].split('\\n\\t')[7].split()[1].split('@')[0]
+                            version = split_games[i].split('\\n\\t')[7].split()[1].split('@')[1]
+                            
+                            conn = sqlite3.connect('../db/openra.sqlite')
+                            cur = conn.cursor()
+                            sql = """SELECT user,date,mod,version,timeout FROM notify
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            row = []
+                            data = []
+                            for row in cur:
+                                data.append(row)
+                            if ( data != [] ):
+                                length_data = len(data)
+                                for i in range(int(length_data)):
+                                    db_user = data[i][0]
+                                    db_date = data[i][1]
+                                    db_mod = data[i][2]
+                                    db_version = data[i][3]
+                                    db_timeout = data[i][4]
+                                    notify_message = "New game: "+name+" - mod: "+mod+" - version: "+version
+                                    self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (db_user, notify_message)).encode() )
+                length = len(notify_ip_list)
+                indexes = []
+                for i in range(int(length)):
+                    if ( notify_ip_list[i] not in ip_current_games ):
+                        indexes.append(i)   #indexes to remove from notify_ip_list
+                for i in indexes:
+                    del notify_ip_list[i]
+############
+            #self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ("ihptru", "message")).encode() )
+    run_notify = multiprocessing.Process(None,notify(test))
+    run_notify.start()
+    
     try:
         while(test.should_reconnect):
             time.sleep(5)
