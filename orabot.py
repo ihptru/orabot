@@ -152,6 +152,15 @@ root_admin_password = "password" #only for the successful first run, dont forget
 #"""
 #cur.execute(sql)
 #conn.commit()
+#sql = """CREATE TABLE "pickup_5v5" (
+#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+#"name" VARCHAR NOT NULL ,
+#"host" BOOL NOT NULL  DEFAULT 0,
+#"timeout" DATETIME NOT NULL
+#)
+#"""
+#cur.execute(sql)
+#conn.commit()
 #sql = """CREATE TABLE "pickup_game_start" (
 #"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
 #"team1" VARCHAR NOT NULL ,
@@ -1752,7 +1761,7 @@ class IRC_Server:
             if ( command[0].lower() == "add" ):                        
                 if re.search("^#", channel):
                     if ( len(command) > 1 ) and ( len(command) < 4 ):   #normal about of arguments
-                        modes = ['1v1','2v2','3v3','4v4']
+                        modes = ['1v1','2v2','3v3','4v4','5v5']
                         if ( command[1] not in modes ):
                             self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
                             return
@@ -1772,6 +1781,8 @@ class IRC_Server:
                                 amount_players_required = 6
                             elif ( command[1] == '4v4' ):
                                 amount_players_required = 8
+                            elif ( command[1] == '5v5' ):
+                                amount_players_required = 10
                             #check complaints
                             sql = """SELECT name,complaints FROM pickup_stats
                                     WHERE name = '"""+user+"'"+"""
@@ -1783,7 +1794,7 @@ class IRC_Server:
                                 pass
                             if user in row:
                                 num_complaints = row[1]
-                                if ( int(num_complaints) > 100 ):
+                                if ( int(num_complaints) > 10 ):
                                     self.send_message_to_channel( ("You have too many complaints, please contact more privileged user to figure out this issue"), channel )
                                     return
                             mode = command[1]
@@ -2119,7 +2130,7 @@ class IRC_Server:
                             str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
                             self.irc_sock.send (str_buff.encode())
                         else:
-                            modes = ['1v1','2v2','3v3','4v4']
+                            modes = ['1v1','2v2','3v3','4v4','5v5']
                             if command[1] in modes:
                                 mode = command[1]
                                 sql = """SELECT team1,team2,type,host,map,time FROM pickup_game_start
@@ -2151,7 +2162,7 @@ class IRC_Server:
             if ( command[0].lower() == "remove" ):
                 if re.search("^#", channel):
                     if ( len(command) >= 1 ) and ( len(command) < 3 ):
-                        modes = ['1v1','2v2','3v3','4v4']
+                        modes = ['1v1','2v2','3v3','4v4','5v5']
                         if ( len(command) == 1 ):
                             temp_mode = ''
                             for temp_mode in modes:
@@ -2210,7 +2221,7 @@ class IRC_Server:
             if ( command[0].lower() == "who" ):
                 if re.search("^#", channel):
                     if ( len(command) >= 1 ) and ( len(command) < 3 ):
-                        modes = ['1v1','2v2','3v3','4v4']
+                        modes = ['1v1','2v2','3v3','4v4','5v5']
                         if ( len(command) == 1 ):
                             temp_mode = ''
                             names = []
@@ -2223,6 +2234,8 @@ class IRC_Server:
                                     amount_players_required = 6
                                 elif ( temp_mode == '4v4' ):
                                     amount_players_required = 8
+                                elif ( temp_mode == '5v5' ):
+                                    amount_players_required = 10
                                 sql = """SELECT name,host FROM pickup_"""+temp_mode+"""
                                 """
                                 cur.execute(sql)
@@ -2255,6 +2268,8 @@ class IRC_Server:
                                     amount_players_required = 6
                                 elif ( mode == '4v4' ):
                                     amount_players_required = 8
+                                elif ( mode == '5v5' ):
+                                    amount_players_required = 10
                                 sql = """SELECT name,host FROM pickup_"""+mode+"""
                                 """
                                 cur.execute(sql)
@@ -2285,7 +2300,7 @@ class IRC_Server:
             if ( command[0].lower() == "promote" ):
                 if re.search("^#", channel):
                     if ( len(command) == 2 ):
-                        modes = ['1v1','2v2','3v3','4v4']
+                        modes = ['1v1','2v2','3v3','4v4','5v5']
                         mode = command[1]
                         if mode in modes:
                             if ( mode == '1v1' ):
@@ -2296,6 +2311,8 @@ class IRC_Server:
                                 amount_players_required = 6
                             elif ( mode == '4v4' ):
                                 amount_players_required = 8
+                            elif ( mode == '5v5' ):
+                                amount_players_required = 10
                             sql = """SELECT name FROM pickup_"""+mode+"""
                             """
                             cur.execute(sql)
@@ -2317,11 +2334,22 @@ class IRC_Server:
                     elif ( len(command) > 2 ):
                         self.send_message_to_channel( ("Error, wrong request"), channel )
                     else:
-                        message = "Specify mode type to promote! 1v1, 2v2, 3v3 or 4v4"
+                        message = "Specify mode type to promote! 1v1, 2v2, 3v3, 4v4 or 5v5"
                         str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
                         self.irc_sock.send (str_buff.encode())
                 else:
                     self.send_message_to_channel( ("]promote can be used only on a channel"), user )
+            if ( command[0].lower() == "maps" ):
+                if ( len(command) == 1 ):
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("Pickup Matches Maps: https://github.com/ihptru/orabot/wiki/Pickup-Maps"), channel )
+                    else:
+                        self.send_message_to_channel( ("Pickup Matches Maps: https://github.com/ihptru/orabot/wiki/Pickup-Maps"), user )
+                else:
+                    if re.search("^#", channel):
+                        self.send_message_to_channel( ("I don't know anything about '"+" ".join(command[1:])+"'"), channel )
+                    else:
+                        self.send_message_to_channel( ("I don't know anything about '"+" ".join(command[1:])+"'"), user )
 ### end pickup code                  
             if ( command[0].lower() == "weather" ):
                 if ( len(command) == 1 ):
@@ -2515,27 +2543,28 @@ def main():
                             name = " ".join(split_games[i].split('\\n\\t')[2].split()[1:])
                             mod = split_games[i].split('\\n\\t')[7].split()[1].split('@')[0]
                             version = split_games[i].split('\\n\\t')[7].split()[1].split('@')[1]
-                            
-                            conn = sqlite3.connect('../db/openra.sqlite')
-                            cur = conn.cursor()
-                            sql = """SELECT user,date,mod,version,timeout FROM notify
-                            """
-                            cur.execute(sql)
-                            conn.commit()
-                            row = []
-                            data = []
-                            for row in cur:
-                                data.append(row)
-                            if ( data != [] ):
-                                length_data = len(data)
-                                for i in range(int(length_data)):
-                                    db_user = data[i][0]
-                                    db_date = data[i][1]
-                                    db_mod = data[i][2]
-                                    db_version = data[i][3]
-                                    db_timeout = data[i][4]
-                                    notify_message = "New game: "+name+" - mod: "+mod+" - version: "+version
-                                    self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (db_user, notify_message)).encode() )
+                            down = name.split('[down]')
+                            if ( len(down) == 1 ):  #game is not [down]
+                                conn = sqlite3.connect('../db/openra.sqlite')
+                                cur = conn.cursor()
+                                sql = """SELECT user,date,mod,version,timeout FROM notify
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                row = []
+                                data = []
+                                for row in cur:
+                                    data.append(row)
+                                if ( data != [] ):
+                                    length_data = len(data)
+                                    for i in range(int(length_data)):
+                                        db_user = data[i][0]
+                                        db_date = data[i][1]
+                                        db_mod = data[i][2]
+                                        db_version = data[i][3]
+                                        db_timeout = data[i][4]
+                                        notify_message = "New game: "+name+" - mod: "+mod+" - version: "+version
+                                        self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (db_user, notify_message)).encode() )
                 length = len(notify_ip_list)
                 indexes = []
                 for i in range(int(length)):
