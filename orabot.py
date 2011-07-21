@@ -344,27 +344,35 @@ class IRC_Server:
                     self.command = str(irc_user_message[1:])
                     # (str(recv)).split()[2] ) is simply the channel the command was heard on.
                     self.process_command(irc_user_nick, ( (str(recv)).split()[2] ))
-### when message cotains link to youtube, show video title
-                if re.search('http.*youtube.com/watch*', str(irc_user_message)):
-                    if re.search("^#", chan):
-                        link = str(irc_user_message).split('://')[1].split()[0].split('&')[0]
-                        #http = str(irc_user_message).split('://')[0].split()[-1]
-                        dl_file = link.split('/')[1]
-                        link = 'http://'+link
-                        try:
-                            os.system("wget "+link+" > /dev/null 2>&1")
-                            filename = dl_file
-                            file = open(filename, 'r')
-                            lines = file.readlines()
-                            file.close()
-                            os.remove(dl_file)
+### when message cotains link, show title
+                if re.search('.*http.*://.*', str(irc_user_message)):
+                    link = str(irc_user_message).split('://')[1].split()[0]
+                    pre = str(irc_user_message).split('http')[1].split('//')[0]
+                    link = 'http'+pre+'//'+link
+                    if re.search('http.*youtube.com/watch.*', link):
+                        if re.search("^#", chan):
+                            link = link.split('&')[0]
                             try:
-                                video_title = lines[25].split('&#x202a;')[1].split('&#x202c;')[0].replace('&#39;', '\'')
-                                self.send_message_to_channel( ("Youtube: "+video_title), chan )
+                                site = urllib.request.urlopen(link)
+                                site = site.read()
+                                site = site.decode('utf-8')
+                                title = site.split('<title>')[1].split('</title>')[0].split('&#x202c;')[0].split('&#x202a;')[1].replace('&amp;','&').replace('&#39;', '\'').rstrip().lstrip()
+                                if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
+                                    self.send_message_to_channel( ("Youtube: "+title), chan )
                             except:
-                                pass    #video is removed or something
-                        except:
-                            pass
+                                pass
+                    else:
+                        if re.search("^#", chan):
+                            try:
+                                site = urllib.request.urlopen(link)
+                                site = site.read()
+                                site = site.decode('utf-8')
+                                title = site.split('<title>')[1].split('</title>')[0].rstrip().lstrip()
+                                self.send_message_to_channel( ("Title: "+title), chan )
+                            except:
+                                pass
+                        
+###
             if str(recv).find ( "JOIN" ) != -1:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
@@ -991,6 +999,7 @@ class IRC_Server:
                                         cur.execute(sql)
                                         conn.commit()
                                         self.send_message_to_channel( ("User "+register_nick+" added successfully, he can use ]register to set up a password"), user)
+                                        self.send_message_to_channel( ("You are allowed to register with orabot by Global Administrator over (in private to bot): ]register password"), register_nick)
                     if ( command[0].lower() == "unregister" ):      #owner command to unregister user
                         if ( len(command) == 2 ):
                             if ( owner == 1 ):
@@ -2573,7 +2582,6 @@ def main():
                 for i in indexes:
                     del notify_ip_list[i]
 ############
-            #self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ("ihptru", "message")).encode() )
     run_notify = multiprocessing.Process(None,notify(test))
     run_notify.start()
     
