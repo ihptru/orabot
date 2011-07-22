@@ -15,20 +15,20 @@ lst = text.split(' ')
 t_from = lst[1]
 t_to = lst[2]
 if t_from in languages:
-	if t_to in languages:
-		junk = lst.pop(0)
-		junk = lst.pop(0)
-		junk = lst.pop(0)
-		
-		length = len(lst)	# must be only text left
-		line = ''
-		for i in range(length):
-			line = line+' '+lst[i]+' '
-		line=line.lstrip().rstrip()
+    if t_to in languages:
+        junk = lst.pop(0)
+        junk = lst.pop(0)
+        junk = lst.pop(0)
+        
+        length = len(lst)   # must be only text left
+        line = ''
+        for i in range(length):
+            line = line+' '+lst[i]+' '
+        line=line.lstrip().rstrip()
  
-		text_to_file = translate(line, lang_to=t_to, lang_from=t_from).encode('utf-8')
+        text_to_file = translate(line, lang_to=t_to, lang_from=t_from)
 
-		filename = 'tr.text'
-		file = open(filename, 'w')
-		file.write(text_to_file)
-		file.close()
+        filename = 'tr.text'
+        file = open(filename, 'w')
+        file.write(text_to_file)
+        file.close()

@@ -11,6 +11,7 @@ import hashlib
 import random
 import pywapi
 import urllib.request
+import ctypes
 
 # root admin
 root_admin = "ihptru"
@@ -311,15 +312,13 @@ class IRC_Server:
             if str(recv).find ( "PRIVMSG" ) != -1:
                 irc_user_nick = str(recv).split ( '!' ) [ 0 ] . split ( ":")[1]
                 irc_user_host = str(recv).split ( '@' ) [ 1 ] . split ( ' ' ) [ 0 ]
-                irc_user_message = self.data_to_message(str(recv)).encode('utf-8').decode('utf-8')
-                irc_user_message = str(irc_user_message)
+                irc_user_message = self.data_to_message(str(recv))
                 # if PRIVMSG is still in string - message from person with ipv6
                 suit = re.compile('PRIVMSG')
                 if suit.search(irc_user_message):
                     irc_user_message = str(recv).split ( 'PRIVMSG' ) [ 1 ] . split ( ' :') [ 1: ]
                     irc_user_message = " ".join(irc_user_message)
-                    irc_user_message = irc_user_message[:-5].encode('utf-8').decode('utf-8')
-                    irc_user_message = str(irc_user_message)
+                    irc_user_message = irc_user_message[:-5]
                 ###logs
                 chan = str(recv).split ( 'PRIVMSG' ) [ 1 ] . lstrip() . split(' :')[0]  #channel ex: #openra
                 if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
@@ -1368,23 +1367,6 @@ class IRC_Server:
                         self.send_message_to_channel( ("Error, wrong request"), channel )
                     else:
                         self.send_message_to_channel( ("Error, wrong request"), user )
-            if ( command[0].lower() == "ana" ):
-                if ( len(command) > 1 ):
-                    word = " ".join(command[1:])
-                    os.system("python ../ana.py "+word)
-                    filename = 'anagram.txt'
-                    file = open(filename, 'r')
-                    w_choice = file.readline()
-                    file.close()
-                    if re.search("^#", channel):
-                        self.send_message_to_channel( (w_choice), channel)
-                    else:
-                        self.send_message_to_channel( (w_choice), user)
-                else:
-                    if re.search("^#", channel):
-                        self.send_message_to_channel( ("You must specify some text"), channel )
-                    else:
-                        self.send_message_to_channel( ("You must specify some text"), user )
             if ( command[0].lower() == "help" ):
                 if ( len(command) == 1 ):
                     if re.search("^#", channel):
@@ -1438,6 +1420,7 @@ class IRC_Server:
                             for i in range(length):
                                 line = line+command[i]+' '
                             line = line.lstrip().rstrip()
+                            print(line)
                             file = open(filename, 'w')
                             file.write(line)
                             file.close()
@@ -2335,7 +2318,7 @@ class IRC_Server:
                                 str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
                                 self.irc_sock.send (str_buff.encode())
                             else:
-                                message = "Please add up for :: "+mode+" :: ! "+ str(amount_players_required-int(len(name))) + " more people needed! (Type ]add "+mode+")"
+                                message = "Please add up for :: "+mode+" :: ! "+ str(amount_players_required-int(len(name))) + " more people needed! (Type ]add "+mode+"  or  ]add "+mode+" host  ,if you can host)"
                                 self.send_message_to_channel( (message), channel )
                         else:
                             self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
@@ -2551,7 +2534,10 @@ def main():
                             notify_ip_list.append(ip)
                             name = " ".join(split_games[i].split('\\n\\t')[2].split()[1:])
                             mod = split_games[i].split('\\n\\t')[7].split()[1].split('@')[0]
-                            version = split_games[i].split('\\n\\t')[7].split()[1].split('@')[1]
+                            try:
+                                version = " - version: " + split_games[i].split('\\n\\t')[7].split()[1].split('@')[1]
+                            except:
+                                version = ''    #no version is output
                             down = name.split('[down]')
                             if ( len(down) == 1 ):  #game is not [down]
                                 conn = sqlite3.connect('../db/openra.sqlite')
@@ -2572,7 +2558,7 @@ def main():
                                         db_mod = data[i][2]
                                         db_version = data[i][3]
                                         db_timeout = data[i][4]
-                                        notify_message = "New game: "+name+" - mod: "+mod+" - version: "+version
+                                        notify_message = "New game: "+name+" - mod: "+mod+version
                                         self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (db_user, notify_message)).encode() )
                 length = len(notify_ip_list)
                 indexes = []
