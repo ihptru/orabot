@@ -1306,52 +1306,49 @@ def lastgame(self, user, channel):
     command = command.split()
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
     cur=conn.cursor()
-    if re.search("^#", channel):
-        if ( len(command) >= 1 ) and ( len(command) < 3 ):
-            if ( len(command) == 1 ):
+    if ( len(command) >= 1 ) and ( len(command) < 3 ):
+        if ( len(command) == 1 ):
+            sql = """SELECT team1,team2,type,host,map,time FROM pickup_game_start
+                    ORDER BY uid DESC LIMIT 1
+            """
+            cur.execute(sql)
+            conn.commit()
+            row = []
+            for row in cur:
+                pass
+            last_date = "-".join(row[5].split('-')[0:3])
+            last_time = ":".join(row[5].split('-')[3:5])
+            message = "@ "+row[2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+row[3]+" || Map: "+row[4]+" || Team 1: "+row[0]+" || Team 2: "+row[1]
+            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+            self.irc_sock.send (str_buff.encode())
+        else:
+            modes = ['1v1','2v2','3v3','4v4','5v5']
+            if command[1] in modes:
+                mode = command[1]
                 sql = """SELECT team1,team2,type,host,map,time FROM pickup_game_start
-                        ORDER BY uid DESC LIMIT 1
+                    WHERE type = '"""+mode+"""'
+                    ORDER BY uid DESC LIMIT 1
                 """
                 cur.execute(sql)
                 conn.commit()
                 row = []
                 for row in cur:
                     pass
-                last_date = "-".join(row[5].split('-')[0:3])
-                last_time = ":".join(row[5].split('-')[3:5])
-                message = "@ "+row[2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+row[3]+" || Map: "+row[4]+" || Team 1: "+row[0]+" || Team 2: "+row[1]
-                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                self.irc_sock.send (str_buff.encode())
-            else:
-                modes = ['1v1','2v2','3v3','4v4','5v5']
-                if command[1] in modes:
-                    mode = command[1]
-                    sql = """SELECT team1,team2,type,host,map,time FROM pickup_game_start
-                        WHERE type = '"""+mode+"""'
-                        ORDER BY uid DESC LIMIT 1
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                    row = []
-                    for row in cur:
-                        pass
-                    if row != []:
-                        last_date = "-".join(row[5].split('-')[0:3])
-                        last_time = ":".join(row[5].split('-')[3:5])
-                        message = "@ "+row[2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+row[3]+" || Map: "+row[4]+" || Team 1: "+row[0]+" || Team 2: "+row[1]
-                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                        self.irc_sock.send (str_buff.encode())
-                    else:
-                        message = "No "+mode+" games played"
-                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                        self.irc_sock.send (str_buff.encode())
+                if row != []:
+                    last_date = "-".join(row[5].split('-')[0:3])
+                    last_time = ":".join(row[5].split('-')[3:5])
+                    message = "@ "+row[2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+row[3]+" || Map: "+row[4]+" || Team 1: "+row[0]+" || Team 2: "+row[1]
+                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                    self.irc_sock.send (str_buff.encode())
                 else:
-                    self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
-                    return
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), channel )
+                    message = "No "+mode+" games played"
+                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                    self.irc_sock.send (str_buff.encode())
+            else:
+                self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
+                return
     else:
-        self.send_message_to_channel( ("]lastgame can be used only on a channel"), user )
+        self.send_message_to_channel( ("Error, wrong request"), channel )
     cur.close()
 
 def remove(self, user, channel):
@@ -1424,96 +1421,46 @@ def who(self, user, channel):
     command = command.split()
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
     cur=conn.cursor()
-    if re.search("^#", channel):
-        if ( len(command) >= 1 ) and ( len(command) < 3 ):
-            modes = ['1v1','2v2','3v3','4v4','5v5']
-            if ( len(command) == 1 ):
-                temp_mode = ''
-                names = []
-                for temp_mode in modes:
-                    if ( temp_mode == '1v1' ):
-                        amount_players_required = 2
-                    elif ( temp_mode == '2v2' ):
-                        amount_players_required = 4
-                    elif ( temp_mode == '3v3' ):
-                        amount_players_required = 6
-                    elif ( temp_mode == '4v4' ):
-                        amount_players_required = 8
-                    elif ( temp_mode == '5v5' ):
-                        amount_players_required = 10
-                    sql = """SELECT name,host FROM pickup_"""+temp_mode+"""
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                    row = []
-                    name = []
-                    for row in cur:
-                        if ( row[1] == 1 ):
-                            name.append(row[0]+"[h]")
-                        else:
-                            name.append(row[0])
-                    if name != []:
-                        names.append(temp_mode + " ["+str(len(name))+"/"+str(amount_players_required)+"]: " + ", ".join(name))
-                if names == []:
-                    message = "No game going on!"
-                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())
-                else:
-                    message = "All games: "+" || ".join(names)
-                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())
-            else:
-                if command[1] in modes:
-                    mode = command[1]
-                    if ( mode == '1v1' ):
-                        amount_players_required = 2
-                    elif ( mode == '2v2' ):
-                        amount_players_required = 4
-                    elif ( mode == '3v3' ):
-                        amount_players_required = 6
-                    elif ( mode == '4v4' ):
-                        amount_players_required = 8
-                    elif ( mode == '5v5' ):
-                        amount_players_required = 10
-                    sql = """SELECT name,host FROM pickup_"""+mode+"""
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                    row = []
-                    name = []
-                    for row in cur:
-                        if ( row[1] == 1 ):
-                            name.append(row[0]+"[h]")
-                        else:
-                            name.append(row[0])
-                    if name == []:
-                        message = "No players detected for :: "+mode+" ::"
-                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                        self.irc_sock.send (str_buff.encode())
+    if ( len(command) >= 1 ) and ( len(command) < 3 ):
+        modes = ['1v1','2v2','3v3','4v4','5v5']
+        if ( len(command) == 1 ):
+            temp_mode = ''
+            names = []
+            for temp_mode in modes:
+                if ( temp_mode == '1v1' ):
+                    amount_players_required = 2
+                elif ( temp_mode == '2v2' ):
+                    amount_players_required = 4
+                elif ( temp_mode == '3v3' ):
+                    amount_players_required = 6
+                elif ( temp_mode == '4v4' ):
+                    amount_players_required = 8
+                elif ( temp_mode == '5v5' ):
+                    amount_players_required = 10
+                sql = """SELECT name,host FROM pickup_"""+temp_mode+"""
+                """
+                cur.execute(sql)
+                conn.commit()
+                row = []
+                name = []
+                for row in cur:
+                    if ( row[1] == 1 ):
+                        name.append(row[0]+"[h]")
                     else:
-                        message = "@ " + mode + " ["+str(len(name))+"/"+str(amount_players_required)+"]: " + ", ".join(name)
-                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                        self.irc_sock.send (str_buff.encode())
-                else:
-                    self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
-                    return
-
+                        name.append(row[0])
+                if name != []:
+                    names.append(temp_mode + " ["+str(len(name))+"/"+str(amount_players_required)+"]: " + ", ".join(name))
+            if names == []:
+                message = "No game going on!"
+                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                self.irc_sock.send (str_buff.encode())
+            else:
+                message = "All games: "+" || ".join(names)
+                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                self.irc_sock.send (str_buff.encode())
         else:
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-    else:
-        self.send_message_to_channel( ("]who can be used only on a channel"), user )
-    cur.close()
-
-def promote(self, user, channel):
-    command = (self.command)
-    command = command.split()
-    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
-    cur=conn.cursor()
-    if re.search("^#", channel):
-        if ( len(command) == 2 ):
-            modes = ['1v1','2v2','3v3','4v4','5v5']
-            mode = command[1]
-            if mode in modes:
+            if command[1] in modes:
+                mode = command[1]
                 if ( mode == '1v1' ):
                     amount_players_required = 2
                 elif ( mode == '2v2' ):
@@ -1524,32 +1471,76 @@ def promote(self, user, channel):
                     amount_players_required = 8
                 elif ( mode == '5v5' ):
                     amount_players_required = 10
-                sql = """SELECT name FROM pickup_"""+mode+"""
+                sql = """SELECT name,host FROM pickup_"""+mode+"""
                 """
                 cur.execute(sql)
                 conn.commit()
                 row = []
                 name = []
                 for row in cur:
-                    name.append(row[0])
-                if ( name == [] ):
-                    message = "Promote Error, no players added for "+mode
+                    if ( row[1] == 1 ):
+                        name.append(row[0]+"[h]")
+                    else:
+                        name.append(row[0])
+                if name == []:
+                    message = "No players detected for :: "+mode+" ::"
                     str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
                     self.irc_sock.send (str_buff.encode())
                 else:
-                    message = "Please add up for :: "+mode+" :: ! "+ str(amount_players_required-int(len(name))) + " more people needed! (Type ]add "+mode+"  or  ]add "+mode+" host  ,if you can host)"
-                    self.send_message_to_channel( (message), channel )
+                    message = "@ " + mode + " ["+str(len(name))+"/"+str(amount_players_required)+"]: " + ", ".join(name)
+                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                    self.irc_sock.send (str_buff.encode())
             else:
                 self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
                 return
-        elif ( len(command) > 2 ):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            message = "Specify mode type to promote! 1v1, 2v2, 3v3, 4v4 or 5v5"
-            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-            self.irc_sock.send (str_buff.encode())
+
     else:
-        self.send_message_to_channel( ("]promote can be used only on a channel"), user )
+        self.send_message_to_channel( ("Error, wrong request"), channel )
+    cur.close()
+
+def promote(self, user, channel):
+    command = (self.command)
+    command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
+    if ( len(command) == 2 ):
+        modes = ['1v1','2v2','3v3','4v4','5v5']
+        mode = command[1]
+        if mode in modes:
+            if ( mode == '1v1' ):
+                amount_players_required = 2
+            elif ( mode == '2v2' ):
+                amount_players_required = 4
+            elif ( mode == '3v3' ):
+                amount_players_required = 6
+            elif ( mode == '4v4' ):
+                amount_players_required = 8
+            elif ( mode == '5v5' ):
+                amount_players_required = 10
+            sql = """SELECT name FROM pickup_"""+mode+"""
+            """
+            cur.execute(sql)
+            conn.commit()
+            row = []
+            name = []
+            for row in cur:
+                name.append(row[0])
+            if ( name == [] ):
+                message = "Promote Error, no players added for "+mode
+                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                self.irc_sock.send (str_buff.encode())
+            else:
+                message = "Please add up for :: "+mode+" :: ! "+ str(amount_players_required-int(len(name))) + " more people needed! (Type ]add "+mode+"  or  ]add "+mode+" host  ,if you can host)"
+                self.send_message_to_channel( (message), channel )
+        else:
+            self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
+            return
+    elif ( len(command) > 2 ):
+        self.send_message_to_channel( ("Error, wrong request"), channel )
+    else:
+        message = "Specify mode type to promote! 1v1, 2v2, 3v3, 4v4 or 5v5"
+        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+        self.irc_sock.send (str_buff.encode())
     cur.close()
 
 def maps(self, user, channel):
