@@ -8,5 +8,4 @@ To start the bot:
 But there must be made some changes in orabot.py:
 1) Change variable values: root_admin and root_admin_password
 2) At the bottom of orabot.py change server/port/channel where to connect and bot's name
-3) Uncomment all blocks of sql syntax of creating databases at first run
-4) After first run, when you sure that all databases were created, comment all sql syntax related to it (creating tables and insering first test data); also clear values of root_admin_password variable and run bot again
+3) Due to security reasons, you should change value of `root_admin_password` value to something different

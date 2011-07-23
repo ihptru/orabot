@@ -20,207 +20,211 @@ import admin_commands
 root_admin = "ihptru"
 root_admin_password = "password" #only for the successful first run, dont forget to remove it later
 
-### UNCOMMENT BELOW ON THE FIRST RUN
-#conn = sqlite3.connect('db/openra.sqlite')
-#cur = conn.cursor()
-#sql = """CREATE TABLE register (
-#uid int NOT NULL,
-#user varchar(20) NOT NULL,
-#pass varchar(50),
-#owner boolean NOT NULL DEFAULT '0',
-#authenticated boolean NOT NULL DEFAULT '0'
-#)
-#"""
-#cur.execute(sql)
-#conn.commit()
-#
-#user_password = hashlib.md5(root_admin_password.encode('utf-8')).hexdigest()     
-#sql = """INSERT INTO register
-#        (uid,user,pass,owner)
-#        VALUES
-#        (
-#        1,'"""+root_admin+"','"+str(user_password)+"'"+""",1
-#        )       
-#"""
-#cur.execute(sql)
-#conn.commit()
-#sql = """CREATE TABLE black_list (
-#    uid integer NOT NULL,
-#    user varchar(30) NOT NULL,
-#    date_time date NOT NULL,
-#    count integer NOT NULL
-#    )        
-#"""
-#cur.execute(sql)
-#conn.commit()
-#sql = """INSERT INTO black_list
-#       (uid,user,date_time,count)
-#       VALUES
-#       (
-#       1,'test',strftime('%Y-%m-%d-%H-%M'),1
-#       )
-#"""
-#cur.execute(sql)
-#conn.commit()
-#
-#sql = """CREATE TABLE commands (
-#        uid integer NOT NULL,
-#        user varchar(30) NOT NULL,
-#        command varchar(300) NOT NULL,
-#        date_time date NOT NULL
-#)
-#"""
-#cur.execute(sql)
-#conn.commit()
-#for i in range(31):
-#    sql = """INSERT INTO commands
-#        (uid,user,command,date_time)
-#        VALUES
-#        (
-#        1,'test','test_command',strftime('%Y-%m-%d-%H-%M-%S')
-#        )
-#    """
-#    cur.execute(sql)
-#    conn.commit()
-#sql = """CREATE TABLE users (
-#uid integer NOT NULL,
-#user varchar(30) NOT NULL,
-#date date
-#)               
-#"""
-#cur.execute(sql)
-#conn.commit()
-#sql= """INSERT INTO users
-#        (uid,user)
-#        VALUES
-#        (
-#        1,'test'
-#        )
-#"""
-#cur.execute(sql)
-#conn.commit()
-#sql = """CREATE TABLE later (
-#        uid integer NOT NULL,
-#        sender varchar(30) NOT NULL,
-#        reciever varchar(30) NOT NULL,
-#        channel varchar(30) NOT NULL,
-#        date date NOT NULL,
-#        message varchar(1000) NOT NULL
-#)             
-#"""
-#cur.execute(sql)
-#conn.commit()
-#sql = """INSERT INTO later
-#        (uid,sender,reciever,channel,date,message)
-#        VALUES
-#        (
-#        1,'test','test','#test',strftime('%Y-%m-%d-%H-%M-%S'),'Hello, how are you?'
-#        )                
-#"""
-#cur.execute(sql)
-#conn.commit()
+def create_database(root_admin, root_admin_password):
+    conn = sqlite3.connect('db/openra.sqlite')
+    cur = conn.cursor()
+    sql = """CREATE TABLE register (
+    uid int NOT NULL,
+    user varchar(20) NOT NULL,
+    pass varchar(50),
+    owner boolean NOT NULL DEFAULT '0',
+    authenticated boolean NOT NULL DEFAULT '0'
+    )
+    """
+    cur.execute(sql)
+    conn.commit()
+
+    user_password = hashlib.md5(root_admin_password.encode('utf-8')).hexdigest()     
+    sql = """INSERT INTO register
+            (uid,user,pass,owner)
+            VALUES
+            (
+            1,'"""+root_admin+"','"+str(user_password)+"'"+""",1
+            )       
+    """
+    cur.execute(sql)
+    conn.commit()
+    sql = """CREATE TABLE black_list (
+        uid integer NOT NULL,
+        user varchar(30) NOT NULL,
+        date_time date NOT NULL,
+        count integer NOT NULL
+        )        
+    """
+    cur.execute(sql)
+    conn.commit()
+    sql = """INSERT INTO black_list
+        (uid,user,date_time,count)
+        VALUES
+        (
+        1,'test',strftime('%Y-%m-%d-%H-%M'),1
+        )
+    """
+    cur.execute(sql)
+    conn.commit()
+
+    sql = """CREATE TABLE commands (
+                uid integer NOT NULL,
+                user varchar(30) NOT NULL,
+                command varchar(300) NOT NULL,
+                date_time date NOT NULL
+        )
+        """
+    cur.execute(sql)
+    conn.commit()
+    for i in range(31):
+        sql = """INSERT INTO commands
+            (uid,user,command,date_time)
+            VALUES
+            (
+            1,'test','test_command',strftime('%Y-%m-%d-%H-%M-%S')
+            )
+        """
+        cur.execute(sql)
+        conn.commit()
+    sql = """CREATE TABLE users (
+        uid integer NOT NULL,
+        user varchar(30) NOT NULL,
+        date date
+        )               
+    """
+    cur.execute(sql)
+    conn.commit()
+    sql= """INSERT INTO users
+            (uid,user)
+            VALUES
+            (
+            1,'test'
+            )
+    """
+    cur.execute(sql)
+    conn.commit()
+    sql = """CREATE TABLE later (
+            uid integer NOT NULL,
+            sender varchar(30) NOT NULL,
+            reciever varchar(30) NOT NULL,
+            channel varchar(30) NOT NULL,
+            date date NOT NULL,
+            message varchar(1000) NOT NULL
+    )             
+    """
+    cur.execute(sql)
+    conn.commit()
+    sql = """INSERT INTO later
+            (uid,sender,reciever,channel,date,message)
+            VALUES
+            (
+            1,'test','test','#test',strftime('%Y-%m-%d-%H-%M-%S'),'Hello, how are you?'
+            )                
+    """
+    cur.execute(sql)
+    conn.commit()
+    ##
+    sql = """CREATE TABLE "pickup_1v1" (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "name" VARCHAR NOT NULL ,
+        "host" BOOL NOT NULL  DEFAULT 0,
+        "timeout" DATETIME NOT NULL
+    )
+    """
+    cur.execute(sql)
+    conn.commit()
+    sql = """CREATE TABLE "pickup_2v2" (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "name" VARCHAR NOT NULL ,
+        "host" BOOL NOT NULL  DEFAULT 0,
+        "timeout" DATETIME NOT NULL
+    )
+    """
+    cur.execute(sql)
+    conn.commit()
+    sql = """CREATE TABLE "pickup_3v3" (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "name" VARCHAR NOT NULL ,
+        "host" BOOL NOT NULL  DEFAULT 0,
+        "timeout" DATETIME NOT NULL
+        )
+    """
+    cur.execute(sql)
+    conn.commit()
+    sql = """CREATE TABLE "pickup_4v4 (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "name" VARCHAR NOT NULL ,
+        "host" BOOL NOT NULL  DEFAULT 0,
+        "timeout" DATETIME NOT NULL
+    )
+    """
+    cur.execute(sql)
+    conn.commit()
+    sql = """CREATE TABLE "pickup_5v5" (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "name" VARCHAR NOT NULL ,
+        "host" BOOL NOT NULL  DEFAULT 0,
+        "timeout" DATETIME NOT NULL
+        )
+    """
+    cur.execute(sql)
+    conn.commit()
+    sql = """CREATE TABLE "pickup_game_start" (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "team1" VARCHAR NOT NULL ,
+        "team2" VARCHAR NOT NULL ,
+        "type" VARCHAR NOT NULL ,
+        "host" VARCHAR NOT NULL ,
+        "map" VARCHAR NOT NULL ,
+        "time" DATETIME NOT NULL
+        )
+    """
+    cur.execute(sql)
+    conn.commit()
+    sql = """CREATE TABLE "pickup_maps" (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "name" VARCHAR NOT NULL ,
+        "1v1" BOOL NOT NULL ,
+        "2v2" BOOL NOT NULL ,
+        "3v3" BOOL NOT NULL ,
+        "4v4" BOOL NOT NULL ,
+        "5v5" BOOL NOT NULL
+        )
+    """
+    cur.execute(sql)
+    conn.commit()
+    sql = """INSERT INTO "pickup_maps"
+        (name,1v1,2v2,3v3,4v4,5v5)
+        VALUES
+        (
+        'East vs West',1,1,0,0,0
+        )
+    """
+    cur.execute(sql)
+    conn.commit()
+    sql = """CREATE TABLE "pickup_stats" (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "name" VARCHAR NOT NULL ,
+        "games" INTEGER NOT NULL  DEFAULT 0,
+        "hosts" INTEGER NOT NULL  DEFAULT 0,
+        "complaints" INTEGER NOT NULL  DEFAULT 0
+        )
+    """
+    cur.execute(sql)
+    conn.commit()
+    sql = """CREATE TABLE "notify" (
+        uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
+        user VARCHAR NOT NULL,
+        date DATETIME NOT NULL,
+        mod VARCHAR NOT NULL DEFAULT "all",
+        version VARCHAR NOT NULL DEFAULT "all",
+        timeout VARCHAR NOT NULL DEFAULT "all",
+        timezone VARCHAR NOT NULL DEFAULT "GMT"
+    )                
+    """
+    cur.execute(sql)
+    conn.commit()
+    cur.close()
+    
 ###
-#sql = """CREATE TABLE "pickup_1v1" (
-#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-#"name" VARCHAR NOT NULL ,
-#"host" BOOL NOT NULL  DEFAULT 0,
-#"timeout" DATETIME NOT NULL
-#)
-#"""
-#cur.execute(sql)
-#conn.commit()
-#sql = """CREATE TABLE "pickup_2v2" (
-#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-#"name" VARCHAR NOT NULL ,
-#"host" BOOL NOT NULL  DEFAULT 0,
-#"timeout" DATETIME NOT NULL
-#)
-#"""
-#cur.execute(sql)
-#conn.commit()
-#sql = """CREATE TABLE "pickup_3v3" (
-#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-#"name" VARCHAR NOT NULL ,
-#"host" BOOL NOT NULL  DEFAULT 0,
-#"timeout" DATETIME NOT NULL
-#)
-#"""
-#cur.execute(sql)
-#conn.commit()
-#sql = """CREATE TABLE "pickup_4v4 (
-#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-#"name" VARCHAR NOT NULL ,
-#"host" BOOL NOT NULL  DEFAULT 0,
-#"timeout" DATETIME NOT NULL
-#)
-#"""
-#cur.execute(sql)
-#conn.commit()
-#sql = """CREATE TABLE "pickup_5v5" (
-#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-#"name" VARCHAR NOT NULL ,
-#"host" BOOL NOT NULL  DEFAULT 0,
-#"timeout" DATETIME NOT NULL
-#)
-#"""
-#cur.execute(sql)
-#conn.commit()
-#sql = """CREATE TABLE "pickup_game_start" (
-#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-#"team1" VARCHAR NOT NULL ,
-#"team2" VARCHAR NOT NULL ,
-#"type" VARCHAR NOT NULL ,
-#"host" VARCHAR NOT NULL ,
-#"map" VARCHAR NOT NULL ,
-#"time" DATETIME NOT NULL
-#)
-#"""
-#cur.execute(sql)
-#conn.commit()
-#sql = """CREATE TABLE "pickup_maps" (
-#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-#"name" VARCHAR NOT NULL ,
-#"1v1" BOOL NOT NULL ,
-#"2v2" BOOL NOT NULL ,
-#"3v3" BOOL NOT NULL ,
-#"4v4" BOOL NOT NULL ,
-#"5v5" BOOL NOT NULL
-#)
-#"""
-#cur.execute(sql)
-#conn.commit()
-#sql = """INSERT INTO "pickup_maps"
-#       (name,1v1,2v2,3v3,4v4,5v5)
-#       VALUES
-#       (
-#       'East vs West',1,1,0,0,0
-#       )
-#"""
-#cur.execute(sql)
-#conn.commit()
-#sql = """CREATE TABLE "pickup_stats" (
-#"uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-#"name" VARCHAR NOT NULL ,
-#"games" INTEGER NOT NULL  DEFAULT 0,
-#"hosts" INTEGER NOT NULL  DEFAULT 0,
-#"complaints" INTEGER NOT NULL  DEFAULT 0
-#)
-#"""
-#cur.execute(sql)
-#conn.commit()
-#sql = """CREATE TABLE "notify" (
-#uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
-#user VARCHAR NOT NULL,
-#date DATETIME NOT NULL,
-#mod VARCHAR NOT NULL DEFAULT "all",
-#version VARCHAR NOT NULL DEFAULT "all",
-#timeout VARCHAR NOT NULL DEFAULT "all",
-#timezone VARCHAR NOT NULL DEFAULT "GMT"
-#)                
-#"""
-#cur.execute(sql)
-#conn.commit()
-#cur.close()
+if not os.path.exists('db/openra.sqlite'):
+    create_database(root_admin, root_admin_password)
 ###
 
 notify_ip_list = []
