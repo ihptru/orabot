@@ -255,3 +255,53 @@ def pickup_remove(self, user, channel, owner, authenticated):
         self.irc_sock.send (str_buff.encode())
     cur.close()
 
+def subscribed(self, user, channel, owner, authenticated):
+    command = (self.command)
+    command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
+    if ( len(command) == 1 ):
+        sql = """SELECT user FROM notify
+        """
+        cur.execute(sql)
+        conn.commit()
+        row = []
+        subscribed = []
+        for row in cur:
+            subscribed.append(row[0])
+        if ( subscribed == [] ):
+            if re.search("^#", channel):
+                self.send_message_to_channel( ("No one is subscribed for notifications"), channel )
+            else:
+                self.send_message_to_channel( ("No one is subscribed for notifications"), user )
+        else:
+            subscribed = ", ".join(subscribed)
+            if re.search("^#", channel):
+                self.send_message_to_channel( ("Subscribed users: "+subscribed), channel )
+            else:
+                self.send_message_to_channel( ("Subscribed users: "+subscribed), user )
+    elif ( len(command) == 2 ):
+        sql = """SELECT user FROM notify
+                WHERE user = '"""+command[1]+"""'
+        """
+        cur.execute(sql)
+        conn.commit()
+        row = []
+        for row in cur:
+            pass
+        if ( command[1] in row ):
+            if re.search("^#", channel):
+                self.send_message_to_channel( ("Yes, "+command[1]+" is subscribed for notifications"), channel )
+            else:
+                self.send_message_to_channel( ("Yes, "+command[1]+" is subscribed for notifications"), user )
+        else:
+            if re.search("^#", channel):
+                self.send_message_to_channel( ("No, "+command[1]+" is not subscribed for notifications"), channel )
+            else:
+                self.send_message_to_channel( ("No, "+command[1]+" is not subscribed for notifications"), user )
+    else:
+        if re.search("^#", channel):
+            self.send_message_to_channel( ("Error, wrong request"), channel )
+        else:
+            self.send_message_to_channel( ("Error, wrong request"), user )
+    cur.close()
