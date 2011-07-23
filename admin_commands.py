@@ -1,3 +1,7 @@
+import re
+import sqlite3
+import time
+
 ### Admin commands
 
 def quit(self, user, channel, owner, authenticated):
@@ -13,6 +17,8 @@ def quit(self, user, channel, owner, authenticated):
 def log(self, user, channel, owner, authenticated):
     command = (self.command)
     command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
     if ( len(command) == 1 ):
         if not re.search("^#", channel):
             sql = """SELECT * FROM commands
@@ -34,10 +40,13 @@ def log(self, user, channel, owner, authenticated):
                 time.sleep(0.5)
         else:
             self.send_message_to_channel( ("]log can't be used on a channel"), channel)
+    cur.close()
             
 def adduser(self, user, channel, owner, authenticated):
     command = (self.command)
     command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
     if ( len(command) == 2 ):
         nick = command[1]
         sql = """SELECT * FROM users
@@ -82,6 +91,7 @@ def adduser(self, user, channel, owner, authenticated):
             self.send_message_to_channel( ("Error, wrong request"), channel )
         else:
             self.send_message_to_channel( ("Error, wrong request"), user )
+    cur.close()
 
 def join(self, user, channel, owner, authenticated):
     command = (self.command)
@@ -106,6 +116,8 @@ def part(self, user, channel, owner, authenticated):
 def complain(self, user, channel, owner, authenticated):
     command = (self.command)
     command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
     if ( len(command) == 2 ):
         name = command[1]
         sql = """SELECT name,complaints FROM pickup_stats
@@ -137,10 +149,13 @@ def complain(self, user, channel, owner, authenticated):
             self.send_message_to_channel( ("Error, wrong request"), channel )
         else:
             self.send_message_to_channel( ("Error, wrong request"), user )
+    cur.close()
 
 def register(self, user, channel, owner, authenticated):
     command = (self.command)
     command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
     if ( len(command) == 2 ):
         if ( owner == '1' ):
             if not re.search("^#", channel):    #owner commands only in private
@@ -177,10 +192,13 @@ def register(self, user, channel, owner, authenticated):
                     conn.commit()
                     self.send_message_to_channel( ("User "+register_nick+" added successfully, he can use ]register to set up a password"), user)
                     self.send_message_to_channel( ("You are allowed to register with orabot by Global Administrator over (in private to bot): ]register password"), register_nick)
+    cur.close()
 
 def unregister(self, user, channel, owner, authenticated):
     command = (self.command)
     command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
     if ( len(command) == 2 ):
         if ( owner == '1' ):
             if not re.search("^#", channel):    #owner commands only in private
@@ -201,11 +219,14 @@ def unregister(self, user, channel, owner, authenticated):
                     """
                     cur.execute(sql)
                     conn.commit()
-                    self.send_message_to_channel( ("User "+unregister_nick+" unregistered successfully"), user)
+                    self.send_message_to_channel( ("User "+unregister_nick+" is unregistered successfully"), user)
+    cur.close()
 
-def remove(self, user, channel, owner, authenticated):
+def pickup_remove(self, user, channel, owner, authenticated):
     command = (self.command)
     command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
     if ( len(command) == 2 ):
         modes = ['1v1','2v2','3v3','4v4','5v5']
         temp_mode = ''
@@ -227,8 +248,10 @@ def remove(self, user, channel, owner, authenticated):
                 message = "You removed "+command[1]+" from :: "+temp_mode+" ::"
                 str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
                 self.irc_sock.send (str_buff.encode())
+                cur.close()
                 return
         message = "Error, "+command[1]+" is not detected added to any game"
         str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
         self.irc_sock.send (str_buff.encode())
-        return
+    cur.close()
+

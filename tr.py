@@ -26,7 +26,7 @@ if t_from in languages:
             line = line+' '+lst[i]+' '
         line=line.lstrip().rstrip()
  
-        text_to_file = translate(line, lang_to=t_to, lang_from=t_from)
+        text_to_file = translate(line, lang_to=t_to, lang_from=t_from).encode('utf-8')
 
         filename = 'tr.text'
         file = open(filename, 'w')
