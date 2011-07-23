@@ -902,10 +902,228 @@ def notify(self, user, channel):
             message = "You are subscribed for new games notification"
             str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
             self.irc_sock.send (str_buff.encode())
-    else:
-        message = "Error arguments"
-        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-        self.irc_sock.send (str_buff.encode())
+    elif ( len(command) > 1 ):
+        length = len(command)
+        result_mod = "all"
+        result_version = "all"
+        result_timeout = "all"
+        mod_defined = 0
+        version_defined = 0
+        timeout_defined = 0
+        mods = ['ra','cnc','yf','all']
+        timeouts = ['s','m','h','d']
+        sql = """SELECT user FROM notify
+                WHERE user = '"""+user+"""'
+        """
+        cur.execute(sql)
+        conn.commit()
+        row = []
+        for row in cur:
+            pass
+        if ( user in row ):
+            message = "You are already subscribed for new games notification"
+            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+            self.irc_sock.send (str_buff.encode())
+            cur.close()
+            return
+        else:
+            for i in range(1,int(length)):
+                argument = command[i].split('=')
+                if ( len(argument) == 2 ):
+                    if ( argument[0] == '-m' ):     #mod
+                        if ( mod_defined == 0 ):
+                            if ( argument[1].lower() in mods ):
+                                mod_defined = 1
+                                result_mod = argument[1]
+                                sql = """SELECT user FROM notify
+                                        WHERE user = '"""+user+"""'
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                row = []
+                                for row in cur:
+                                    pass
+                                if ( user in row ):
+                                    sql = """UPDATE notify
+                                            SET mod = '"""+argument[1]+"""'
+                                            WHERE user = '"""+user+"""'
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                else:
+                                    sql = """INSERT INTO notify
+                                            (user,date,mod)
+                                            VALUES
+                                            (
+                                            '"""+user+"',strftime('%Y-%m-%d-%H-%M-%S'),'"+argument[1]+"""'
+                                            )
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                            else:
+                                sql = """DELETE FROM notify
+                                        WHERE user = '"""+user+"""'
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                message = "Error! I don't know such game mod! Try again"
+                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                self.irc_sock.send (str_buff.encode())
+                                cur.close()
+                                return 
+                        else:
+                            sql = """DELETE FROM notify
+                                        WHERE user = '"""+user+"""'
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            message = "Error! You have already defined mod! Try again"
+                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                            self.irc_sock.send (str_buff.encode())
+                            cur.close()
+                            return
+                    elif ( argument[0] == '-v' ):   #version
+                        if ( version_defined == 0 ):
+                            chars=['*','.','$','^','@','{','}','+','?'] # chars to ignore
+                            if ( argument[1] not in chars ):
+                                version_defined = 1
+                                result_version = "contains "+argument[1]
+                                sql = """SELECT user FROM notify
+                                        WHERE user = '"""+user+"""'
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                row = []
+                                for row in cur:
+                                    pass
+                                if ( user in row ):
+                                    sql = """UPDATE notify
+                                            SET version = '"""+argument[1]+"""'
+                                            WHERE user = '"""+user+"""'
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                else:
+                                    sql = """INSERT INTO notify
+                                            (user,date,version)
+                                            VALUES
+                                            (
+                                            '"""+user+"',strftime('%Y-%m-%d-%H-%M-%S'),'"+argument[1]+"""'
+                                            )
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                            else:
+                                sql = """DELETE FROM notify
+                                        WHERE user = '"""+user+"""'
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                message = "Error! Incorrect version!"
+                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                self.irc_sock.send (str_buff.encode())
+                                cur.close()
+                                return
+                        else:
+                            sql = """DELETE FROM notify
+                                    WHERE user = '"""+user+"""'
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            message = "Error! You have already defined version! Try again"
+                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                            self.irc_sock.send (str_buff.encode())
+                            cur.close()
+                            return
+                    elif ( argument[0] == '-t' ):   #timeout
+                        if ( timeout_defined == 0 ):
+                            try:
+                                if ( (argument[1] == 'till_quit') or (argument[1] == 'all') or ( argument[1][-1] in timeouts and type(int(argument[1][0:-1])) is int ) ):
+                                    timeout_defined = 1
+                                    result_timeout = argument[1]
+                                    sql = """SELECT user FROM notify
+                                            WHERE user = '"""+user+"""'
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    row = []
+                                    for row in cur:
+                                        pass
+                                    if ( user in row ):
+                                        sql = """UPDATE notify
+                                                SET timeout = '"""+argument[1]+"""'
+                                                WHERE user = '"""+user+"""'
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                    else:
+                                        sql = """INSERT INTO notify
+                                                (user,date,timeout)
+                                                VALUES
+                                                (
+                                                '"""+user+"',strftime('%Y-%m-%d-%H-%M-%S'),'"+argument[1]+"""'
+                                                )
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                else:
+                                    sql = """DELETE FROM notify
+                                            WHERE user = '"""+user+"""'
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    message = "Timeout Syntax Error! Try again"
+                                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                    self.irc_sock.send (str_buff.encode())
+                                    cur.close()
+                                    return
+                            except:
+                                sql = """DELETE FROM notify
+                                        WHERE user = '"""+user+"""'
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                message = "Timeout Syntax Error! Try again"
+                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                self.irc_sock.send (str_buff.encode())
+                                cur.close()
+                                return
+                        else:
+                            sql = """DELETE FROM notify
+                                    WHERE user = '"""+user+"""'
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            message = "Error! You have already defined timeout! Try again"
+                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                            self.irc_sock.send (str_buff.encode())
+                            cur.close()
+                            return
+                    else:
+                        sql = """DELETE FROM notify
+                                WHERE user = '"""+user+"""'
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                        message = "Syntax error!"+" What is "+argument[0]
+                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                        self.irc_sock.send (str_buff.encode())
+                        cur.close()
+                        return                  
+                else:
+                    sql = """DELETE FROM notify
+                            WHERE user = '"""+user+"""'
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                    message = "Syntax error!"
+                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                    self.irc_sock.send (str_buff.encode())
+                    cur.close()
+                    return
+            message = "You are subscribed for new games notification; Mod: "+result_mod+"; Version: "+result_version+"; Timeout: "+result_timeout
+            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+            self.irc_sock.send (str_buff.encode())
     cur.close()
 
 def unnotify(self, user, channel):
