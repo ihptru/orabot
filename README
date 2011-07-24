@@ -7,6 +7,7 @@ To start the bot:
 
 To start with notifications support:
 ./run.py --notify
+
 But there must be made some changes in orabot.py:
 1) Change variable values: root_admin and root_admin_password
 2) At the bottom of orabot.py change server/port/channel where to connect and bot's name
