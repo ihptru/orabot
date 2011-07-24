@@ -220,6 +220,20 @@ def create_database(root_admin, root_admin_password):
     """
     cur.execute(sql)
     conn.commit()
+    sql = """CREATE TABLE "maps" (
+    "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+    "mod" VARCHAR NOT NULL ,
+    "hash" VARCHAR NOT NULL ,
+    "title" VARCHAR NOT NULL ,
+    "description" VARCHAR,
+    "author" VARCHAR,
+    "type" VARCHAR NOT NULL ,
+    "titleset" VARCHAR NOT NULL ,
+    "players" INTEGER NOT NULL
+    )
+    """
+    cur.execute(sql)
+    conn.commit()
     cur.close()
     
 ###

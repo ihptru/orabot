@@ -18,6 +18,8 @@ show_possible=['games', 'help', 'version', 'hi', 'randomteam', 'tr', 'lang', 'la
 def games(self, user, channel):
     command = (self.command)
     command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
     if ( len(command) == 1 ):
         try:
             os.system("wget http://master.open-ra.org/list.php > /dev/null 2>&1")
@@ -38,6 +40,7 @@ def games(self, user, channel):
                 loc=3   #ip
                 a2=4    #state
                 a3=5    #players
+                m=6     #map
                 a4=7    #version
                 games=''
                 count='0'
@@ -66,7 +69,20 @@ def games(self, user, channel):
                         sname = str(sname)
                         if ( len(sname) == 0 ):
                             sname = 'noname'
-                        games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
+                        map_hash = lines[m].split()[1]
+                        sql = """SELECT title FROM maps
+                                WHERE hash = '"""+map_hash+"""'
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                        row = []
+                        for row in cur:
+                            pass
+                        if ( len(row) != 0 ):
+                            map_name = row[0]
+                        else:
+                            map_name = 'unknown'
+                        games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - Map: '+map_name+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
                         if re.search("^#", channel):
                             self.send_message_to_channel( (games), channel )
                         else:
@@ -75,6 +91,7 @@ def games(self, user, channel):
                     loc=loc+9
                     a2=a2+9
                     a3=a3+9
+                    m=m+9
                     a4=a4+9
                 if ( count == "0" ):    #appeared no games in State: 1
                     if re.search("^#", channel):
@@ -108,6 +125,7 @@ def games(self, user, channel):
                     loc=3   #ip
                     a2=4    #state
                     a3=5    #players
+                    m=6     #map
                     a4=7    #version
                     count='0'
                     for i in range(int(length)):
@@ -135,7 +153,20 @@ def games(self, user, channel):
                             sname = str(sname)
                             if ( len(sname) == 0 ):
                                 sname = 'noname'
-                            games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
+                            map_hash = lines[m].split()[1]
+                            sql = """SELECT title FROM maps
+                                    WHERE hash = '"""+map_hash+"""'
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            row = []
+                            for row in cur:
+                                pass
+                            if ( len(row) != 0 ):
+                                map_name = row[0]
+                            else:
+                                map_name = 'unknown'
+                            games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - Map: '+map_name+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
                             if re.search("^#", channel):
                                 self.send_message_to_channel( (games), channel )
                             else:
@@ -144,6 +175,7 @@ def games(self, user, channel):
                         loc=loc+9
                         a2=a2+9
                         a3=a3+9
+                        m=m+9
                         a4=a4+9
                     if ( count == "0" ):
                         if re.search("^#", channel):
@@ -156,6 +188,7 @@ def games(self, user, channel):
                     loc=3   #ip
                     a2=4    #state
                     a3=5    #players
+                    m=6     #map
                     a4=7    #version
                     count = '0'
                     for i in range(int(length)):
@@ -183,7 +216,20 @@ def games(self, user, channel):
                             sname = str(sname)
                             if ( len(sname) == 0 ):
                                 sname = 'noname'
-                            games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
+                            map_hash = lines[m].split()[1]
+                            sql = """SELECT title FROM maps
+                                    WHERE hash = '"""+map_hash+"""'
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            row = []
+                            for row in cur:
+                                pass
+                            if ( len(row) != 0 ):
+                                map_name = row[0]
+                            else:
+                                map_name = 'unknown'
+                            games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - Map: '+map_name+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
                             if re.search("^#", channel):
                                 self.send_message_to_channel( (games), channel )
                             else:
@@ -192,6 +238,7 @@ def games(self, user, channel):
                         loc=loc+9
                         a2=a2+9
                         a3=a3+9
+                        m=m+9
                         a4=a4+9
                     if ( count == "0" ):    #appeared no games in State: 2
                         if re.search("^#", channel):
@@ -204,6 +251,7 @@ def games(self, user, channel):
                     loc=3   #ip
                     a2=4    #state
                     a3=5    #players
+                    m=6     #map
                     a4=7    #version
                     for i in range(int(length)):
                         if ( lines[a2].lstrip().rstrip() == 'State: 1' ):
@@ -231,7 +279,20 @@ def games(self, user, channel):
                         sname = str(sname)
                         if ( len(sname) == 0 ):
                             sname = 'noname'
-                        games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
+                        map_hash = lines[m].split()[1]
+                        sql = """SELECT title FROM maps
+                                WHERE hash = '"""+map_hash+"""'
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                        row = []
+                        for row in cur:
+                            pass
+                        if ( len(row) != 0 ):
+                            map_name = row[0]
+                        else:
+                            map_name = 'unknown'
+                        games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - Map: '+map_name+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
                         if re.search("^#", channel):
                             self.send_message_to_channel( (games), channel )
                         else:
@@ -240,6 +301,7 @@ def games(self, user, channel):
                         loc=loc+9
                         a2=a2+9
                         a3=a3+9
+                        m=m+9
                         a4=a4+9
                 else:   #it is pattern
                     chars=['*','.','$','^','@','{','}','+','?'] # chars to ignore
@@ -256,6 +318,7 @@ def games(self, user, channel):
                         loc=3   #ip
                         a2=4    #state
                         a3=5    #players
+                        m=6     #map
                         a4=7    #version
                         count='0'
                         for i in range(int(length)):
@@ -286,7 +349,20 @@ def games(self, user, channel):
                                 sname = str(sname)
                                 if ( len(sname) == 0 ):
                                     sname = 'noname'
-                                games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(25)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
+                                map_hash = lines[m].split()[1]
+                                sql = """SELECT title FROM maps
+                                        WHERE hash = '"""+map_hash+"""'
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                row = []
+                                for row in cur:
+                                    pass
+                                if ( len(row) != 0 ):
+                                    map_name = row[0]
+                                else:
+                                    map_name = 'unknown'
+                                games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+' - Map: '+map_name+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
                                 if re.search("^#", channel):
                                     self.send_message_to_channel( (games), channel)
                                 else:
@@ -295,6 +371,7 @@ def games(self, user, channel):
                             loc=loc+9
                             a2=a2+9
                             a3=a3+9
+                            m=m+9
                             a4=a4+9
                     if ( count == "0" ):    #appeared no matches
                         if re.search("^#", channel):
@@ -312,6 +389,7 @@ def games(self, user, channel):
             self.send_message_to_channel( ("Error, wrong request"), channel )
         else:
             self.send_message_to_channel( ("Error, wrong request"), user )
+    cur.close()
 
 def version(self, user, channel):
     command = (self.command)
