@@ -663,16 +663,16 @@ class IRC_Server:
 class BotCrashed(Exception): # Raised if the bot has crashed.
     pass
 
-def main():
+def main(notify_arg):
     # Here begins the main programs flow:
     test2 = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
     test = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
     run_test = multiprocessing.Process(None,test.connect,name="IRC Server" )
     run_test.start()
     ### run notification process
-    run_notify = multiprocessing.Process(None,notify.start(test))
-    run_notify.start()
-    
+    if ( notify_arg == '1' ):
+        run_notify = multiprocessing.Process(None,notify.start(test))
+        run_notify.start()
     try:
         while(test.should_reconnect):
             time.sleep(5)

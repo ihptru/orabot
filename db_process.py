@@ -1,7 +1,14 @@
 import sqlite3
 import hashlib
+import os
 
 def start(root_admin, root_admin_password):
+    try:
+        os.mkdir("db")
+        os.chmod("db", 0o700)
+    except:
+        print("Error! Can not create a directory, check permissions and try again")
+        return
     register(root_admin, root_admin_password)
     black_list()
     commands()

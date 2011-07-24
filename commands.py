@@ -405,20 +405,18 @@ def version(self, user, channel):
     command = (self.command)
     command = command.split()
     if ( len(command) == 1 ):
-        os.system("python ../version.py")
-        filename = 'version'
-        file = open(filename, 'r')
-        line = file.readline()
-        file.close()
-        os.remove('version')
-        if ( int(line.split()[0].split('.')[0]) < int(line.split()[1].split('.')[0]) ):
+        url = 'http://openra.res0l.net/download/linux/deb/index.php'
+        stream = urllib.request.urlopen(url).read().decode('utf-8')
+        release = stream.split('<ul')[1].split('<li>')[1].split('>')[1].split('</a')[0]
+        playtest = stream.split('<ul')[2].split('<li>')[1].split('>')[1].split('</a')[0]
+        if ( int(release.split('.')[0]) < int(playtest.split('.')[0]) ):
             newer = 'playtest is newer then release'
         else:
             newer = 'release is newer then playtest'
         if re.search("^#", channel):
-            self.send_message_to_channel( ("Latest release: "+line[0:4]+""+line[4:8]+" | Latest playtest: "+line[9:13]+""+line[13:17]+" | "+newer), channel )
+            self.send_message_to_channel( ("Latest release: "+release[0:4]+""+release[4:8]+" | Latest playtest: "+playtest[0:4]+""+playtest[4:8]+" | "+newer), channel )
         else:
-            self.send_message_to_channel( ("Latest release: "+line[0:4]+""+line[4:8]+" | Latest playtest: "+line[9:13]+""+line[13:17]+" | "+newer), user )
+            self.send_message_to_channel( ("Latest release: "+release[0:4]+""+release[4:8]+" | Latest playtest: "+playtest[0:4]+""+playtest[4:8]+" | "+newer), user )
     else:
         if re.search("^#", channel):
             self.send_message_to_channel( ("Error, wrong request"), channel )

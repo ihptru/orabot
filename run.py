@@ -48,9 +48,15 @@ class FlushFile(io.TextIOWrapper):
 sys.stdout=Tee(sys.stdout, log)
 sys.stderr=FlushFile(sys.stderr)    #Allways flush stderr
 print("Starting bot. Press ctrl+c to exit.")
+
+notify_arg = '0'
+
+if ( sys.argv.count('--notify') == 1 ):
+        if ( len(sys.argv) == 2 ):
+            notify_arg = '1'
 while(True):
     try:
-        orabot.main()
+        orabot.main(notify_arg)
     except KeyboardInterrupt:
         break
     except orabot.BotCrashed as e:
