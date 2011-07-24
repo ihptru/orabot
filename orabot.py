@@ -13,6 +13,8 @@ import pywapi
 import urllib.request
 import imp
 
+import db_process
+import notify
 import commands
 import admin_commands
 
@@ -20,228 +22,10 @@ import admin_commands
 root_admin = "ihptru"
 root_admin_password = "password" #only for the successful first run, dont forget to remove it later
 
-def create_database(root_admin, root_admin_password):
-    conn = sqlite3.connect('db/openra.sqlite')
-    cur = conn.cursor()
-    sql = """CREATE TABLE register (
-    uid int NOT NULL,
-    user varchar(20) NOT NULL,
-    pass varchar(50),
-    owner boolean NOT NULL DEFAULT '0',
-    authenticated boolean NOT NULL DEFAULT '0'
-    )
-    """
-    cur.execute(sql)
-    conn.commit()
-
-    user_password = hashlib.md5(root_admin_password.encode('utf-8')).hexdigest()     
-    sql = """INSERT INTO register
-            (uid,user,pass,owner)
-            VALUES
-            (
-            1,'"""+root_admin+"','"+str(user_password)+"'"+""",1
-            )       
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE black_list (
-        uid integer NOT NULL,
-        user varchar(30) NOT NULL,
-        date_time date NOT NULL,
-        count integer NOT NULL
-        )        
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """INSERT INTO black_list
-        (uid,user,date_time,count)
-        VALUES
-        (
-        1,'test',strftime('%Y-%m-%d-%H-%M'),1
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-
-    sql = """CREATE TABLE commands (
-                uid integer NOT NULL,
-                user varchar(30) NOT NULL,
-                command varchar(300) NOT NULL,
-                date_time date NOT NULL
-        )
-        """
-    cur.execute(sql)
-    conn.commit()
-    for i in range(31):
-        sql = """INSERT INTO commands
-            (uid,user,command,date_time)
-            VALUES
-            (
-            1,'test','test_command',strftime('%Y-%m-%d-%H-%M-%S')
-            )
-        """
-        cur.execute(sql)
-        conn.commit()
-    sql = """CREATE TABLE users (
-        uid integer NOT NULL,
-        user varchar(30) NOT NULL,
-        date date
-        )               
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql= """INSERT INTO users
-            (uid,user)
-            VALUES
-            (
-            1,'test'
-            )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE later (
-            uid integer NOT NULL,
-            sender varchar(30) NOT NULL,
-            reciever varchar(30) NOT NULL,
-            channel varchar(30) NOT NULL,
-            date date NOT NULL,
-            message varchar(1000) NOT NULL
-    )             
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """INSERT INTO later
-            (uid,sender,reciever,channel,date,message)
-            VALUES
-            (
-            1,'test','test','#test',strftime('%Y-%m-%d-%H-%M-%S'),'Hello, how are you?'
-            )                
-    """
-    cur.execute(sql)
-    conn.commit()
-    ##
-    sql = """CREATE TABLE "pickup_1v1" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL ,
-        "host" BOOL NOT NULL  DEFAULT 0,
-        "timeout" DATETIME NOT NULL
-    )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "pickup_2v2" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL ,
-        "host" BOOL NOT NULL  DEFAULT 0,
-        "timeout" DATETIME NOT NULL
-    )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "pickup_3v3" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL ,
-        "host" BOOL NOT NULL  DEFAULT 0,
-        "timeout" DATETIME NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "pickup_4v4 (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL ,
-        "host" BOOL NOT NULL  DEFAULT 0,
-        "timeout" DATETIME NOT NULL
-    )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "pickup_5v5" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL ,
-        "host" BOOL NOT NULL  DEFAULT 0,
-        "timeout" DATETIME NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "pickup_game_start" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "team1" VARCHAR NOT NULL ,
-        "team2" VARCHAR NOT NULL ,
-        "type" VARCHAR NOT NULL ,
-        "host" VARCHAR NOT NULL ,
-        "map" VARCHAR NOT NULL ,
-        "time" DATETIME NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "pickup_maps" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL ,
-        "1v1" BOOL NOT NULL ,
-        "2v2" BOOL NOT NULL ,
-        "3v3" BOOL NOT NULL ,
-        "4v4" BOOL NOT NULL ,
-        "5v5" BOOL NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """INSERT INTO "pickup_maps"
-        (name,1v1,2v2,3v3,4v4,5v5)
-        VALUES
-        (
-        'East vs West',1,1,0,0,0
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "pickup_stats" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL ,
-        "games" INTEGER NOT NULL  DEFAULT 0,
-        "hosts" INTEGER NOT NULL  DEFAULT 0,
-        "complaints" INTEGER NOT NULL  DEFAULT 0
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "notify" (
-        uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
-        user VARCHAR NOT NULL,
-        date DATETIME NOT NULL,
-        mod VARCHAR NOT NULL DEFAULT "all",
-        version VARCHAR NOT NULL DEFAULT "all",
-        timeout VARCHAR NOT NULL DEFAULT "all",
-        timezone VARCHAR NOT NULL DEFAULT "GMT"
-    )                
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "maps" (
-    "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-    "mod" VARCHAR NOT NULL ,
-    "hash" VARCHAR NOT NULL ,
-    "title" VARCHAR NOT NULL ,
-    "description" VARCHAR,
-    "author" VARCHAR,
-    "type" VARCHAR NOT NULL ,
-    "titleset" VARCHAR NOT NULL ,
-    "players" INTEGER NOT NULL
-    )
-    """
-    cur.execute(sql)
-    conn.commit()
-    cur.close()
-    
 ###
 if not os.path.exists('db/openra.sqlite'):
-    create_database(root_admin, root_admin_password)
+    db_process.start(root_admin, root_admin_password)
 ###
-
-notify_ip_list = []
 
 # Defining a class to run the server. One per connection. This class will do most of our work.
 class IRC_Server:
@@ -327,6 +111,7 @@ class IRC_Server:
             #    user_nicks = user_nicks.split(' ')
             #    self.nicks = user_nicks
             if str(recv).find ( "PRIVMSG" ) != -1:
+                print(str(recv))
                 irc_user_nick = str(recv).split ( '!' ) [ 0 ] . split ( ":")[1]
                 irc_user_host = str(recv).split ( '@' ) [ 1 ] . split ( ' ' ) [ 0 ]
                 irc_user_message = self.data_to_message(str(recv))
@@ -884,120 +669,8 @@ def main():
     test = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
     run_test = multiprocessing.Process(None,test.connect,name="IRC Server" )
     run_test.start()
-    
-    def notification(self):
-        while True:
-            time.sleep(3)
-### NOTIFICATIONS
-            ip_current_games = []
-            timeouts = ['s','m','h','d']
-            url = 'http://master.open-ra.org/list.php'
-            stream = urllib.request.urlopen(url).read()
-            if ( stream != b'' ):
-                split_games = str(stream).split('\\nGame')
-                length_games = len(split_games)
-                for i in range(int(length_games)):
-                    ip = split_games[i].split('\\n\\t')[3].split()[1].split(':')[0]
-                    ip_current_games.append(ip)
-                    state = split_games[i].split('\\n\\t')[4]
-                    if ( ip in notify_ip_list ):
-                        if ( state == 'State: 2' ):
-                            #game in list but started, remove from `notify_ip_list`
-                            ip_index = notify_ip_list.index(ip)
-                            del notify_ip_list[ip_index]
-                            ip_index = ip_current_games.index(ip)
-                            del ip_current_games[ip_index]
-                    else:   #ip is not in a list
-                        if ( state == 'State: 1' ):
-                            notify_ip_list.append(ip)
-                            name = " ".join(split_games[i].split('\\n\\t')[2].split()[1:])
-                            mod = split_games[i].split('\\n\\t')[7].split()[1].split('@')[0]
-                            try:
-                                version = " - version: " + split_games[i].split('\\n\\t')[7].split()[1].split('@')[1]
-                            except:
-                                version = ''    #no version in output
-                            down = name.split('[down]')
-                            if ( len(down) == 1 ):  #game is not [down]
-                                conn = sqlite3.connect('../db/openra.sqlite')
-                                cur = conn.cursor()
-                                sql = """SELECT user,date,mod,version,timeout FROM notify
-                                """
-                                cur.execute(sql)
-                                conn.commit()
-                                row = []
-                                data = []
-                                for row in cur:
-                                    data.append(row)
-                                if ( data != [] ):
-                                    length_data = len(data)
-                                    for i in range(int(length_data)):
-                                        db_user = data[i][0]
-                                        db_date = data[i][1]
-                                        db_mod = data[i][2]
-                                        db_version = data[i][3]
-                                        db_timeout = data[i][4]
-                                        if ( db_mod.lower() == mod or db_mod.lower() == 'all' ):
-                                            if ( re.search(db_version, version) or db_version.lower() == 'all' ):
-                                                notify_message = "New game: "+name+" - mod: "+mod+version
-                                                if ( db_timeout.lower() == 'all' ):
-                                                    self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (db_user, notify_message)).encode() )
-                                                elif ( db_timeout.lower() == 'till_quit' ):
-                                                    self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (db_user, notify_message)).encode() )
-                                                else:
-                                                    date_of_adding = int(db_date.replace('-',''))
-                                                    ###
-                                                    a = date.today()
-                                                    a = str(a)
-                                                    a = a.split('-')
-                                                    year = a[0]
-                                                    month = a[1]
-                                                    day = a[2]
-                                                    b = time.localtime()
-                                                    b = str(b)
-                                                    hours = b.split('tm_hour=')[1].split(',')[0]
-                                                    minutes = b.split('tm_min=')[1].split(',')[0]
-                                                    seconds = b.split('tm_sec=')[1].split(',')[0]
-                                                    if len(hours) == 1:
-                                                        hours = '0'+hours
-                                                    else:
-                                                        hours = hours
-                                                    if len(minutes) == 1:
-                                                        minutes = '0'+minutes
-                                                    else:
-                                                        minutes = minutes
-                                                    if len(seconds) == 1:
-                                                        seconds = '0'+seconds
-                                                    else:
-                                                        seconds = seconds
-                                                    localtime = year+month+day+hours+minutes+seconds
-                                                    localtime = int(localtime)
-                                                    difference = localtime - date_of_adding     #in result - must be less then timeout
-                                                    if ( db_timeout[-1] == 's' ):
-                                                        timeout = db_timeout[0:-1]
-                                                    elif ( db_timeout[-1] == 'm' ):
-                                                        timeout = int(db_timeout[0:-1]+'00')
-                                                    elif ( db_timeout[-1] == 'h' ):
-                                                        timeout = int(db_timeout[0:-1]+'0000')
-                                                    elif ( db_timeout[-1] == 'd' ):
-                                                        timeout = int(db_timeout[0:-1]+'000000')
-                                                    if ( difference < timeout ):
-                                                        self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (db_user, notify_message)).encode())
-                                                    else:   # timeout is over
-                                                        sql = """DELETE from notify
-                                                                WHERE user = '"""+db_user+"""'
-                                                        """
-                                                        cur.execute(sql)
-                                                        conn.commit()
-                                                    ###
-                length = len(notify_ip_list)
-                indexes = []
-                for i in range(int(length)):
-                    if ( notify_ip_list[i] not in ip_current_games ):
-                        indexes.append(i)   #indexes to remove from notify_ip_list
-                for i in indexes:
-                    del notify_ip_list[i]
-############
-    run_notify = multiprocessing.Process(None,notification(test))
+    ### run notification process
+    run_notify = multiprocessing.Process(None,notify.start(test))
     run_notify.start()
     
     try:
