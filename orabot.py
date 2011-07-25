@@ -169,8 +169,8 @@ class IRC_Server:
                 cur=conn.cursor()
                 irc_join_nick = str(recv).split( '!' ) [ 0 ].split( ':' ) [ 1 ]
                 irc_join_host = str(recv).split( '!' ) [ 1 ].split( ' ' ) [ 0 ]
-                #chan = str(recv).split( "JOIN" ) [ 1 ].lstrip().split( ":" )[1].rstrip()     #channle ex: #openra
-                #chan = str(recv).split()[2].replace(':','').rstrip()
+                chan = str(recv).split()[2].replace(':','')[0:-5].rstrip()
+                print(chan)
                 sql = """SELECT * FROM users
                         WHERE user = '"""+irc_join_nick+"'"+"""
                 """
@@ -234,19 +234,13 @@ class IRC_Server:
                                 WHERE reciever = '"""+irc_join_nick+"'"+"""
                         
                         """
-                        
                         cur.execute(sql)
                         conn.commit()
                     cur.close()
                 ###logs
-                if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
-                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_join_nick+' ('+irc_join_host+') has joined '+self.irc_channel+'\n'
-                    if self.irc_channel == '#openra':
-                        chan_d = 'openra'
-                    elif self.irc_channel == '#openra-dev':
-                        chan_d = 'openra-dev'
-                    else:
-                        chan_d = 'trash'
+                if chan in log_channels:
+                    row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] '+'*** '+irc_join_nick+' has joined '+chan+'\n'
+                    chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                     dir = os.path.dirname(filename)
                     if not os.path.exists(dir):
@@ -260,7 +254,6 @@ class IRC_Server:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
                 irc_quit_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
-                irc_quit_message = str(recv).split('QUIT :')[1].rstrip()
                 #change authenticated status
                 sql = """SELECT * FROM register
                         WHERE user = '"""+irc_quit_nick+"'"+"""
@@ -297,14 +290,9 @@ class IRC_Server:
                     cur.execute(sql)
                     conn.commit()
                 ##logs
-                if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
-                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_quit_nick+' has quit ('+irc_quit_message.rstrip()+')\n'
-                    if self.irc_channel == '#openra':
-                        chan_d = 'openra'
-                    elif self.irc_channel == '#openra-dev':
-                        chan_d = 'openra-dev'
-                    else:
-                        chan_d = 'trash'
+                for chan in log_channels:
+                    row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] '+'*** '+irc_quit_nick+' has quit IRC\n'
+                    chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                     dir = os.path.dirname(filename)
                     if not os.path.exists(dir):
@@ -317,7 +305,7 @@ class IRC_Server:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
                 irc_part_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
-                #chan = str(recv).split()[2].replace(':','')
+                chan = str(recv)[0:-5].split()[2].rstrip()
                 ###logout
                 sql = """SELECT * FROM register
                         WHERE user = '"""+irc_part_nick+"'"+"""
@@ -354,14 +342,9 @@ class IRC_Server:
                     cur.execute(sql)
                     conn.commit()
                 ###logs
-                if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
-                    row = '['+real_hours+':'+real_minutes+'] '+'* '+irc_part_nick+' has left '+self.irc_channel+'\n'
-                    if self.irc_channel == '#openra':
-                        chan_d = 'openra'
-                    elif self.irc_channel == '#openra-dev':
-                        chan_d = 'openra-dev'
-                    else:
-                        chan_d = 'trash'
+                if chan in log_channels:
+                    row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] '+'*** '+irc_part_nick+' has left '+chan+'\n'
+                    chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                     dir = os.path.dirname(filename)
                     if not os.path.exists(dir):
