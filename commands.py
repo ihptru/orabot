@@ -644,9 +644,12 @@ def last(self, user, channel):
                 self.send_message_to_channel( ("Error! No such user in my database"), channel)
             else:
                 last_time = row[2]
-                last_date = "-".join(last_time.split('-')[0:3])
-                last_time = ":".join(last_time.split('-')[3:6])
-                self.send_message_to_channel( (command[1]+" was last seen at "+last_date+" "+last_time+" GMT"), channel)
+                if ( last_time == None or last_time == '' ):
+                    self.send_message_to_channel( ("Sorry, I don't have any record of when user left"), channel)
+                else:
+                    last_date = "-".join(last_time.split('-')[0:3])
+                    last_time = ":".join(last_time.split('-')[3:6])
+                    self.send_message_to_channel( (command[1]+" was last seen at "+last_date+" "+last_time+" GMT"), channel)
         else:
             self.send_message_to_channel( ("You can use ]last only on a channel"), user)
     elif ( len(command) == 1 ):

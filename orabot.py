@@ -22,6 +22,8 @@ import admin_commands
 root_admin = "ihptru"
 root_admin_password = "password" #only for the successful first run, dont forget to remove it later
 
+log_channels = ['#openra','#openra-dev']
+
 ###
 if not os.path.exists('db/openra.sqlite'):
     db_process.start(root_admin, root_admin_password)
@@ -91,6 +93,7 @@ class IRC_Server:
             b = str(b)
             hours = b.split('tm_hour=')[1].split(',')[0]
             minutes = b.split('tm_min=')[1].split(',')[0]
+            seconds = b.split('tm_sec=')[1].split(',')[0]
             if len(hours) == 1:
                 real_hours = '0'+hours
             else:
@@ -99,38 +102,23 @@ class IRC_Server:
                 real_minutes = '0'+minutes
             else:
                 real_minutes = minutes
+            if len(seconds) == 1:
+                real_seconds = '0'+seconds
+            else:
+                real_seconds = seconds
             ### for logs end
             if str(recv).find ( "PING" ) != -1:
                 self.irc_sock.send ( "PONG ".encode() + recv.split() [ 1 ] + "\r\n".encode() )             
-             
-            #recover all nicks on channel
-            #if str(recv).find ( "353 orabot =" ) != -1:
-            #    print (str(recv))
-            #    user_nicks = str(recv).split(':')[2].rstrip()
-            #    user_nicks = user_nicks.replace('+','').replace('@','')
-            #    user_nicks = user_nicks.split(' ')
-            #    self.nicks = user_nicks
-            if str(recv).find ( "PRIVMSG" ) != -1:
-                print(str(recv))
+
+            if str(recv).find ( " PRIVMSG " ) != -1:
                 irc_user_nick = str(recv).split ( '!' ) [ 0 ] . split ( ":")[1]
                 irc_user_host = str(recv).split ( '@' ) [ 1 ] . split ( ' ' ) [ 0 ]
                 irc_user_message = self.data_to_message(str(recv))
-                # if PRIVMSG is still in string - message from person with ipv6
-                suit = re.compile('PRIVMSG')
-                if suit.search(irc_user_message):
-                    irc_user_message = str(recv).split ( 'PRIVMSG' ) [ 1 ] . split ( ' :') [ 1: ]
-                    irc_user_message = " ".join(irc_user_message)
-                    irc_user_message = irc_user_message[:-5]
+                chan = (str(recv)).split()[2]  #channel ex: #openra
                 ###logs
-                chan = str(recv).split ( 'PRIVMSG' ) [ 1 ] . lstrip() . split(' :')[0]  #channel ex: #openra
-                if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
-                    row = '['+real_hours+':'+real_minutes+'] '+irc_user_nick+': '+str(irc_user_message)+'\n'
-                    if self.irc_channel == '#openra':
-                        chan_d = 'openra'
-                    elif self.irc_channel == '#openra-dev':
-                        chan_d = 'openra-dev'
-                    else:
-                        chan_d = 'trash'
+                if chan in log_channels:
+                    row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] <'+irc_user_nick+'> '+str(irc_user_message)+'\n'
+                    chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                     dir = os.path.dirname(filename)
                     if not os.path.exists(dir):
@@ -139,6 +127,7 @@ class IRC_Server:
                     file.write(row)
                     file.close()
                 ### logs end
+                
                 print ( irc_user_nick + ": " + irc_user_message)
                 # "]" Indicated a command
                 if ( str(irc_user_message[0]) == "]" ):
@@ -161,7 +150,7 @@ class IRC_Server:
                                 if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
                                     self.send_message_to_channel( ("Youtube: "+title), chan )
                             except:
-                                pass
+                                pass    #do not write title in private
                     else:
                         if re.search("^#", chan):
                             try:
@@ -171,13 +160,13 @@ class IRC_Server:
                                 title = site.split('<title>')[1].split('</title>')[0].rstrip().lstrip()
                                 self.send_message_to_channel( ("Title: "+title), chan )
                             except:
-                                pass
-                        
+                                pass    #do not write title in private
 ###
-            if str(recv).find ( "JOIN" ) != -1:
+
+            if str(recv).find ( " JOIN " ) != -1:
+                print (str(recv))
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
-                print (str(recv))
                 irc_join_nick = str(recv).split( '!' ) [ 0 ].split( ':' ) [ 1 ]
                 irc_join_host = str(recv).split( '!' ) [ 1 ].split( ' ' ) [ 0 ]
                 #chan = str(recv).split( "JOIN" ) [ 1 ].lstrip().split( ":" )[1].rstrip()     #channle ex: #openra
@@ -248,12 +237,6 @@ class IRC_Server:
                         
                         cur.execute(sql)
                         conn.commit()
-                    sql = """UPDATE users
-                            SET date = ''
-                            WHERE user = '"""+irc_join_nick+"'"+"""
-                    """
-                    cur.execute(sql)
-                    conn.commit()
                     cur.close()
                 ###logs
                 if self.irc_channel == '#openra' or self.irc_channel == '#openra-dev':
@@ -272,10 +255,10 @@ class IRC_Server:
                     file.write(row)
                     file.close()
                 ###
-            if str(recv).find ( "QUIT" ) != -1:
+            if str(recv).find ( " QUIT " ) != -1:
+                print (str(recv))
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
-                print (str(recv))
                 irc_quit_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
                 irc_quit_message = str(recv).split('QUIT :')[1].rstrip()
                 #change authenticated status
@@ -305,7 +288,7 @@ class IRC_Server:
                 conn.commit()
                 cur.close()
                 ### for ]pick
-                modes = ['1v1','2v2','3v3','4v4']
+                modes = ['1v1','2v2','3v3','4v4','5v5']
                 diff_mode = ''
                 for diff_mode in modes:
                     sql = """DELETE FROM pickup_"""+diff_mode+"""
@@ -329,10 +312,10 @@ class IRC_Server:
                     file = open(filename,'a')
                     file.write(row)
                     file.close()
-            if str(recv).find ( "PART" ) != -1:
+            if str(recv).find ( " PART " ) != -1:
+                print (str(recv))
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
-                print (str(recv))
                 irc_part_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
                 #chan = str(recv).split()[2].replace(':','')
                 ###logout
@@ -362,7 +345,7 @@ class IRC_Server:
                 conn.commit()
                 cur.close()
                 ### for ]pick
-                modes = ['1v1','2v2','3v3','4v4']
+                modes = ['1v1','2v2','3v3','4v4','5v5']
                 diff_mode = ''
                 for diff_mode in modes:
                     sql = """DELETE FROM pickup_"""+diff_mode+"""
@@ -393,14 +376,14 @@ class IRC_Server:
 
     def data_to_message(self,data):
         data = data[data.find(':')+1:len(data)]
-        data = data[data.find(':')+1:len(data)]
-        data = str(data[0:len(data)-5])
+        data = " ".join(data.split()[3:])[1:-5].rstrip()
         return data
 
     # This function sends a message to a channel, which must start with a #.
     def send_message_to_channel(self,data,channel):
         print ( ( "%s: %s") % (self.irc_nick, data) )
         self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (channel, data)).encode() )
+        
         ### for logs
         a = date.today()
         a = str(a)
@@ -412,6 +395,7 @@ class IRC_Server:
         b = str(b)
         hours = b.split('tm_hour=')[1].split(',')[0]
         minutes = b.split('tm_min=')[1].split(',')[0]
+        seconds = b.split('tm_sec=')[1].split(',')[0]
         if len(hours) == 1:
             real_hours = '0'+hours
         else:
@@ -420,14 +404,13 @@ class IRC_Server:
             real_minutes = '0'+minutes
         else:
             real_minutes = minutes
-        if channel == '#openra' or channel == '#openra-dev':
-            row = '['+real_hours+':'+real_minutes+'] '+self.irc_nick+': '+str(data)+'\n'
-            if channel == '#openra':
-                chan_d = 'openra'
-            elif channel == '#openra-dev':
-                chan_d = 'openra-dev'
-            else:
-                chan_d = 'trash'
+        if len(seconds) == 1:
+            real_seconds = '0'+seconds
+        else:
+            real_seconds = seconds
+        if channel in log_channels:
+            row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] <'+self.irc_nick+'> '+str(data)+'\n'
+            chan_d = str(channel).replace('#','')
             filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
             dir = os.path.dirname(filename)
             if not os.path.exists(dir):
@@ -436,6 +419,7 @@ class IRC_Server:
             file.write(row)
             file.close()
         ### for logs end
+
     # This function takes a channel, which must start with a #.
     def join_channel(self,channel):
         if (channel[0] == "#"):
