@@ -23,6 +23,7 @@ root_admin = "ihptru"
 root_admin_password = "password" #only for the successful first run, dont forget to remove it later
 
 log_channels = ['#openra','#openra-dev']
+additional_channels = ['#openra-dev']
 
 ###
 if not os.path.exists('db/openra.sqlite'):
@@ -76,6 +77,10 @@ class IRC_Server:
         str_buff = ( "JOIN %s \r\n" ) % (self.irc_channel)
         self.irc_sock.send (str_buff.encode())
         print ("Joining channel " + str(self.irc_channel) )
+        print ("Joining additional channels")
+        for channel in additional_channels:
+            self.join_channel(channel)
+        
         self.is_connected = True
         self.listen()
         
@@ -116,16 +121,29 @@ class IRC_Server:
                 irc_user_message = self.data_to_message(str(recv))
                 chan = (str(recv)).split()[2]  #channel ex: #openra
                 ###logs
-                if chan in log_channels:
-                    row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] <'+irc_user_nick+'> '+str(irc_user_message)+'\n'
-                    chan_d = chan.replace('#','')
-                    filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
-                    dir = os.path.dirname(filename)
-                    if not os.path.exists(dir):
-                        os.makedirs(dir)
-                    file = open(filename,'a')
-                    file.write(row)
-                    file.close()
+                if re.search('^.*01ACTION', irc_user_message) and re.search('01$', irc_user_message):
+                    irc_user_message_me = irc_user_message.split('01ACTION ')[1][0:-4]
+                    if chan in log_channels:
+                        row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] * '+irc_user_nick+' '+irc_user_message_me+'\n'
+                        chan_d = chan.replace('#','')
+                        filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
+                        dir = os.path.dirname(filename)
+                        if not os.path.exists(dir):
+                            os.makedirs(dir)
+                        file = open(filename,'a')
+                        file.write(row)
+                        file.close()
+                else:
+                    if chan in log_channels:
+                        row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] <'+irc_user_nick+'> '+str(irc_user_message)+'\n'
+                        chan_d = chan.replace('#','')
+                        filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
+                        dir = os.path.dirname(filename)
+                        if not os.path.exists(dir):
+                            os.makedirs(dir)
+                        file = open(filename,'a')
+                        file.write(row)
+                        file.close()
                 ### logs end
                 
                 print ( irc_user_nick + ": " + irc_user_message)
@@ -164,13 +182,11 @@ class IRC_Server:
 ###
 
             if str(recv).find ( " JOIN " ) != -1:
-                print (str(recv))
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
                 irc_join_nick = str(recv).split( '!' ) [ 0 ].split( ':' ) [ 1 ]
                 irc_join_host = str(recv).split( '!' ) [ 1 ].split( ' ' ) [ 0 ]
                 chan = str(recv).split()[2].replace(':','')[0:-5].rstrip()
-                print(chan)
                 sql = """SELECT * FROM users
                         WHERE user = '"""+irc_join_nick+"'"+"""
                 """
@@ -250,7 +266,6 @@ class IRC_Server:
                     file.close()
                 ###
             if str(recv).find ( " QUIT " ) != -1:
-                print (str(recv))
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
                 irc_quit_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
@@ -301,7 +316,6 @@ class IRC_Server:
                     file.write(row)
                     file.close()
             if str(recv).find ( " PART " ) != -1:
-                print (str(recv))
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
                 irc_part_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
@@ -353,7 +367,53 @@ class IRC_Server:
                     file.write(row)
                     file.close()
                 ###
-
+                
+            if str(recv).find ( " NICK " ) != -1:
+                original_nick = str(recv).split(':')[1].split('!')[0]
+                new_nick = str(recv).split()[2].replace(':','')[0:-5]
+                for chan in log_channels:
+                    row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] '+'*** '+original_nick+' is now known as '+new_nick+'\n'
+                    chan_d = chan.replace('#','')
+                    filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
+                    dir = os.path.dirname(filename)
+                    if not os.path.exists(dir):
+                        os.makedirs(dir)
+                    file = open(filename,'a')
+                    file.write(row)
+                    file.close()
+            
+            if str(recv).find ( " TOPIC " ) != -1:
+                nick = str(recv).split(':')[1].split('!')[0]
+                topic = " ".join(str(recv).split()[3:]).replace(':','')[0:-5]
+                chan = str(recv).split()[2]
+                if chan in log_channels:
+                    row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] '+'*** '+nick+' changes topic to "'+topic+'"\n'
+                    chan_d = chan.replace('#','')
+                    filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
+                    dir = os.path.dirname(filename)
+                    if not os.path.exists(dir):
+                        os.makedirs(dir)
+                    file = open(filename,'a')
+                    file.write(row)
+                    file.close()
+                
+                
+            if str(recv).find ( " KICK " ) != -1:
+                by = str(recv).split(':')[1].split('!')[0]
+                whom = str(recv).split()[3]
+                chan = str(recv).split()[2]
+                reason = " ".join(str(recv).split()[4:]).replace(':','')[0:-5]
+                if chan in log_channels:
+                    row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] '+'*** '+whom+' was kicked by '+by+' ('+reason+')\n'
+                    chan_d = chan.replace('#','')
+                    filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
+                    dir = os.path.dirname(filename)
+                    if not os.path.exists(dir):
+                        os.makedirs(dir)
+                    file = open(filename,'a')
+                    file.write(row)
+                    file.close()
+                
         if self.should_reconnect:
             self.connect()
 
