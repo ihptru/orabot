@@ -6,8 +6,32 @@ from datetime import date
 
 def start(self):
     notify_ip_list = []
+    bugreport_var = 0
     while True:
         time.sleep(3)
+        bugreport_var = bugreport_var + 1
+        ### bugreport part:
+        if ( bugreport_var == 2400 ):   #~2 hours
+            bugreport_var = 0
+            url = 'http://bugs.open-ra.org/projects/openra/issues?set_filter=1&tracker_id=1'
+            stream = urllib.request.urlopen(url).read()
+            bug_report = stream.split('<td class="tracker">')[1].split('</a>')[0].split('>')[-1].rstrip()
+            filename = 'run/bug_report.txt'
+            line = ''
+            try:
+                file = open(filename, 'r')
+                line = file.readline()
+                file.close()
+            except:
+                pass
+            if ( bug_report != line.rstrip() ):
+                filename = 'run/bug_report.txt'
+                file = open(filename, 'w')
+                file.write(bug_report)
+                file.close()
+                message = "New Bug Report (http://bugs.open-ra.org): "+bug_report
+                self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('#openra', message)).encode())
+        ### new game notifications part
         ip_current_games = []
         timeouts = ['s','m','h','d']
         url = 'http://master.open-ra.org/list.php'

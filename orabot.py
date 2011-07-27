@@ -124,7 +124,7 @@ class IRC_Server:
                 if re.search('^.*01ACTION', irc_user_message) and re.search('01$', irc_user_message):
                     irc_user_message_me = irc_user_message.split('01ACTION ')[1][0:-4]
                     if chan in log_channels:
-                        row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] * '+irc_user_nick+' '+irc_user_message_me+'\n'
+                        row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' * '+irc_user_nick+' '+irc_user_message_me+'\n'
                         chan_d = chan.replace('#','')
                         filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                         dir = os.path.dirname(filename)
@@ -135,7 +135,7 @@ class IRC_Server:
                         file.close()
                 else:
                     if chan in log_channels:
-                        row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] <'+irc_user_nick+'> '+str(irc_user_message)+'\n'
+                        row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' <'+irc_user_nick+'> '+str(irc_user_message)+'\n'
                         chan_d = chan.replace('#','')
                         filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                         dir = os.path.dirname(filename)
@@ -186,6 +186,7 @@ class IRC_Server:
                 cur=conn.cursor()
                 irc_join_nick = str(recv).split( '!' ) [ 0 ].split( ':' ) [ 1 ]
                 irc_join_host = str(recv).split( '!' ) [ 1 ].split( ' ' ) [ 0 ]
+                supy_host = str(recv).split()[0][3:]
                 chan = str(recv).split()[2].replace(':','')[0:-5].rstrip()
                 sql = """SELECT * FROM users
                         WHERE user = '"""+irc_join_nick+"'"+"""
@@ -255,7 +256,7 @@ class IRC_Server:
                     cur.close()
                 ###logs
                 if chan in log_channels:
-                    row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] '+'*** '+irc_join_nick+' has joined '+chan+'\n'
+                    row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+irc_join_nick+' <'+supy_host+'> has joined '+chan+'\n'
                     chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                     dir = os.path.dirname(filename)
@@ -269,6 +270,7 @@ class IRC_Server:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
                 irc_quit_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
+                supy_host = str(recv).split()[0][3:]
                 #change authenticated status
                 sql = """SELECT * FROM register
                         WHERE user = '"""+irc_quit_nick+"'"+"""
@@ -304,9 +306,15 @@ class IRC_Server:
                     """
                     cur.execute(sql)
                     conn.commit()
+                ### for notify
+                sql = """DELETE FROM notify
+                        WHERE user = '"""+irc_quit_nick+"""'
+                """
+                cur.execute(sql)
+                conn.commit()
                 ##logs
                 for chan in log_channels:
-                    row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] '+'*** '+irc_quit_nick+' has quit IRC\n'
+                    row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+irc_quit_nick+' <'+supy_host+'> has quit IRC\n'
                     chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                     dir = os.path.dirname(filename)
@@ -319,6 +327,7 @@ class IRC_Server:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
                 irc_part_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
+                supy_host = str(recv).split()[0][3:]
                 chan = str(recv)[0:-5].split()[2].rstrip()
                 ###logout
                 sql = """SELECT * FROM register
@@ -355,9 +364,15 @@ class IRC_Server:
                     """
                     cur.execute(sql)
                     conn.commit()
+                ### for notify
+                sql = """DELETE FROM notify
+                        WHERE user = '"""+irc_part_nick+"""'
+                """
+                cur.execute(sql)
+                conn.commit()
                 ###logs
                 if chan in log_channels:
-                    row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] '+'*** '+irc_part_nick+' has left '+chan+'\n'
+                    row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+irc_part_nick+' <'+supy_host+'> has left '+chan+'\n'
                     chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                     dir = os.path.dirname(filename)
@@ -372,7 +387,7 @@ class IRC_Server:
                 original_nick = str(recv).split(':')[1].split('!')[0]
                 new_nick = str(recv).split()[2].replace(':','')[0:-5]
                 for chan in log_channels:
-                    row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] '+'*** '+original_nick+' is now known as '+new_nick+'\n'
+                    row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+original_nick+' is now known as '+new_nick+'\n'
                     chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                     dir = os.path.dirname(filename)
@@ -387,7 +402,7 @@ class IRC_Server:
                 topic = " ".join(str(recv).split()[3:]).replace(':','')[0:-5]
                 chan = str(recv).split()[2]
                 if chan in log_channels:
-                    row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] '+'*** '+nick+' changes topic to "'+topic+'"\n'
+                    row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+nick+' changes topic to "'+topic+'"\n'
                     chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                     dir = os.path.dirname(filename)
@@ -404,7 +419,7 @@ class IRC_Server:
                 chan = str(recv).split()[2]
                 reason = " ".join(str(recv).split()[4:]).replace(':','')[0:-5]
                 if chan in log_channels:
-                    row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] '+'*** '+whom+' was kicked by '+by+' ('+reason+')\n'
+                    row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+whom+' was kicked by '+by+' ('+reason+')\n'
                     chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
                     dir = os.path.dirname(filename)
@@ -452,7 +467,7 @@ class IRC_Server:
         else:
             real_seconds = seconds
         if channel in log_channels:
-            row = '['+real_hours+':'+real_minutes+':'+real_seconds+'] <'+self.irc_nick+'> '+str(data)+'\n'
+            row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' <'+self.irc_nick+'> '+str(data)+'\n'
             chan_d = str(channel).replace('#','')
             filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
             dir = os.path.dirname(filename)
@@ -698,6 +713,7 @@ def main(notify_arg):
     run_test.start()
     ### run notification process
     if ( notify_arg == '1' ):
+        print("Run 'notifications' process...")
         run_notify = multiprocessing.Process(None,notify.start(test))
         run_notify.start()
     try:

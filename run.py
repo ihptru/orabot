@@ -51,9 +51,10 @@ print("Starting bot. Press ctrl+c to exit.")
 
 notify_arg = '0'
 
-if ( sys.argv.count('--notify') == 1 ):
-        if ( len(sys.argv) == 2 ):
-            notify_arg = '1'
+if ( len(sys.argv[0:]) > 1):
+    if ( sys.argv.count('--notify') == 1 ):
+        notify_arg = '1'
+        
 while(True):
     try:
         orabot.main(notify_arg)
