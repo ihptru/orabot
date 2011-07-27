@@ -1876,24 +1876,15 @@ def maps(self, user, channel):
     command = (self.command)
     command = command.split()
     if ( len(command) == 1 ):
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Pickup Matches Maps: https://github.com/ihptru/orabot/wiki/Pickup-Maps"), channel )
-        else:
-            self.send_message_to_channel( ("Pickup Matches Maps: https://github.com/ihptru/orabot/wiki/Pickup-Maps"), user )
+        self.send_reply( ("Pickup Matches Maps: https://github.com/ihptru/orabot/wiki/Pickup-Maps"), user, channel )
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("I don't know anything about '"+" ".join(command[1:])+"'"), channel )
-        else:
-            self.send_message_to_channel( ("I don't know anything about '"+" ".join(command[1:])+"'"), user )
+        self.send_reply( ("I don't know anything about '"+" ".join(command[1:])+"'"), user, channel )
 
 def say(self, user, channel):
     command = (self.command)
     command = command.split()
     if ( len(command) > 1 ):
-        if re.search("^#", channel):
-            self.send_message_to_channel( (" ".join(command[1:])), channel )
-        else:
-            self.send_message_to_channel( (" ".join(command[1:])), user )
+        self.send_reply( (" ".join(command[1:])), user, channel )
 
 def show(self, user, channel):
     command = (self.command)
@@ -1901,7 +1892,7 @@ def show(self, user, channel):
     if ( len(command) >= 4 ):
         if ( command[-2] == '|' ):
             to_user = command[-1]
-            
+
             if re.search("^#", channel):
                 #send NAMES channel to server
                 str_buff = ( "NAMES %s \r\n" ) % (channel)
@@ -1925,20 +1916,11 @@ def show(self, user, channel):
                 self.command = " ".join(show_command)
                 eval (show_command[0])(self, to_user, to_user)
             else:
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("I can not show output of this command to user"), channel )
-                else:
-                    self.send_message_to_channel( ("I can not show output of this command to user"), user )
+                self.send_reply( ("I can not show output of this command to user"), user, channel )
         else:
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("Syntax error"), channel )
-            else:
-                self.send_message_to_channel( ("Syntax error"), user )
+            self.send_reply( ("Syntax error"), user, channel )
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+        self.send_reply( ("Error, wrong request"), user, channel )
     
 def mapinfo(self, user, channel):
     command = (self.command)
@@ -1946,10 +1928,7 @@ def mapinfo(self, user, channel):
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     if ( len(command) == 1 ):
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Part of map's name required!"), channel )
-        else:
-            self.send_message_to_channel( ("Part of map's name required!"), user )
+        self.send_reply( ("Part of map's name required!"), user, channel )
     else:
         if ( command[1] == '--random' ):
             if ( len(command) == 2 ):
