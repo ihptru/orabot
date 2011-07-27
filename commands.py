@@ -860,7 +860,7 @@ def adduser(self, user, channel):
             if row[4] == 0:
                 self.send_reply( ("You are not authenticated"), user, channel)
         else:
-            self.send_reply( ("Your don't have permissions for this command"), user, channel)
+            self.send_reply( ("You don't have permissions for this command"), user, channel)
     else:
         self.send_reply( ("Error, wrong request"), user, channel )
     cur.close()
