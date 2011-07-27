@@ -836,21 +836,10 @@ def ifuser(self, user, channel):
         row = []
         for row in cur:
             pass
-        if ( nick not in row ):
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("False"), channel)
-            else:
-                self.send_message_to_channel( ("False"), user)
-        else:
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("True"), channel)
-            else:
-                self.send_message_to_channel( ("True"), user)
+        result = str( nick in row )
+        self.send_reply( (result), user, channel )
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+        self.send_reply( ("Error, wrong request"), user, channel )
     cur.close()
 
 def adduser(self, user, channel):
@@ -866,23 +855,14 @@ def adduser(self, user, channel):
         conn.commit()
         row = []
         for row in cur:
-            pass
+            pass          # erm, what was the intent here?
         if user in row:
             if row[4] == 0:
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("You are not authenticated"), channel)
-                else:
-                    self.send_message_to_channel( ("You are not authenticated"), user)
+                self.send_reply( ("You are not authenticated"), user, channel)
         else:
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("Your don't have permissions for this command"), channel)
-            else:
-                self.send_message_to_channel( ("Your don't have permissions for this command"), user)
+            self.send_reply( ("Your don't have permissions for this command"), user, channel)
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+        self.send_reply( ("Error, wrong request"), user, channel )
     cur.close()
 
 def weather(self, user, channel):
