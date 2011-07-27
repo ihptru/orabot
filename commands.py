@@ -1976,9 +1976,10 @@ def mapinfo(self, user, channel):
                     self.send_message_to_channel( ("Error, wrong request"), user )
         else:
             mods = ['ra','cnc','yf']
-            if ( command[1].split('=')[0] == '--mod' ):
-                if ( command[1].split('=')[1] != '' ):
-                    mod = command[1].split('=')[1]
+            cond = command[1].split('=')
+            if ( cond[0] == '--mod' ):
+                if ( cond[1] != '' ):
+                    mod = cond[1]
                     if ( mod not in mods ):
                         if re.search("^#", channel):
                             self.send_message_to_channel( ("I don't know such a mod!"), channel )
