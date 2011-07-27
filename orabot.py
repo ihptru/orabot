@@ -448,6 +448,11 @@ class IRC_Server:
         data = " ".join(data.split()[3:])[1:-5].rstrip()
         return data
 
+    # helper to remove some insanity.
+    def send_reply(self,data,user,channel):
+        target = channel if channel.startswith('#') else user
+        self.send_message_to_channel(data,target)
+
     # This function sends a message to a channel, which must start with a #.
     def send_message_to_channel(self,data,channel):
         print ( ( "%s: %s") % (self.irc_nick, data) )

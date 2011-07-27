@@ -101,7 +101,10 @@ def games(self, user, channel):
                         else:
                             map_name = 'unknown'
                             max_players = ''
-                        games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
+
+                        modinfo = lines[a4].strip().split(' ')[1].split('@')
+
+                        games = '@ '+sname.strip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].strip()+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
                         if re.search("^#", channel):
                             self.send_message_to_channel( (games), channel )
                         else:
@@ -833,21 +836,10 @@ def ifuser(self, user, channel):
         row = []
         for row in cur:
             pass
-        if ( nick not in row ):
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("False"), channel)
-            else:
-                self.send_message_to_channel( ("False"), user)
-        else:
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("True"), channel)
-            else:
-                self.send_message_to_channel( ("True"), user)
+        result = str( nick in row )
+        self.send_reply( (result), user, channel )
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+        self.send_reply( ("Error, wrong request"), user, channel )
     cur.close()
 
 def adduser(self, user, channel):
@@ -863,23 +855,14 @@ def adduser(self, user, channel):
         conn.commit()
         row = []
         for row in cur:
-            pass
+            pass          # erm, what was the intent here?
         if user in row:
             if row[4] == 0:
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("You are not authenticated"), channel)
-                else:
-                    self.send_message_to_channel( ("You are not authenticated"), user)
+                self.send_reply( ("You are not authenticated"), user, channel)
         else:
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("Your don't have permissions for this command"), channel)
-            else:
-                self.send_message_to_channel( ("Your don't have permissions for this command"), user)
+            self.send_reply( ("You don't have permissions for this command"), user, channel)
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+        self.send_reply( ("Error, wrong request"), user, channel )
     cur.close()
 
 def weather(self, user, channel):
@@ -902,10 +885,7 @@ def weather(self, user, channel):
                     city = data.get("forecast_information").get("city")
                     current = data.get("current_conditions")
                     message = "Current weather for "+city+" | Temperature: "+current.get("temp_c")+"°C; "+current.get("humidity")+"; Conditions: "+current.get("condition")+"; "+current.get("wind_condition")
-                    if re.search("^#", channel):
-                        self.send_message_to_channel( (message), channel )
-                    else:
-                        self.send_message_to_channel( (message), user )
+                    self.send_reply( (message), user, channel )
                 except:
                     message = "Error: No such location could be found."
                     str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
@@ -962,7 +942,7 @@ def weather(self, user, channel):
                 except:
                     message = "Error: No such location could be found."
                     str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())   
+                    self.irc_sock.send (str_buff.encode())
         else:
             try:
                 location = command[1]
@@ -970,10 +950,7 @@ def weather(self, user, channel):
                 city = data.get("forecast_information").get("city")
                 current = data.get("current_conditions")
                 message = "Current weather for "+city+" | Temperature: "+current.get("temp_c")+"°C; "+current.get("humidity")+"; Conditions: "+current.get("condition")+"; "+current.get("wind_condition")
-                if re.search("^#", channel):
-                    self.send_message_to_channel( (message), channel )
-                else:
-                    self.send_message_to_channel( (message), user )
+                self.send_reply( (message), user, channel )
             except:
                 message = "Error: No such location could be found."
                 str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
@@ -1217,7 +1194,7 @@ def notify(self, user, channel):
                         str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
                         self.irc_sock.send (str_buff.encode())
                         cur.close()
-                        return                  
+                        return
                 else:
                     sql = """DELETE FROM notify
                             WHERE user = '"""+user+"""'
@@ -1873,24 +1850,15 @@ def maps(self, user, channel):
     command = (self.command)
     command = command.split()
     if ( len(command) == 1 ):
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Pickup Matches Maps: https://github.com/ihptru/orabot/wiki/Pickup-Maps"), channel )
-        else:
-            self.send_message_to_channel( ("Pickup Matches Maps: https://github.com/ihptru/orabot/wiki/Pickup-Maps"), user )
+        self.send_reply( ("Pickup Matches Maps: https://github.com/ihptru/orabot/wiki/Pickup-Maps"), user, channel )
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("I don't know anything about '"+" ".join(command[1:])+"'"), channel )
-        else:
-            self.send_message_to_channel( ("I don't know anything about '"+" ".join(command[1:])+"'"), user )
+        self.send_reply( ("I don't know anything about '"+" ".join(command[1:])+"'"), user, channel )
 
 def say(self, user, channel):
     command = (self.command)
     command = command.split()
     if ( len(command) > 1 ):
-        if re.search("^#", channel):
-            self.send_message_to_channel( (" ".join(command[1:])), channel )
-        else:
-            self.send_message_to_channel( (" ".join(command[1:])), user )
+        self.send_reply( (" ".join(command[1:])), user, channel )
 
 def show(self, user, channel):
     command = (self.command)
@@ -1898,7 +1866,7 @@ def show(self, user, channel):
     if ( len(command) >= 4 ):
         if ( command[-2] == '|' ):
             to_user = command[-1]
-            
+
             if re.search("^#", channel):
                 #send NAMES channel to server
                 str_buff = ( "NAMES %s \r\n" ) % (channel)
@@ -1922,20 +1890,11 @@ def show(self, user, channel):
                 self.command = " ".join(show_command)
                 eval (show_command[0])(self, to_user, to_user)
             else:
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("I can not show output of this command to user"), channel )
-                else:
-                    self.send_message_to_channel( ("I can not show output of this command to user"), user )
+                self.send_reply( ("I can not show output of this command to user"), user, channel )
         else:
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("Syntax error"), channel )
-            else:
-                self.send_message_to_channel( ("Syntax error"), user )
+            self.send_reply( ("Syntax error"), user, channel )
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+        self.send_reply( ("Error, wrong request"), user, channel )
     
 def mapinfo(self, user, channel):
     command = (self.command)
@@ -1943,10 +1902,7 @@ def mapinfo(self, user, channel):
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     if ( len(command) == 1 ):
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Part of map's name required!"), channel )
-        else:
-            self.send_message_to_channel( ("Part of map's name required!"), user )
+        self.send_reply( ("Part of map's name required!"), user, channel )
     else:
         if ( command[1] == '--random' ):
             if ( len(command) == 2 ):
@@ -1962,25 +1918,17 @@ def mapinfo(self, user, channel):
                     description = ''
                 else:
                     description = " - Description: "+row[2]
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("Map name: "+row[1]+" - Mod: "+row[0]+description+" - Author: "+row[3]+" - Max Players: "+str(row[6])+" - Type: "+row[4]+" - Titleset: "+row[5]), channel )
-                else:
-                    self.send_message_to_channel( ("Map name: "+row[1]+" - Mod: "+row[0]+description+" - Author: "+row[3]+" - Max Players: "+str(row[6])+" - Type: "+row[4]+" - Titleset: "+row[5]), user )
+                self.send_reply( ("Map name: "+row[1]+" - Mod: "+row[0]+description+" - Author: "+row[3]+" - Max Players: "+str(row[6])+" - Type: "+row[4]+" - Titleset: "+row[5]), user, channel )
             else:
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("Error, wrong request"), channel )
-                else:
-                    self.send_message_to_channel( ("Error, wrong request"), user )
+                self.send_reply( ("Error, wrong request"), user, channel )
         else:
             mods = ['ra','cnc','yf']
-            if ( command[1].split('=')[0] == '--mod' ):
-                if ( command[1].split('=')[1] != '' ):
-                    mod = command[1].split('=')[1]
+            cond = command[1].split('=')
+            if ( cond[0] == '--mod' ):
+                if ( cond[1] != '' ):
+                    mod = cond[1]
                     if ( mod not in mods ):
-                        if re.search("^#", channel):
-                            self.send_message_to_channel( ("I don't know such a mod!"), channel )
-                        else:
-                            self.send_message_to_channel( ("I don't know such a mod!"), user )
+                        self.send_reply( ("I don't know such a mod!"), user, channel )
                         cur.close()
                         return
                     else:
@@ -1998,10 +1946,7 @@ def mapinfo(self, user, channel):
             for row in cur:
                 data.append(row)
             if ( len(data) == 0 ):
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("Map is not found!"), channel )
-                else:
-                    self.send_message_to_channel( ("Map is not found!"), user )
+                self.send_reply( ("Map is not found!"), user, channel )
                 cur.close()
                 return
             elif ( len(data) == 1 ):
@@ -2009,15 +1954,9 @@ def mapinfo(self, user, channel):
                     description = ''
                 else:
                     description = " - Description: "+row[2]
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("Map name: "+row[1]+" - Mod: "+row[0]+description+" - Author: "+row[3]+" - Max Players: "+str(row[6])+" - Type: "+row[4]+" - Titleset: "+row[5]), channel )
-                else:
-                    self.send_message_to_channel( ("Map name: "+row[1]+" - Mod: "+row[0]+description+" - Author: "+row[3]+" - Max Players: "+str(row[6])+" - Type: "+row[4]+" - Titleset: "+row[5]), user )
+                self.send_reply( ("Map name: "+row[1]+" - Mod: "+row[0]+description+" - Author: "+row[3]+" - Max Players: "+str(row[6])+" - Type: "+row[4]+" - Titleset: "+row[5]), user, channel )
             else:
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("Too many matches!"), channel )
-                else:
-                    self.send_message_to_channel( ("Too many matches!"), user )
+                self.send_reply( ("Too many matches!"), user, channel )
                 cur.close()
                 return
     cur.close()
