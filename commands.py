@@ -905,10 +905,7 @@ def weather(self, user, channel):
                     city = data.get("forecast_information").get("city")
                     current = data.get("current_conditions")
                     message = "Current weather for "+city+" | Temperature: "+current.get("temp_c")+"°C; "+current.get("humidity")+"; Conditions: "+current.get("condition")+"; "+current.get("wind_condition")
-                    if re.search("^#", channel):
-                        self.send_message_to_channel( (message), channel )
-                    else:
-                        self.send_message_to_channel( (message), user )
+                    self.send_reply( (message), user, channel )
                 except:
                     message = "Error: No such location could be found."
                     str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
@@ -965,7 +962,7 @@ def weather(self, user, channel):
                 except:
                     message = "Error: No such location could be found."
                     str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())   
+                    self.irc_sock.send (str_buff.encode())
         else:
             try:
                 location = command[1]
@@ -973,10 +970,7 @@ def weather(self, user, channel):
                 city = data.get("forecast_information").get("city")
                 current = data.get("current_conditions")
                 message = "Current weather for "+city+" | Temperature: "+current.get("temp_c")+"°C; "+current.get("humidity")+"; Conditions: "+current.get("condition")+"; "+current.get("wind_condition")
-                if re.search("^#", channel):
-                    self.send_message_to_channel( (message), channel )
-                else:
-                    self.send_message_to_channel( (message), user )
+                self.send_reply( (message), user, channel )
             except:
                 message = "Error: No such location could be found."
                 str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
@@ -1220,7 +1214,7 @@ def notify(self, user, channel):
                         str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
                         self.irc_sock.send (str_buff.encode())
                         cur.close()
-                        return                  
+                        return
                 else:
                     sql = """DELETE FROM notify
                             WHERE user = '"""+user+"""'
@@ -1944,15 +1938,9 @@ def mapinfo(self, user, channel):
                     description = ''
                 else:
                     description = " - Description: "+row[2]
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("Map name: "+row[1]+" - Mod: "+row[0]+description+" - Author: "+row[3]+" - Max Players: "+str(row[6])+" - Type: "+row[4]+" - Titleset: "+row[5]), channel )
-                else:
-                    self.send_message_to_channel( ("Map name: "+row[1]+" - Mod: "+row[0]+description+" - Author: "+row[3]+" - Max Players: "+str(row[6])+" - Type: "+row[4]+" - Titleset: "+row[5]), user )
+                self.send_reply( ("Map name: "+row[1]+" - Mod: "+row[0]+description+" - Author: "+row[3]+" - Max Players: "+str(row[6])+" - Type: "+row[4]+" - Titleset: "+row[5]), user, channel )
             else:
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("Error, wrong request"), channel )
-                else:
-                    self.send_message_to_channel( ("Error, wrong request"), user )
+                self.send_reply( ("Error, wrong request"), user, channel )
         else:
             mods = ['ra','cnc','yf']
             cond = command[1].split('=')
@@ -1960,10 +1948,7 @@ def mapinfo(self, user, channel):
                 if ( cond[1] != '' ):
                     mod = cond[1]
                     if ( mod not in mods ):
-                        if re.search("^#", channel):
-                            self.send_message_to_channel( ("I don't know such a mod!"), channel )
-                        else:
-                            self.send_message_to_channel( ("I don't know such a mod!"), user )
+                        self.send_reply( ("I don't know such a mod!"), user, channel )
                         cur.close()
                         return
                     else:
@@ -1981,10 +1966,7 @@ def mapinfo(self, user, channel):
             for row in cur:
                 data.append(row)
             if ( len(data) == 0 ):
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("Map is not found!"), channel )
-                else:
-                    self.send_message_to_channel( ("Map is not found!"), user )
+                self.send_reply( ("Map is not found!"), user, channel )
                 cur.close()
                 return
             elif ( len(data) == 1 ):
@@ -1992,15 +1974,9 @@ def mapinfo(self, user, channel):
                     description = ''
                 else:
                     description = " - Description: "+row[2]
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("Map name: "+row[1]+" - Mod: "+row[0]+description+" - Author: "+row[3]+" - Max Players: "+str(row[6])+" - Type: "+row[4]+" - Titleset: "+row[5]), channel )
-                else:
-                    self.send_message_to_channel( ("Map name: "+row[1]+" - Mod: "+row[0]+description+" - Author: "+row[3]+" - Max Players: "+str(row[6])+" - Type: "+row[4]+" - Titleset: "+row[5]), user )
+                self.send_reply( ("Map name: "+row[1]+" - Mod: "+row[0]+description+" - Author: "+row[3]+" - Max Players: "+str(row[6])+" - Type: "+row[4]+" - Titleset: "+row[5]), user, channel )
             else:
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("Too many matches!"), channel )
-                else:
-                    self.send_message_to_channel( ("Too many matches!"), user )
+                self.send_reply( ("Too many matches!"), user, channel )
                 cur.close()
                 return
     cur.close()
