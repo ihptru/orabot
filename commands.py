@@ -877,18 +877,19 @@ def adduser(self, user, channel):
     cur.close()
 
 def weather(self, user, channel):
+    def weather_usage():
+        message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
+        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+        self.irc_sock.send( str_buff.encode() )
+
     command = (self.command)
     command = command.split()
     if ( len(command) == 1 ):
-        message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
-        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-        self.irc_sock.send (str_buff.encode())
+        weather_usage()
     elif ( len(command) > 1 ):
         if ( command[1] == "--current" ):
             if ( len(command) == 2 ):
-                message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
-                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                self.irc_sock.send (str_buff.encode())
+                weather_usage();
             else:
                 try:
                     location = command[2]
@@ -903,9 +904,7 @@ def weather(self, user, channel):
                     self.irc_sock.send (str_buff.encode())
         elif (command[1] == "--forecast" ):
             if ( len(command) == 2 ):
-                message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
-                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                self.irc_sock.send (str_buff.encode())
+                weather_usage()
             else:
                 try:
                     location = command[2]
@@ -929,9 +928,7 @@ def weather(self, user, channel):
                     self.irc_sock.send (str_buff.encode())
         elif (command[1] == "--all" ):
             if ( len(command) == 2 ):
-                message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
-                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                self.irc_sock.send (str_buff.encode())
+                weather_usage()
             else:
                 try:
                     location = command[2]
@@ -1255,6 +1252,9 @@ def unnotify(self, user, channel):
         self.irc_sock.send (str_buff.encode())
     cur.close()
 
+def players_for_mode(mode):
+    return sum( map( int, mode.split('v') ) )
+
 def add(self, user, channel):
     command = (self.command)
     command = command.split()
@@ -1274,16 +1274,9 @@ def add(self, user, channel):
                     else:
                         self.send_message_to_channel( ("What is '"+command[2]+"'? Try again"), channel )
                         return
-                if ( command[1] == '1v1' ):
-                    amount_players_required = 2
-                elif ( command[1] == '2v2' ):
-                    amount_players_required = 4
-                elif ( command[1] == '3v3' ):
-                    amount_players_required = 6
-                elif ( command[1] == '4v4' ):
-                    amount_players_required = 8
-                elif ( command[1] == '5v5' ):
-                    amount_players_required = 10
+
+                amount_players_required = players_for_mode(command[1])
+
                 #check complaints
                 sql = """SELECT name,complaints FROM pickup_stats
                         WHERE name = '"""+user+"'"+"""
@@ -1741,16 +1734,7 @@ def who(self, user, channel):
             temp_mode = ''
             names = []
             for temp_mode in modes:
-                if ( temp_mode == '1v1' ):
-                    amount_players_required = 2
-                elif ( temp_mode == '2v2' ):
-                    amount_players_required = 4
-                elif ( temp_mode == '3v3' ):
-                    amount_players_required = 6
-                elif ( temp_mode == '4v4' ):
-                    amount_players_required = 8
-                elif ( temp_mode == '5v5' ):
-                    amount_players_required = 10
+                amount_players_required = players_for_mode( temp_mode )
                 sql = """SELECT name,host FROM pickup_"""+temp_mode+"""
                 """
                 cur.execute(sql)
@@ -1775,16 +1759,7 @@ def who(self, user, channel):
         else:
             if command[1] in modes:
                 mode = command[1]
-                if ( mode == '1v1' ):
-                    amount_players_required = 2
-                elif ( mode == '2v2' ):
-                    amount_players_required = 4
-                elif ( mode == '3v3' ):
-                    amount_players_required = 6
-                elif ( mode == '4v4' ):
-                    amount_players_required = 8
-                elif ( mode == '5v5' ):
-                    amount_players_required = 10
+                amount_players_required = players_for_mode( mode )
                 sql = """SELECT name,host FROM pickup_"""+mode+"""
                 """
                 cur.execute(sql)
@@ -1821,16 +1796,7 @@ def promote(self, user, channel):
         modes = ['1v1','2v2','3v3','4v4','5v5']
         mode = command[1]
         if mode in modes:
-            if ( mode == '1v1' ):
-                amount_players_required = 2
-            elif ( mode == '2v2' ):
-                amount_players_required = 4
-            elif ( mode == '3v3' ):
-                amount_players_required = 6
-            elif ( mode == '4v4' ):
-                amount_players_required = 8
-            elif ( mode == '5v5' ):
-                amount_players_required = 10
+            amount_players_required = players_for_mode( mode )
             sql = """SELECT name FROM pickup_"""+mode+"""
             """
             cur.execute(sql)
