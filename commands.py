@@ -877,18 +877,19 @@ def adduser(self, user, channel):
     cur.close()
 
 def weather(self, user, channel):
+    def weather_usage():
+        message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
+        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+        self.irc_sock.send( str_buff.encode() )
+
     command = (self.command)
     command = command.split()
     if ( len(command) == 1 ):
-        message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
-        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-        self.irc_sock.send (str_buff.encode())
+        weather_usage()
     elif ( len(command) > 1 ):
         if ( command[1] == "--current" ):
             if ( len(command) == 2 ):
-                message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
-                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                self.irc_sock.send (str_buff.encode())
+                weather_usage();
             else:
                 try:
                     location = command[2]
@@ -903,9 +904,7 @@ def weather(self, user, channel):
                     self.irc_sock.send (str_buff.encode())
         elif (command[1] == "--forecast" ):
             if ( len(command) == 2 ):
-                message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
-                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                self.irc_sock.send (str_buff.encode())
+                weather_usage()
             else:
                 try:
                     location = command[2]
@@ -929,9 +928,7 @@ def weather(self, user, channel):
                     self.irc_sock.send (str_buff.encode())
         elif (command[1] == "--all" ):
             if ( len(command) == 2 ):
-                message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
-                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                self.irc_sock.send (str_buff.encode())
+                weather_usage()
             else:
                 try:
                     location = command[2]
