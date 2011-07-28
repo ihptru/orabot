@@ -21,36 +21,44 @@ from datetime import date
 
 def start(self):
     notify_ip_list = []
-    #bugreport_var = 0
+    bugreport_var = 0
     while True:
         time.sleep(3)
-        #bugreport_var = bugreport_var + 1
+        bugreport_var = bugreport_var + 1
         ### bugreport part:
-        #if ( bugreport_var == 2400 ):   #~2 hours
-            #bugreport_var = 0
-            #url = 'http://bugs.open-ra.org/projects/openra/issues?set_filter=1&tracker_id=1'
-            #stream = urllib.request.urlopen(url).read()
-            #bug_report = str(stream).split('<td class="tracker">')[1].split('</a>')[0].split('>')[-1].rstrip()
-            #filename = 'bug_report.txt'
-            #line = ''
-            #try:
-                #file = open(filename, 'r')
-                #line = file.readline()
-                #file.close()
-            #except:
-                #pass
-            #if ( bug_report != line.rstrip() ):
-                #filename = 'bug_report.txt'
-                #file = open(filename, 'w')
-                #file.write(bug_report)
-                #file.close()
-                #message = "New Bug Report (http://bugs.open-ra.org): "+bug_report
-                #self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('#openra', message)).encode())
+        if ( bugreport_var == 2400 ):   #~2 hours
+            bugreport_var = 0
+            def bugreport(self):
+                url = 'http://bugs.open-ra.org/projects/openra/issues?set_filter=1&tracker_id=1'
+                try:
+                    stream = urllib.request.urlopen(url).read()
+                except:
+                    return
+                bug_report = str(stream).split('<td class="tracker">')[1].split('</a>')[0].split('>')[-1].rstrip()
+                filename = 'bug_report.txt'
+                line = ''
+                try:
+                    file = open(filename, 'r')
+                    line = file.readline()
+                    file.close()
+                except:
+                    pass
+                if ( bug_report != line.rstrip() ):
+                    filename = 'bug_report.txt'
+                    file = open(filename, 'w')
+                    file.write(bug_report)
+                    file.close()
+                    message = "New Bug Report (http://bugs.open-ra.org): "+bug_report
+                    self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('#openra', message)).encode())
+            self.bugreport()
         ### new game notifications part
         ip_current_games = []
         timeouts = ['s','m','h','d']
         url = 'http://master.open-ra.org/list.php'
-        stream = urllib.request.urlopen(url).read()
+        try:
+            stream = urllib.request.urlopen(url).read()
+        except:
+            continue
         if ( stream != b'' ):
             split_games = str(stream).split('\\nGame')
             length_games = len(split_games)
