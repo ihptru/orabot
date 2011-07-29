@@ -23,18 +23,20 @@ def start(self):
     notify_ip_list = []
     bugreport_var = 0
     while True:
-        time.sleep(3)
+        time.sleep(5)
         bugreport_var = bugreport_var + 1
         ### bugreport part:
-        if ( bugreport_var == 2400 ):   #~2 hours
+        if ( bugreport_var == 120 ):   #~10 minutes (600*10/time.sleep(5))
             bugreport_var = 0
             def bugreport(self):
-                url = 'http://bugs.open-ra.org/projects/openra/issues?set_filter=1&tracker_id=1'
+                url = 'http://bugs.open-ra.org/projects/openra/issues.atom'
                 try:
                     stream = urllib.request.urlopen(url).read()
                 except:
                     return
-                bug_report = str(stream).split('<td class="tracker">')[1].split('</a>')[0].split('>')[-1].rstrip()
+                bug_report_title = str(stream).split('<entry>')[1].split('<title>')[1].split('</title>')[0]
+                bug_report_issue = str(stream).split('<entry>')[1].split('<link href="')[1].split('" rel=')[0].split('/')[-1]
+                bug_report_url = 'http://bugs.open-ra.org/issues/'+bug_report_issue
                 filename = 'bug_report.txt'
                 line = ''
                 try:
@@ -43,14 +45,14 @@ def start(self):
                     file.close()
                 except:
                     pass
-                if ( bug_report != line.rstrip() ):
+                if ( bug_report_title != line.rstrip() ):
                     filename = 'bug_report.txt'
                     file = open(filename, 'w')
-                    file.write(bug_report)
+                    file.write(bug_report_title)
                     file.close()
-                    message = "New Bug Report (http://bugs.open-ra.org): "+bug_report
+                    message = "New Bug Report: "+bug_report_title+" | "+bug_report_url
                     self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('#openra', message)).encode())
-            self.bugreport()
+            bugreport(self)
         ### new game notifications part
         ip_current_games = []
         timeouts = ['s','m','h','d']
