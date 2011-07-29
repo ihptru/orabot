@@ -159,10 +159,11 @@ class IRC_Server:
                 
                 print ( irc_user_nick + ": " + irc_user_message)
                 # "]" Indicated a command
-                if ( str(irc_user_message[0]) == "]" ):
-                    self.command = str(irc_user_message[1:])
-                    # (str(recv)).split()[2] ) is simply the channel the command was heard on.
-                    self.process_command(irc_user_nick, ( (str(recv)).split()[2] ))
+                if ( str(irc_user_message) != '' ):
+                    if ( str(irc_user_message[0]) == "]" ):
+                        self.command = str(irc_user_message[1:])
+                        # (str(recv)).split()[2] ) is simply the channel the command was heard on.
+                        self.process_command(irc_user_nick, ( (str(recv)).split()[2] ))
 ### when message cotains link, show title
                 if re.search('.*http.*://.*', str(irc_user_message)):
                     link = str(irc_user_message).split('://')[1].split()[0]
