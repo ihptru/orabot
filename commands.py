@@ -13,7 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
+import sys
+import pygeoip
 import re
 from datetime import date
 import sqlite3
@@ -41,18 +42,13 @@ def games(self, user, channel):
     cur=conn.cursor()
     if ( len(command) == 1 ):
         try:
-            os.system("wget http://master.open-ra.org/list.php > /dev/null 2>&1")
-            filename = "list.php"
-            file = open(filename, 'r')
-            lines = file.readlines()    #got a list
-            file.close()
-            os.system("rm list.php")
+            url = 'http://master.open-ra.org/list.php'
+            stream = urllib.request.urlopen(url).read()
+            stream = stream.decode('utf-8')
+            lines = stream.split('\n\t')   #got a list
             length = len(lines)
             if ( length == 1 ):
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("No games found"), channel )
-                else:
-                    self.send_message_to_channel( ("No games found"), user )
+                self.send_reply( ("No games found"), user, channel )
             else:
                 length = length / 9
                 a1=2    #name
@@ -69,21 +65,11 @@ def games(self, user, channel):
                         state = '(W)'
                         ### for location
                         ip=lines[loc].split(':')[1].lstrip()    # ip address
-                        os.system("whois "+ip+" > whois_info")
-                        filename = 'whois_info'
-                        file = open(filename,'r')
-                        who = file.readlines()
-                        file.close()
-                        a =  str(who).split()
-                        try:
-                            index = a.index('\'country:')
-                            index = int(index) + 1
-                            code = a[index]
-                            code = code[:-4].upper()    #got country code
-                            code_index = codes.index(code)
-                            country = match_codes[code_index]   #got country name
-                        except:
-                            country = 'USA' #whois does not show coutry code for most USA IPs and some Canadians (did not find a way to determine where USA and where Canada is)
+                        gi = pygeoip.GeoIP('../GeoIP.dat')
+                        code = gi.country_code_by_addr(ip)  #got country code
+                        code_index = codes.index(code)
+                        country = match_codes[code_index]   #got country name
+                        
                         sname = lines[a1].encode('utf-8').decode('utf-8')
                         sname = str(sname)
                         if ( len(sname) == 0 ):
@@ -107,10 +93,7 @@ def games(self, user, channel):
                         modinfo = lines[a4].strip().split(' ')[1].split('@')
 
                         games = '@ '+sname.strip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].strip()+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
-                        if re.search("^#", channel):
-                            self.send_message_to_channel( (games), channel )
-                        else:
-                            self.send_message_to_channel( (games), user )
+                        self.send_reply( (games), user, channel )
                     a1=a1+9 
                     loc=loc+9
                     a2=a2+9
@@ -118,30 +101,22 @@ def games(self, user, channel):
                     m=m+9
                     a4=a4+9
                 if ( count == "0" ):    #appeared no games in State: 1
-                    if re.search("^#", channel):
-                        self.send_message_to_channel( ("No games waiting for players found"), channel )
-                    else:
-                        self.send_message_to_channel( ("No games waiting for players found"), user )
+                    self.send_reply( ("No games waiting for players found"), user, channel )
         except:
-            exc = "]games crashed; Request: "+str(command)+"\n"
-            filename = 'except_log.txt'
+            exc = "Crash; Request: "+str(command)+" | "+str(sys.exc_info())+"\n"
+            filename = 'except.log'
             file = open(filename, 'a')
             file.write(exc)
             file.close()            
     elif ( len(command) == 2 ):   # ]games with args
         try:
-            os.system("wget http://master.open-ra.org/list.php > /dev/null 2>&1")
-            filename = 'list.php'
-            file = open(filename, 'r')
-            lines = file.readlines()
-            file.close()
-            os.system("rm list.php")
+            url = 'http://master.open-ra.org/list.php'
+            stream = urllib.request.urlopen(url).read()
+            stream = stream.decode('utf-8')
+            lines = str(stream).split('\n\t')   #got a list
             length = len(lines)
             if ( length == 1 ):
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("No games found"), channel)
-                else:
-                    self.send_message_to_channel( ("No games found"), user)
+                self.send_reply( ("No games found"), user, channel )
             else:   # there are one or more games
                 if ( command[1] == "-w" ):   #request games in State = 1
                     length = length / 9 # number of games
@@ -158,21 +133,11 @@ def games(self, user, channel):
                             state = '(W)'
                             ### for location
                             ip=lines[loc].split(':')[1].lstrip()    # ip address
-                            os.system("whois "+ip+" > whois_info")
-                            filename = 'whois_info'
-                            file = open(filename,'r')
-                            who = file.readlines()
-                            file.close()
-                            a =  str(who).split()
-                            try:
-                                index = a.index('\'country:')
-                                index = int(index) + 1
-                                code = a[index]
-                                code = code[:-4].upper()    #got country code
-                                code_index = codes.index(code)
-                                country = match_codes[code_index]
-                            except:
-                                country = 'USA'
+                            gi = pygeoip.GeoIP('../GeoIP.dat')
+                            code = gi.country_code_by_addr(ip)  #got country code
+                            code_index = codes.index(code)
+                            country = match_codes[code_index]
+                            
                             sname = lines[a1].encode('utf-8').decode('utf-8')
                             sname = str(sname)
                             if ( len(sname) == 0 ):
@@ -193,10 +158,7 @@ def games(self, user, channel):
                                 map_name = 'unknown'
                                 max_players = ''
                             games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
-                            if re.search("^#", channel):
-                                self.send_message_to_channel( (games), channel )
-                            else:
-                                self.send_message_to_channel( (games), user )
+                            self.send_reply( (games), user, channel )
                         a1=a1+9
                         loc=loc+9
                         a2=a2+9
@@ -204,10 +166,7 @@ def games(self, user, channel):
                         m=m+9
                         a4=a4+9
                     if ( count == "0" ):
-                        if re.search("^#", channel):
-                            self.send_message_to_channel( ("No games waiting for players found"), channel )
-                        else:
-                            self.send_message_to_channel( ("No games waiting for players found"), user )           
+                        self.send_reply( ("No games waiting for players found"), user, channel )
                 elif ( command[1] == "-p" ):     # request games in State = 2
                     length = length / 9 # number of games
                     a1=2    #name
@@ -223,21 +182,11 @@ def games(self, user, channel):
                             state = '(P)'
                             ### for location
                             ip=lines[loc].split(':')[1].lstrip()    # ip address
-                            os.system("whois "+ip+" > whois_info")
-                            filename = 'whois_info'
-                            file = open(filename,'r')
-                            who = file.readlines()
-                            file.close()
-                            a =  str(who).split()
-                            try:
-                                index = a.index('\'country:')
-                                index = int(index) + 1
-                                code = a[index]
-                                code = code[:-4].upper()    #got country code
-                                code_index = codes.index(code)
-                                country = match_codes[code_index]
-                            except:
-                                country = 'USA'
+                            gi = pygeoip.GeoIP('../GeoIP.dat')
+                            code = gi.country_code_by_addr(ip)  #got country code
+                            code_index = codes.index(code)
+                            country = match_codes[code_index]
+                            
                             sname = lines[a1].encode('utf-8').decode('utf-8')
                             sname = str(sname)
                             if ( len(sname) == 0 ):
@@ -258,10 +207,7 @@ def games(self, user, channel):
                                 map_name = 'unknown'
                                 max_players = ''
                             games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
-                            if re.search("^#", channel):
-                                self.send_message_to_channel( (games), channel )
-                            else:
-                                self.send_message_to_channel( (games), user )
+                            self.send_reply( (games), user, channel )
                         a1=a1+9
                         loc=loc+9
                         a2=a2+9
@@ -269,10 +215,7 @@ def games(self, user, channel):
                         m=m+9
                         a4=a4+9
                     if ( count == "0" ):    #appeared no games in State: 2
-                        if re.search("^#", channel):
-                            self.send_message_to_channel( ("No started games found"), channel )
-                        else:
-                            self.send_message_to_channel( ("No started games found"), user )
+                        self.send_reply( ("No started games found"), user, channel )
                 elif ( command[1] == "--all" ): # request games in both states
                     length = length / 9 # number of games
                     a1=2    #name
@@ -288,21 +231,11 @@ def games(self, user, channel):
                             state = '(P)'
                         ### for location
                         ip=lines[loc].split(':')[1].lstrip()    # ip address
-                        os.system("whois "+ip+" > whois_info")
-                        filename = 'whois_info'
-                        file = open(filename,'r')
-                        who = file.readlines()
-                        file.close()
-                        a =  str(who).split()
-                        try:
-                            index = a.index('\'country:')
-                            index = int(index) + 1
-                            code = a[index]
-                            code = code[:-4].upper()    #got country code
-                            code_index = codes.index(code)
-                            country = match_codes[code_index]
-                        except:
-                            country = 'USA'
+                        gi = pygeoip.GeoIP('../GeoIP.dat')
+                        code = gi.country_code_by_addr(ip)  #got country code
+                        code_index = codes.index(code)
+                        country = match_codes[code_index]
+                        
                         sname = lines[a1].encode('utf-8').decode('utf-8')
                         sname = str(sname)
                         if ( len(sname) == 0 ):
@@ -323,10 +256,7 @@ def games(self, user, channel):
                             map_name = 'unknown'
                             max_players = ''
                         games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
-                        if re.search("^#", channel):
-                            self.send_message_to_channel( (games), channel )
-                        else:
-                            self.send_message_to_channel( (games), user )
+                        self.send_reply( (games), user, channel )
                         a1=a1+9
                         loc=loc+9
                         a2=a2+9
@@ -360,21 +290,11 @@ def games(self, user, channel):
                                     state = '(P)'
                                 ### for location
                                 ip=lines[loc].split(':')[1].lstrip()    # ip address
-                                os.system("whois "+ip+" > whois_info")
-                                filename = 'whois_info'
-                                file = open(filename,'r')
-                                who = file.readlines()
-                                file.close()
-                                a =  str(who).split()
-                                try:
-                                    index = a.index('\'country:')
-                                    index = int(index) + 1
-                                    code = a[index]
-                                    code = code[:-4].upper()    #got country code
-                                    code_index = codes.index(code)
-                                    country = match_codes[code_index]
-                                except:
-                                    country = 'USA'
+                                gi = pygeoip.GeoIP('../GeoIP.dat')
+                                code = gi.country_code_by_addr(ip)  #got country code
+                                code_index = codes.index(code)
+                                country = match_codes[code_index]
+                                
                                 sname = lines[a1].encode('utf-8').decode('utf-8')
                                 sname = str(sname)
                                 if ( len(sname) == 0 ):
@@ -395,10 +315,7 @@ def games(self, user, channel):
                                     map_name = 'unknown'
                                     max_players = ''
                                 games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
-                                if re.search("^#", channel):
-                                    self.send_message_to_channel( (games), channel)
-                                else:
-                                    self.send_message_to_channel( (games), user)
+                                self.send_reply( (games), user, channel )
                             a1=a1+9
                             loc=loc+9
                             a2=a2+9
@@ -406,21 +323,15 @@ def games(self, user, channel):
                             m=m+9
                             a4=a4+9
                     if ( count == "0" ):    #appeared no matches
-                        if re.search("^#", channel):
-                            self.send_message_to_channel( ("No matches"), channel )
-                        else:
-                            self.send_message_to_channel( ("No matches"), user )
+                        self.send_reply( ("No matches"), user, channel )
         except:
-            exc = "]games crashed; Request: "+str(command)+"\n"
+            exc = "Crash; Request: "+str(command)+" | "+str(sys.exc_info())+"\n"
             filename = 'except_log.txt'
             file = open(filename, 'a')
             file.write(exc)
             file.close()
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+        self.send_reply( ("Error, wrong request"), user, channel )
     cur.close()
 
 def version(self, user, channel):
