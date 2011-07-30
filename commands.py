@@ -493,50 +493,6 @@ def randomteam(self, user, channel):
         else:
             self.send_message_to_channel( ("You must specify at least 3 teams"), user)
 
-def tr(self, user, channel):
-    command = (self.command)
-    command = command.split()
-    if ( len(command) == 1 ):
-        message = "Usage: ]tr <from language> <to language> <text to translate>   |   To get a language code, type ]lang <patter>  where <patter> is part of language name  |   For example, to translate from English to German: ]tr en de Thank you"
-        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-        self.irc_sock.send (str_buff.encode())
-    elif ( len(command) > 3 ):
-        if command[1] in languages:
-            if command[2] in languages:
-                filename = 'tr.temp'
-                length = len(command)
-                line=''
-                for i in range(length):
-                    line = line+command[i]+' '
-                line = line.lstrip().rstrip()
-                file = open(filename, 'w')
-                file.write(line)
-                file.close()
-                os.system("python ../tr.py")
-                filename = 'tr.text'
-                file = open(filename, 'r')
-                text = file.readline()
-                file.close()
-                if re.search("^#", channel):
-                    self.send_message_to_channel( (text), channel)
-                else:
-                    self.send_message_to_channel( (text), user)
-            else:
-                if re.search("^#", channel):
-                    self.send_message_to_channel( ("I don't know such a language: "+command[2]), channel )
-                else:
-                    self.send_message_to_channel( ("I don't know such a language: "+command[2]), user )
-        else:
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("I don't know such a language: "+command[1]), channel )
-            else:
-                self.send_message_to_channel( ("I don't know such a language: "+command[1]), user )
-    else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
-
 def lang(self, user, channel):
     command = (self.command)
     command = command.split()
