@@ -50,7 +50,7 @@ def start(self):
                     file = open(filename, 'w')
                     file.write(bug_report_title)
                     file.close()
-                    message = "New Bug Report: "+bug_report_title+" | "+bug_report_url
+                    message = bug_report_title+" | "+bug_report_url
                     self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('#openra', message)).encode())
             bugreport(self)
         ### new game notifications part

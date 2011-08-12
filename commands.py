@@ -24,7 +24,6 @@ import pywapi
 import urllib.request
 import time
 import math
-from math import *
 
 import pyrand
 
@@ -45,7 +44,10 @@ def games(self, user, channel):
             url = 'http://master.open-ra.org/list.php'
             stream = urllib.request.urlopen(url).read()
             stream = stream.decode('utf-8')
-            lines = stream.split('\n\t')   #got a list
+            lines = []
+            sep_games = stream.split('\nGame')
+            for i in range(int(len(sep_games))):
+                lines =  lines + sep_games[i].split('\n\t') #got a list
             length = len(lines)
             if ( length == 1 ):
                 self.send_reply( ("No games found"), user, channel )
@@ -113,7 +115,10 @@ def games(self, user, channel):
             url = 'http://master.open-ra.org/list.php'
             stream = urllib.request.urlopen(url).read()
             stream = stream.decode('utf-8')
-            lines = str(stream).split('\n\t')   #got a list
+            lines = []
+            sep_games = stream.split('\nGame')
+            for i in range(int(len(sep_games))):
+                lines =  lines + sep_games[i].split('\n\t') #got a list
             length = len(lines)
             if ( length == 1 ):
                 self.send_reply( ("No games found"), user, channel )
