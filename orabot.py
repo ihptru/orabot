@@ -23,24 +23,16 @@ import random
 import pywapi
 import urllib.request
 import imp
-import sys
-import traceback
 
 import db_process
 import notify
 import commands
 import admin_commands
-
-# root admin
-root_admin = "ihptru"
-root_admin_password = "password" #only for the successful first run, dont forget to remove it later
-
-log_channels = ['#openra','#openra-dev']
-additional_channels = ['#openra-dev']
+import config
 
 ###
 if not os.path.exists('db/openra.sqlite'):
-    db_process.start(root_admin, root_admin_password)
+    db_process.start(config.root_admin, config.root_admin_password)
 ###
 
 # Defining a class to run the server. One per connection. This class will do most of our work.
@@ -86,13 +78,14 @@ class IRC_Server:
         # Insert Alternate nick code here.
 
         # Insert Auto-Identify code here.
-
-        str_buff = ( "JOIN %s \r\n" ) % (self.irc_channel)
-        self.irc_sock.send (str_buff.encode())
-        print ("Joining channel " + str(self.irc_channel) )
-        print ("Joining additional channels")
-        for channel in additional_channels:
-            self.join_channel(channel)
+        if config.nickserv == True:
+            data = "identify "+config.nickserv_password
+            self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('NickServ', data)).encode() )
+        
+        for i in range(int(len(self.irc_channel))):
+            str_buff = ( "JOIN %s \r\n" ) % (self.irc_channel[i])
+            self.irc_sock.send (str_buff.encode())
+            print ("Joining channel " + self.irc_channel[i] )
         
         self.is_connected = True
         self.listen()
@@ -136,7 +129,7 @@ class IRC_Server:
                 ###logs
                 if re.search('^.*01ACTION', irc_user_message) and re.search('01$', irc_user_message):
                     irc_user_message_me = irc_user_message.split('01ACTION ')[1][0:-4]
-                    if chan in log_channels:
+                    if chan in config.log_channels.split(','):
                         row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' * '+irc_user_nick+' '+irc_user_message_me+'\n'
                         chan_d = chan.replace('#','')
                         filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
@@ -147,7 +140,7 @@ class IRC_Server:
                         file.write(row)
                         file.close()
                 else:
-                    if chan in log_channels:
+                    if chan in config.log_channels.split(','):
                         row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' <'+irc_user_nick+'> '+str(irc_user_message)+'\n'
                         chan_d = chan.replace('#','')
                         filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
@@ -280,7 +273,7 @@ class IRC_Server:
                         conn.commit()
                     cur.close()
                 ###logs
-                if chan in log_channels:
+                if chan in config.log_channels.split(','):
                     row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+irc_join_nick+' <'+supy_host+'> has joined '+chan+'\n'
                     chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
@@ -338,7 +331,7 @@ class IRC_Server:
                 cur.execute(sql)
                 conn.commit()
                 ##logs
-                for chan in log_channels:
+                for chan in config.log_channels.split(','):
                     row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+irc_quit_nick+' <'+supy_host+'> has quit IRC\n'
                     chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
@@ -396,7 +389,7 @@ class IRC_Server:
                 cur.execute(sql)
                 conn.commit()
                 ###logs
-                if chan in log_channels:
+                if chan in config.log_channels.split(','):
                     row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+irc_part_nick+' <'+supy_host+'> has left '+chan+'\n'
                     chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
@@ -411,7 +404,7 @@ class IRC_Server:
             if str(recv).find ( " NICK " ) != -1:
                 original_nick = str(recv).split(':')[1].split('!')[0]
                 new_nick = str(recv).split()[2].replace(':','')[0:-5]
-                for chan in log_channels:
+                for chan in config.log_channels.split(','):
                     row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+original_nick+' is now known as '+new_nick+'\n'
                     chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
@@ -426,7 +419,7 @@ class IRC_Server:
                 nick = str(recv).split(':')[1].split('!')[0]
                 topic = " ".join(str(recv).split()[3:]).replace(':','')[0:-5]
                 chan = str(recv).split()[2]
-                if chan in log_channels:
+                if chan in config.log_channels.split(','):
                     row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+nick+' changes topic to "'+topic+'"\n'
                     chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
@@ -443,7 +436,7 @@ class IRC_Server:
                 whom = str(recv).split()[3]
                 chan = str(recv).split()[2]
                 reason = " ".join(str(recv).split()[4:]).replace(':','')[0:-5]
-                if chan in log_channels:
+                if chan in config.log_channels.split(','):
                     row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+whom+' was kicked by '+by+' ('+reason+')\n'
                     chan_d = chan.replace('#','')
                     filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
@@ -496,7 +489,7 @@ class IRC_Server:
             real_seconds = '0'+seconds
         else:
             real_seconds = seconds
-        if channel in log_channels:
+        if channel in config.log_channels.split(','):
             row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' <'+self.irc_nick+'> '+str(data)+'\n'
             chan_d = str(channel).replace('#','')
             filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
@@ -514,7 +507,6 @@ class IRC_Server:
             str_buff = ( "JOIN %s \r\n" ) % (channel)
             self.irc_sock.send (str_buff.encode())
             # This needs to test if the channel is full
-            # This needs to modify the list of active channels
 
     # This function takes a channel, which must start with a #.
     def quit_channel(self,channel):
@@ -729,26 +721,26 @@ class IRC_Server:
 class BotCrashed(Exception): # Raised if the bot has crashed.
     pass
 
-def main(notify_arg):
+def main():
     # Here begins the main programs flow:
-    test = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
-    run_test = multiprocessing.Process(None,test.connect,name="IRC Server" )
-    run_test.start()
+    connect_class = IRC_Server(config.server, config.port, config.bot_nick, config.channels.split(','))
+    run_connect_class = multiprocessing.Process(None,connect_class.connect,name="IRC Server" )
+    run_connect_class.start()
     ### run notification process
-    if ( notify_arg == '1' ):
+    if ( config.notifications == True ):
         print("Run 'notifications' process...")
-        run_notify = multiprocessing.Process(None,notify.start(test))
+        run_notify = multiprocessing.Process(None,notify.start(connect_class))
         run_notify.start()
     try:
-        while(test.should_reconnect):
+        while(connect_class.should_reconnect):
             time.sleep(5)
-        run_test.join()
+        run_connect_class.join()
     except KeyboardInterrupt: # Ctrl + C pressed
         pass # We're ignoring that Exception, so the user does not see that this Exception was raised.
-    if run_test.is_alive:
-        run_test.terminate()
-        run_test.join() # Wait for terminate
-    if run_test.exitcode == 0 or run_test.exitcode < 0:
+    if run_connect_class.is_alive:
+        run_connect_class.terminate()
+        run_connect_class.join() # Wait for terminate
+    if run_connect_class.exitcode == 0 or run_connect_class.exitcode < 0:
         print("Bot exited.")
     else:
         raise BotCrashed("The bot has crashed")

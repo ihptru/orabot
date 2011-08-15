@@ -409,10 +409,7 @@ def lang(self, user, channel):
         elif ( len(lang) == 0 ):
             self.send_reply( ("No matches"), user, channel )
         else:
-            if re.search("^#", channel):
-                self.send_message_to_channel( (code[0] + "      " + lang[0]), channel)
-            else:
-                self.send_message_to_channel( (code[0] + "      " + lang[0]), user)
+            self.send_reply( (code[0] + "      " + lang[0]), user, channel )
     else:
         self.send_reply( ("Error, wrong request"), user, channel )
             
