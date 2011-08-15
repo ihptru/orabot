@@ -351,24 +351,15 @@ def version(self, user, channel):
             newer = 'playtest is newer then release'
         else:
             newer = 'release is newer then playtest'
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Latest release: "+release[0:4]+""+release[4:8]+" | Latest playtest: "+playtest[0:4]+""+playtest[4:8]+" | "+newer), channel )
-        else:
-            self.send_message_to_channel( ("Latest release: "+release[0:4]+""+release[4:8]+" | Latest playtest: "+playtest[0:4]+""+playtest[4:8]+" | "+newer), user )
+        self.send_reply( ("Latest release: "+release[0:4]+""+release[4:8]+" | Latest playtest: "+playtest[0:4]+""+playtest[4:8]+" | "+newer), user, channel )
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+        self.send_reply( ("Error, wrong request"), user, channel )
 
 def help(self, user, channel):
     command = (self.command)
     command = command.split()
     if ( len(command) == 1 ):
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Help: https://github.com/ihptru/orabot/wiki"), channel )
-        else:
-            self.send_message_to_channel( ("Help: https://github.com/ihptru/orabot/wiki"), user )
+        self.send_reply( ("Help: https://github.com/ihptru/orabot/wiki"), user, channel )
     else:
         if ( command[1] == 'calc' ):
             if ( len(command) == 3 ):
@@ -388,15 +379,9 @@ def hi(self, user, channel):
     command = (self.command)
     command = command.split()
     if ( len(command) == 1 ):
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Yo " + user + "! Whats up?"), channel )
-        else:
-            self.send_message_to_channel( ("Yo " + user + "! Whats up?"), user)
+        self.send_reply( ("Yo " + user + "! Whats up?"), user, channel )
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Yo " + user + "! Whats up? And wth is '"+" ".join(command[1:])+"'"), channel )
-        else:
-            self.send_message_to_channel( ("Yo " + user + "! Whats up? And wth is '"+" ".join(command[1:])+"'"), user )
+        self.send_reply( ("Yo " + user + "! Whats up? And wth is '"+" ".join(command[1:])+"'"), user, channel )
             
 def randomteam(self, user, channel):
     command = (self.command)
@@ -404,10 +389,7 @@ def randomteam(self, user, channel):
     if ( len(command) > 3 ):
         pyrand.start(self, user, channel, command[1:])
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("You must specify at least 3 teams"), channel)
-        else:
-            self.send_message_to_channel( ("You must specify at least 3 teams"), user)
+        self.send_reply( ("You must specify at least 3 teams"), user, channel )
 
 def lang(self, user, channel):
     command = (self.command)
@@ -423,25 +405,16 @@ def lang(self, user, channel):
                 lang.append(real_langs[i])
                 code.append(languages[i])
         if ( len(lang) > 1 ):
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("Too many matches, be more specific"), channel)
-            else:
-                self.send_message_to_channel( ("Too many matches, be more specific"), user)
+            self.send_reply( ("Too many matches, be more specific"), user, channel )
         elif ( len(lang) == 0 ):
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("No matches"), channel)
-            else:
-                self.send_message_to_channel( ("No matches"), user)
+            self.send_reply( ("No matches"), user, channel )
         else:
             if re.search("^#", channel):
                 self.send_message_to_channel( (code[0] + "      " + lang[0]), channel)
             else:
                 self.send_message_to_channel( (code[0] + "      " + lang[0]), user)
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+        self.send_reply( ("Error, wrong request"), user, channel )
             
 def later(self, user, channel):
     command = (self.command)
@@ -506,10 +479,7 @@ def later(self, user, channel):
         else:
             self.send_message_to_channel( ("You can use ]later only on a channel"), user)
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Usage: ]later nick message"), channel )
-        else:
-            self.send_message_to_channel( ("Usage: ]later nick message"), user )
+        self.send_reply( ("Usage: ]later nick message"), user, channel )
     cur.close()
 
 def last(self, user, channel):
@@ -554,15 +524,9 @@ def last(self, user, channel):
         else:
             self.send_message_to_channel( ("You can use ]last only on a channel"), user)
     elif ( len(command) == 1 ):
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Usage: ]last nick"), channel )
-        else:
-            self.send_message_to_channel( ("Usage: ]last nick"), user )
+        self.send_reply( ("Usage: ]last nick"), user, channel )
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+        self.send_reply( ("Error, wrong request"), user, channel )
     cur.close()
 
 def register(self, user, channel):
@@ -601,15 +565,9 @@ def register(self, user, channel):
             self.send_message_to_channel( ("Error, ]register can't be used on a channel"), channel )
 
     elif ( len(command) == 1 ):
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Usage: ]register password"), channel )
-        else:
-            self.send_message_to_channel( ("Usage: ]register password"), user )
+        self.send_reply( ("Usage: ]register password"), user, channel )
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+        self.send_reply( ("Error, wrong request"), user, channel )
     cur.close()
 
 def login(self, user, channel):
@@ -650,20 +608,11 @@ def login(self, user, channel):
                         else:
                             self.send_message_to_channel( ("Password incorrect!"), user)
         else:
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("Error, ]login can't be used on a channel"), channel )
-            else:
-                self.send_message_to_channel( ("Error, ]login can't be used on a channel"), user )
+            self.send_reply( ("Error, ]login can't be used on a channel"), user, channel )
     elif ( len(command) == 1 ):
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Usage: ]login password"), channel )
-        else:
-            self.send_message_to_channel( ("Usage: ]login password"), user )
+        self.send_reply( ("Usage: ]login password"), user, channel )
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+        self.send_reply( ("Error, wrong request"), user, channel )
     cur.close()
 
 def online(self, user, channel):
@@ -686,21 +635,12 @@ def online(self, user, channel):
             actual.append(online[i][1])
         num_users_online = int(len(actual))
         if ( num_users_online == 0 ):
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("No any authenticated users online"), channel )
-            else:
-                self.send_message_to_channel( ("No any authenticated users online"), user )
+            self.send_reply( ("No any authenticated users online"), user, channel )
         else:
             usrs = ", ".join(actual)
-            if re.search("^#", channel):
-                self.send_message_to_channel( (str(num_users_online)+" authenticated users online: "+usrs), channel )
-            else:
-                self.send_message_to_channel( (str(num_users_online)+" authenticated users online: "+usrs), user )
+            self.send_reply( (str(num_users_online)+" authenticated users online: "+usrs), user, channel )
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+        self.send_reply( ("Error, wrong request"), user, channel )
     cur.close()
 
 def ifuser(self, user, channel):
@@ -1124,10 +1064,11 @@ def unnotify(self, user, channel):
         self.irc_sock.send (str_buff.encode())
     cur.close()
 
-def players_for_mode(mode):
-    return sum( map( int, mode.split('v') ) )
-
 def add(self, user, channel):
+    
+    def players_for_mode(mode):
+        return sum( map( int, mode.split('v') ) )
+        
     command = (self.command)
     command = command.split()
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database

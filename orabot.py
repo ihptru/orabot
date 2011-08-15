@@ -539,10 +539,7 @@ class IRC_Server:
         # This line makes sure an actual command was sent, not a plain "!"
         if ( len(self.command.split()) == 0):
             error = "Usage: ]command [arguments]"
-            if re.search("^#", channel):
-                self.send_message_to_channel( (error), channel)
-            else:
-                self.send_message_to_channel( (error), user)
+            self.send_reply( (error), user, channel )
             return
         # So the command isn't case sensitive
         command = (self.command)
@@ -704,10 +701,7 @@ class IRC_Server:
                         ignore_count = row[3]
                         ignore_minutes = str(ignore_count)+'0'
                         check_ignore = '1'  #lock, start ignore        
-                        if re.search("^#", channel):
-                            self.send_message_to_channel( (user+", your actions are counted as spam, I will ignore you for "+str(ignore_minutes)+" minutes"), channel )
-                        else:
-                            self.send_message_to_channel( (user+", your actions are counted as spam, I will ignore you for "+str(ignore_minutes)+" minutes"), user )
+                        self.send_reply( (user+", your actions are counted as spam, I will ignore you for "+str(ignore_minutes)+" minutes"), user, channel )
                         return
 ### END OF SPAM FILTER
 ############    COMMADS:
