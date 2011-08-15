@@ -23,6 +23,8 @@ import random
 import pywapi
 import urllib.request
 import imp
+import sys
+import traceback
 
 import db_process
 import notify
@@ -724,7 +726,6 @@ class BotCrashed(Exception): # Raised if the bot has crashed.
 
 def main(notify_arg):
     # Here begins the main programs flow:
-    test2 = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
     test = IRC_Server("irc.freenode.net", 6667, "orabot", "#openra")
     run_test = multiprocessing.Process(None,test.connect,name="IRC Server" )
     run_test.start()
@@ -745,4 +746,4 @@ def main(notify_arg):
     if run_test.exitcode == 0 or run_test.exitcode < 0:
         print("Bot exited.")
     else:
-        raise BotCrashed("The bot has crashed")
+        raise BotCrashed("Bot has crashed.")

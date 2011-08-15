@@ -77,9 +77,9 @@ while(True):
     except KeyboardInterrupt:
         break
     except orabot.BotCrashed as e:
-        print("Bot has crashed. Restarting it in 5 seconds.")
+        print("Bot has crashed. Restarting it in 30 seconds.")
         try:
-            time.sleep(5) # Wait 5 seconds, so if the bot crashes on every time, it doesn't spam the console.
+            time.sleep(30) # Wait 30 seconds, so if the bot crashes on every time, it doesn't spam the console.
             continue # Restart
         except KeyboardInterrupt: # User pressed ctrl+c
             break # Quit main loop

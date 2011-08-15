@@ -112,7 +112,4 @@ def rand(self, user, channel, players, output_name):
                 playerList=playerList+str(players2[i])+", "
             
     result = "http://lv-vl.net/randomteam/"+output_name+"   "+playerList
-    if re.search("^#", channel):
-        self.send_message_to_channel( (result), channel)
-    else:
-        self.send_message_to_channel( (result), user)
+    self.send_reply( (result), user, channel )
