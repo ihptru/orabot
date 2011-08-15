@@ -193,6 +193,17 @@ class IRC_Server:
                                 self.send_message_to_channel( ("Title: "+title), chan )
                             except:
                                 pass    #do not write title in private
+                if re.search('.*\#[0-9]*.*', str(irc_user_message)):
+                    if re.search("^#", chan):
+                        bug_or_feature_num = str(irc_user_message).split('#')[1].split()[0]
+                        url = 'http://bugs.open-ra.org/issues/'+bug_or_feature_num
+                        try:
+                            stream = urllib.request.urlopen(url).read()
+                            stream = stream.decode('utf-8')
+                            fetched = stream.split('<title>')[1].split('</title>')[0].split('OpenRA - ')[1].split(' - open-ra')[0]
+                            self.send_message_to_channel( (fetched+" | "+url), chan )
+                        except:
+                            pass
 ###
 
             if str(recv).find ( " JOIN " ) != -1:
@@ -746,4 +757,4 @@ def main(notify_arg):
     if run_test.exitcode == 0 or run_test.exitcode < 0:
         print("Bot exited.")
     else:
-        raise BotCrashed("Bot has crashed.")
+        raise BotCrashed("The bot has crashed")
