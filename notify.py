@@ -38,17 +38,17 @@ def start(self):
                 bug_report_issue = str(stream).split('<entry>')[1].split('<link href="')[1].split('" rel=')[0].split('/')[-1]
                 bug_report_url = 'http://bugs.open-ra.org/issues/'+bug_report_issue
                 filename = 'bug_report.txt'
-                line = ''
+                line = []
                 try:
                     file = open(filename, 'r')
-                    line = file.readline()
+                    line = file.readlines()
                     file.close()
                 except:
                     pass
-                if ( bug_report_title != line.rstrip() ):
+                if ( bug_report_title.split()[1]+'\n' not in line ):
                     filename = 'bug_report.txt'
-                    file = open(filename, 'w')
-                    file.write(bug_report_title)
+                    file = open(filename, 'a')
+                    file.write(bug_report_title.split()[1]+"\n")
                     file.close()
                     message = bug_report_title+" | "+bug_report_url
                     self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('#openra', message)).encode())

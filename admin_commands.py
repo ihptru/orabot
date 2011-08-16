@@ -83,10 +83,7 @@ def adduser(self, user, channel, owner, authenticated):
         for row in cur:
             pass
         if nick in row: #users exists in database already
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("Error! User already exists"), channel)
-            else:
-                self.send_message_to_channel( ("Error! User already exists"), user)
+            self.send_reply( ("Error! User already exists"), user, channel )
         else:   
             sql = """INSERT INTO users
                 (uid,user)
@@ -97,15 +94,9 @@ def adduser(self, user, channel, owner, authenticated):
             """
             cur.execute(sql)
             conn.commit()
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("Confirmed"), channel)
-            else:
-                self.send_message_to_channel( ("Confirmed"), user)
+            self.send_reply( ("Confirmed"), user, channel )
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+        self.send_reply( ("Error, wrong request"), user, channel )
     cur.close()
 
 def join(self, user, channel, owner, authenticated):
@@ -160,10 +151,7 @@ def complain(self, user, channel, owner, authenticated):
             str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
             self.irc_sock.send (str_buff.encode())
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
-        else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+        self.send_reply( ("Error, wrong request"), user, channel )
     cur.close()
 
 def register(self, user, channel, owner, authenticated):
@@ -285,16 +273,10 @@ def subscribed(self, user, channel, owner, authenticated):
         for row in cur:
             subscribed.append(row[0])
         if ( subscribed == [] ):
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("No one is subscribed for notifications"), channel )
-            else:
-                self.send_message_to_channel( ("No one is subscribed for notifications"), user )
+            self.send_reply( ("No one is subscribed for notifications"), user, channel )
         else:
             subscribed = ", ".join(subscribed)
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("Subscribed users: "+subscribed), channel )
-            else:
-                self.send_message_to_channel( ("Subscribed users: "+subscribed), user )
+            self.send_reply( ("Subscribed users: "+subscribed), user, channel )
     elif ( len(command) == 2 ):
         sql = """SELECT user FROM notify
                 WHERE user = '"""+command[1]+"""'
@@ -305,18 +287,36 @@ def subscribed(self, user, channel, owner, authenticated):
         for row in cur:
             pass
         if ( command[1] in row ):
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("Yes, "+command[1]+" is subscribed for notifications"), channel )
-            else:
-                self.send_message_to_channel( ("Yes, "+command[1]+" is subscribed for notifications"), user )
+            self.send_reply( ("Yes, "+command[1]+" is subscribed for notifications"), user, channel )
         else:
-            if re.search("^#", channel):
-                self.send_message_to_channel( ("No, "+command[1]+" is not subscribed for notifications"), channel )
-            else:
-                self.send_message_to_channel( ("No, "+command[1]+" is not subscribed for notifications"), user )
+            self.send_reply( ("No, "+command[1]+" is not subscribed for notifications"), user, channel )
     else:
-        if re.search("^#", channel):
-            self.send_message_to_channel( ("Error, wrong request"), channel )
+        self.send_reply( ("Error, wrong request"), user, channel )
+    cur.close()
+
+def unsubscribe(self, user, channel, owner, authenticated):
+    command = (self.command)
+    command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
+    if ( len(command) == 2 ):
+        sql = """SELECT user FROM notify
+                WHERE user = '"""+command[1]+"""'
+        """
+        cur.execute(sql)
+        conn.commit()
+        row = []
+        for row in cur:
+            pass
+        if command[1] in row:
+            sql = """DELETE FROM notify
+                    WHERE user = '"""+command[1]+"""'
+            """
+            cur.execute(sql)
+            conn.commit()
+            self.send_reply( ("Successfully"), user, channel )
         else:
-            self.send_message_to_channel( ("Error, wrong request"), user )
+            self.send_reply( (command[1]+" is not subscribed for notifications"), user, channel )
+    else:
+        self.send_reply( ("I take only 1 argument as user's name"), user, channel )
     cur.close()
