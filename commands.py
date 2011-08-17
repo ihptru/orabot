@@ -221,7 +221,7 @@ def games(self, user, channel):
                         a4=a4+9
                     if ( count == "0" ):    #appeared no games in State: 2
                         self.send_reply( ("No started games found"), user, channel )
-                elif ( command[1] == "--all" ): # request games in both states
+                elif ( (command[1] == "--all") or (command[1] == "-wp") ): # request games in both states
                     length = length / 9 # number of games
                     a1=2    #name
                     loc=3   #ip
@@ -1061,11 +1061,7 @@ def unnotify(self, user, channel):
         self.irc_sock.send (str_buff.encode())
     cur.close()
 
-def add(self, user, channel):
-    
-    def players_for_mode(mode):
-        return sum( map( int, mode.split('v') ) )
-        
+def add(self, user, channel):        
     command = (self.command)
     command = command.split()
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
@@ -1085,7 +1081,7 @@ def add(self, user, channel):
                         self.send_message_to_channel( ("What is '"+command[2]+"'? Try again"), channel )
                         return
 
-                amount_players_required = players_for_mode(command[1])
+                amount_players_required = self.players_for_mode(command[1])
 
                 #check complaints
                 sql = """SELECT name,complaints FROM pickup_stats
@@ -1544,7 +1540,7 @@ def who(self, user, channel):
             temp_mode = ''
             names = []
             for temp_mode in modes:
-                amount_players_required = players_for_mode( temp_mode )
+                amount_players_required = self.players_for_mode( temp_mode )
                 sql = """SELECT name,host FROM pickup_"""+temp_mode+"""
                 """
                 cur.execute(sql)
@@ -1569,7 +1565,7 @@ def who(self, user, channel):
         else:
             if command[1] in modes:
                 mode = command[1]
-                amount_players_required = players_for_mode( mode )
+                amount_players_required = self.players_for_mode( mode )
                 sql = """SELECT name,host FROM pickup_"""+mode+"""
                 """
                 cur.execute(sql)
@@ -1606,7 +1602,7 @@ def promote(self, user, channel):
         modes = ['1v1','2v2','3v3','4v4','5v5']
         mode = command[1]
         if mode in modes:
-            amount_players_required = players_for_mode( mode )
+            amount_players_required = self.players_for_mode( mode )
             sql = """SELECT name FROM pickup_"""+mode+"""
             """
             cur.execute(sql)

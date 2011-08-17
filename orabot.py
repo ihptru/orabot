@@ -171,9 +171,9 @@ class IRC_Server:
                                 site = urllib.request.urlopen(link)
                                 site = site.read()
                                 site = site.decode('utf-8')
-                                title = site.split('<title>')[1].split('</title>')[0].split('&#x202c;')[0].split('&#x202a;')[1].replace('&amp;','&').replace('&#39;', '\'').rstrip().lstrip()
+                                title = site.split('<title>')[1].split('</title>')[0].lstrip().split('- YouTube')[0].rstrip().replace('&amp;','&').replace('&#39;', '\'')
                                 if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
-                                    self.send_message_to_channel( ("Youtube: "+title), chan )
+                                    self.send_message_to_channel( ("Youtube: "+str(title)), chan )
                             except:
                                 pass    #do not write title in private
                     else:
@@ -515,6 +515,10 @@ class IRC_Server:
             self.irc_sock.send (str_buff.encode())
             # This needs to modify the list of active channels
     
+    # This function is for pickup matches code
+    def players_for_mode(self, mode):
+        return sum( map( int, mode.split('v') ) )
+
     def evalAdminCommand(self, commandname, user, channel, owner, authenticated):
         if hasattr(admin_commands, commandname): #Command exists
             imp.reload(admin_commands)
