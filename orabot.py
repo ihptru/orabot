@@ -23,6 +23,7 @@ import random
 import pywapi
 import urllib.request
 import imp
+import inspect
 
 import db_process
 import notify
@@ -520,16 +521,18 @@ class IRC_Server:
         return sum( map( int, mode.split('v') ) )
 
     def evalAdminCommand(self, commandname, user, channel, owner, authenticated):
-        if hasattr(admin_commands, commandname): #Command exists
-            imp.reload(admin_commands)
-            command_function=getattr(admin_commands, commandname)
-            command_function(self, user, channel, owner, authenticated)
+        imp.reload(admin_commands)
+        command_function=getattr(admin_commands, commandname, None)
+        if command_function != None:
+            if inspect.isfunction(command_function):
+                command_function(self, user, channel, owner, authenticated)
             
     def evalCommand(self, commandname, user, channel):
-        if hasattr(commands, commandname): #Command exists
-            imp.reload(commands)
-            command_function=getattr(commands, commandname)
-            command_function(self, user, channel)
+        imp.reload(commands)    
+        command_function=getattr(commands, commandname, None)
+        if command_function != None:
+            if inspect.isfunction(command_function):
+                command_function(self, user, channel)
             
     def process_command(self, user, channel):
         # This line makes sure an actual command was sent, not a plain "!"
