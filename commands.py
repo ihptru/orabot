@@ -91,10 +91,9 @@ def games(self, user, channel):
                         else:
                             map_name = 'unknown'
                             max_players = ''
-
-                        modinfo = lines[a4].strip().split(' ')[1].split('@')
-
+                        modinfo = " ".join(lines[a4].strip().split(' ')[1:]).split('@')
                         games = '@ '+sname.strip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].strip()+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
+                        time.sleep(0.5)
                         self.send_reply( (games), user, channel )
                     a1=a1+9 
                     loc=loc+9
@@ -162,7 +161,9 @@ def games(self, user, channel):
                             else:
                                 map_name = 'unknown'
                                 max_players = ''
-                            games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
+                            modinfo = " ".join(lines[a4].strip().split(' ')[1:]).split('@')
+                            games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
+                            time.sleep(0.5)
                             self.send_reply( (games), user, channel )
                         a1=a1+9
                         loc=loc+9
@@ -211,7 +212,9 @@ def games(self, user, channel):
                             else:
                                 map_name = 'unknown'
                                 max_players = ''
-                            games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
+                            modinfo = " ".join(lines[a4].strip().split(' ')[1:]).split('@')
+                            games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
+                            time.sleep(0.5)
                             self.send_reply( (games), user, channel )
                         a1=a1+9
                         loc=loc+9
@@ -260,7 +263,9 @@ def games(self, user, channel):
                         else:
                             map_name = 'unknown'
                             max_players = ''
-                        games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
+                        modinfo = " ".join(lines[a4].strip().split(' ')[1:]).split('@')
+                        games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
+                        time.sleep(0.5)
                         self.send_reply( (games), user, channel )
                         a1=a1+9
                         loc=loc+9
@@ -319,7 +324,9 @@ def games(self, user, channel):
                                 else:
                                     map_name = 'unknown'
                                     max_players = ''
-                                games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(lines[a4].lstrip().rstrip().split(' ')[1].split('@')[0].upper()+'@'+ lines[a4].lstrip().rstrip().split(' ')[1].split('@')[1]).ljust(20)+' - '+country
+                                modinfo = " ".join(lines[a4].strip().split(' ')[1:]).split('@')
+                                games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
+                                time.sleep(0.5)
                                 self.send_reply( (games), user, channel )
                             a1=a1+9
                             loc=loc+9

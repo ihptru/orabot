@@ -26,7 +26,7 @@ def start(self):
         time.sleep(5)
         bugreport_var = bugreport_var + 1
         ### bugreport part:
-        if ( bugreport_var == 120 ):   #~10 minutes (600*10/time.sleep(5))
+        if ( bugreport_var == 100 ):
             bugreport_var = 0
             def bugreport(self):
                 url = 'http://bugs.open-ra.org/projects/openra/issues.atom'
@@ -99,6 +99,7 @@ def start(self):
                             if ( data != [] ):
                                 length_data = len(data)
                                 for i in range(int(length_data)):
+                                    time.sleep(0.2)
                                     db_user = data[i][0]
                                     db_date = data[i][1]
                                     db_mod = data[i][2]
