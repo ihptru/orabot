@@ -373,7 +373,7 @@ def help(self, user, channel):
                 function = command[2]
                 available = vars(math).keys()
                 if ( function in available ):
-                    desc = eval(function).__doc__.replace('\n',' ')
+                    desc = eval("math."+function).__doc__.replace('\n',' ')
                     self.send_reply( (desc), user, channel )
                 else:
                     self.send_reply( ("I don't know about '"+function+"'"), user, channel )
