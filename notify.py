@@ -56,6 +56,7 @@ def start(self):
         ### new game notifications part
         ip_current_games = []
         timeouts = ['s','m','h','d']
+        flood_protection = 0
         url = 'http://master.open-ra.org/list.php'
         try:
             stream = urllib.request.urlopen(url).read()
@@ -99,7 +100,10 @@ def start(self):
                             if ( data != [] ):
                                 length_data = len(data)
                                 for i in range(int(length_data)):
-                                    time.sleep(0.2)
+                                    flood_protection = flood_protection + 1
+                                    if flood_protection == 5:
+                                        time.sleep(5)
+                                        flood_protection = 0
                                     db_user = data[i][0]
                                     db_date = data[i][1]
                                     db_mod = data[i][2]
@@ -109,9 +113,9 @@ def start(self):
                                         if ( re.search(db_version, version) or db_version.lower() == 'all' ):
                                             notify_message = "New game: "+name+" - mod: "+mod+version
                                             if ( db_timeout.lower() == 'all' ):
-                                                self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (db_user, notify_message)).encode() )
+                                                self.send_reply( (notify_message), db_user, db_user )
                                             elif ( db_timeout.lower() == 'till_quit' ):
-                                                self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (db_user, notify_message)).encode() )
+                                                self.send_reply( (notify_message), db_user, db_user )
                                             else:
                                                 date_of_adding = int(db_date.replace('-',''))
                                                 ###
@@ -150,7 +154,7 @@ def start(self):
                                                 elif ( db_timeout[-1] == 'd' ):
                                                     timeout = int(db_timeout[0:-1]+'000000')
                                                 if ( difference < timeout ):
-                                                    self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (db_user, notify_message)).encode())
+                                                    self.send_reply( (notify_message), db_user, db_user )
                                                 else:   # timeout is over
                                                     sql = """DELETE from notify
                                                             WHERE user = '"""+db_user+"""'
@@ -158,6 +162,7 @@ def start(self):
                                                     cur.execute(sql)
                                                     conn.commit()
                                                 ###
+                                flood_protection = 0
             length = len(notify_ip_list)
             indexes = []
             for i in range(int(length)):

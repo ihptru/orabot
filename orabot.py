@@ -162,8 +162,13 @@ class IRC_Server:
                         self.process_command(irc_user_nick, ( (str(recv)).split()[2] ))
 ### when message cotains link, show title
                 if re.search('.*http.*://.*', str(irc_user_message)):
+                    flood_protection = 0
                     matches = re.findall(r"http.?://[^\s]*", str(irc_user_message))
                     for http_link in matches:
+                        flood_protection = flood_protection + 1
+                        if flood_protection == 5:
+                            time.sleep(6)
+                            flood_protection = 0
                         link = http_link.split('://')[1]
                         pre = http_link.split('http')[1].split('//')[0]
                         link = 'http'+pre+'//'+link
@@ -189,10 +194,16 @@ class IRC_Server:
                                     self.send_message_to_channel( ("Title: "+title), chan )
                                 except:
                                     pass    #do not write title in private
+                    flood_protection = 0
                 if re.search('.*\#[0-9]*.*', str(irc_user_message)):
+                    flood_protection = 0
                     matches = re.findall(r"#[0-9]*", str(irc_user_message))
                     if re.search("^#", chan):
                         for bug_report in matches:
+                            flood_protection = flood_protection + 1
+                            if flood_protection == 5:
+                                time.sleep(6)
+                                flood_protection = 0
                             bug_or_feature_num = bug_report.split('#')[1]
                             url = 'http://bugs.open-ra.org/issues/'+bug_or_feature_num
                             try:
@@ -202,6 +213,7 @@ class IRC_Server:
                                 self.send_message_to_channel( (fetched+" | "+url), chan )
                             except:
                                 pass
+                        flood_protection = 0
 ###
 
             if str(recv).find ( " JOIN " ) != -1:

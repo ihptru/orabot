@@ -39,6 +39,7 @@ def games(self, user, channel):
     command = command.split()
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
     cur=conn.cursor()
+    flood_protection = 0
     if ( len(command) == 1 ):
         try:
             url = 'http://master.open-ra.org/list.php'
@@ -94,6 +95,10 @@ def games(self, user, channel):
                         modinfo = " ".join(lines[a4].strip().split(' ')[1:]).split('@')
                         games = '@ '+sname.strip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].strip()+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
                         time.sleep(0.5)
+                        flood_protection = flood_protection + 1
+                        if flood_protection == 7:
+                            time.sleep(5)
+                            flood_protection = 0
                         self.send_reply( (games), user, channel )
                     a1=a1+9 
                     loc=loc+9
@@ -101,6 +106,7 @@ def games(self, user, channel):
                     a3=a3+9
                     m=m+9
                     a4=a4+9
+                flood_protection = 0
                 if ( count == "0" ):    #appeared no games in State: 1
                     self.send_reply( ("No games waiting for players found"), user, channel )
         except:
@@ -164,6 +170,10 @@ def games(self, user, channel):
                             modinfo = " ".join(lines[a4].strip().split(' ')[1:]).split('@')
                             games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
                             time.sleep(0.5)
+                            flood_protection = flood_protection + 1
+                            if flood_protection == 7:
+                                time.sleep(5)
+                                flood_protection = 0
                             self.send_reply( (games), user, channel )
                         a1=a1+9
                         loc=loc+9
@@ -171,6 +181,7 @@ def games(self, user, channel):
                         a3=a3+9
                         m=m+9
                         a4=a4+9
+                    flood_protection = 0
                     if ( count == "0" ):
                         self.send_reply( ("No games waiting for players found"), user, channel )
                 elif ( command[1] == "-p" ):     # request games in State = 2
@@ -215,6 +226,10 @@ def games(self, user, channel):
                             modinfo = " ".join(lines[a4].strip().split(' ')[1:]).split('@')
                             games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
                             time.sleep(0.5)
+                            flood_protection = flood_protection + 1
+                            if flood_protection == 7:
+                                time.sleep(5)
+                                flood_protection = 0
                             self.send_reply( (games), user, channel )
                         a1=a1+9
                         loc=loc+9
@@ -222,6 +237,7 @@ def games(self, user, channel):
                         a3=a3+9
                         m=m+9
                         a4=a4+9
+                    flood_protection = 0
                     if ( count == "0" ):    #appeared no games in State: 2
                         self.send_reply( ("No started games found"), user, channel )
                 elif ( (command[1] == "--all") or (command[1] == "-wp") ): # request games in both states
@@ -266,6 +282,10 @@ def games(self, user, channel):
                         modinfo = " ".join(lines[a4].strip().split(' ')[1:]).split('@')
                         games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
                         time.sleep(0.5)
+                        flood_protection = flood_protection + 1
+                        if flood_protection == 7:
+                            time.sleep(5)
+                            flood_protection = 0
                         self.send_reply( (games), user, channel )
                         a1=a1+9
                         loc=loc+9
@@ -273,6 +293,7 @@ def games(self, user, channel):
                         a3=a3+9
                         m=m+9
                         a4=a4+9
+                    flood_protection = 0
                 else:   #it is pattern
                     chars=['*','.','$','^','@','{','}','+','?'] # chars to ignore
                     for i in range(int(len(chars))):
@@ -327,6 +348,10 @@ def games(self, user, channel):
                                 modinfo = " ".join(lines[a4].strip().split(' ')[1:]).split('@')
                                 games = '@ '+sname.lstrip().rstrip()[6:].lstrip().ljust(15)+' - '+state+' - '+lines[a3].lstrip().rstrip()+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
                                 time.sleep(0.5)
+                                flood_protection = flood_protection + 1
+                                if flood_protection == 7:
+                                    time.sleep(5)
+                                    flood_protection = 0
                                 self.send_reply( (games), user, channel )
                             a1=a1+9
                             loc=loc+9
@@ -334,6 +359,7 @@ def games(self, user, channel):
                             a3=a3+9
                             m=m+9
                             a4=a4+9
+                        flood_protection = 0
                     if ( count == "0" ):    #appeared no matches
                         self.send_reply( ("No matches"), user, channel )
         except:
