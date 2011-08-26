@@ -162,42 +162,46 @@ class IRC_Server:
                         self.process_command(irc_user_nick, ( (str(recv)).split()[2] ))
 ### when message cotains link, show title
                 if re.search('.*http.*://.*', str(irc_user_message)):
-                    link = str(irc_user_message).split('://')[1].split()[0]
-                    pre = str(irc_user_message).split('http')[1].split('//')[0]
-                    link = 'http'+pre+'//'+link
-                    if re.search('http.*youtube.com/watch.*', link):
-                        if re.search("^#", chan):
-                            link = link.split('&')[0]
-                            try:
-                                site = urllib.request.urlopen(link)
-                                site = site.read()
-                                site = site.decode('utf-8')
-                                title = site.split('<title>')[1].split('</title>')[0].lstrip().split('- YouTube')[0].rstrip().replace('&amp;','&').replace('&#39;', '\'')
-                                if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
-                                    self.send_message_to_channel( ("Youtube: "+str(title)), chan )
-                            except:
-                                pass    #do not write title in private
-                    else:
-                        if re.search("^#", chan):
-                            try:
-                                site = urllib.request.urlopen(link)
-                                site = site.read()
-                                site = site.decode('utf-8')
-                                title = site.split('<title>')[1].split('</title>')[0].rstrip().lstrip()
-                                self.send_message_to_channel( ("Title: "+title), chan )
-                            except:
-                                pass    #do not write title in private
+                    matches = re.findall(r"http.?://[^\s]*", str(irc_user_message))
+                    for http_link in matches:
+                        link = http_link.split('://')[1]
+                        pre = http_link.split('http')[1].split('//')[0]
+                        link = 'http'+pre+'//'+link
+                        if re.search('http.*youtube.com/watch.*', link):
+                            if re.search("^#", chan):
+                                link = link.split('&')[0]
+                                try:
+                                    site = urllib.request.urlopen(link)
+                                    site = site.read()
+                                    site = site.decode('utf-8')
+                                    title = site.split('<title>')[1].split('</title>')[0].lstrip().split('- YouTube')[0].rstrip().replace('&amp;','&').replace('&#39;', '\'')
+                                    if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
+                                        self.send_message_to_channel( ("Youtube: "+str(title)), chan )
+                                except:
+                                    pass    #do not write title in private
+                        else:
+                            if re.search("^#", chan):
+                                try:
+                                    site = urllib.request.urlopen(link)
+                                    site = site.read()
+                                    site = site.decode('utf-8')
+                                    title = site.split('<title>')[1].split('</title>')[0].rstrip().lstrip()
+                                    self.send_message_to_channel( ("Title: "+title), chan )
+                                except:
+                                    pass    #do not write title in private
                 if re.search('.*\#[0-9]*.*', str(irc_user_message)):
+                    matches = re.findall(r"#[0-9]*", str(irc_user_message))
                     if re.search("^#", chan):
-                        bug_or_feature_num = str(irc_user_message).split('#')[1].split()[0]
-                        url = 'http://bugs.open-ra.org/issues/'+bug_or_feature_num
-                        try:
-                            stream = urllib.request.urlopen(url).read()
-                            stream = stream.decode('utf-8')
-                            fetched = stream.split('<title>')[1].split('</title>')[0].split('OpenRA - ')[1].split(' - open-ra')[0]
-                            self.send_message_to_channel( (fetched+" | "+url), chan )
-                        except:
-                            pass
+                        for bug_report in matches:
+                            bug_or_feature_num = bug_report.split('#')[1]
+                            url = 'http://bugs.open-ra.org/issues/'+bug_or_feature_num
+                            try:
+                                stream = urllib.request.urlopen(url).read()
+                                stream = stream.decode('utf-8')
+                                fetched = stream.split('<title>')[1].split('</title>')[0].split('OpenRA - ')[1].split(' - open-ra')[0]
+                                self.send_message_to_channel( (fetched+" | "+url), chan )
+                            except:
+                                pass
 ###
 
             if str(recv).find ( " JOIN " ) != -1:
