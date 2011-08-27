@@ -25,6 +25,7 @@ import urllib.request
 import time
 import math
 
+import config
 import pyrand
 
 languages=['af','sq','ar','be','bg','ca','zh-CN','hr','cs','da','nl','en','et','tl','fi','fr','gl','de','el','iw','hi','hu','is','id','ga','it','ja','ko','lv','lt','mk','ml','mt','no','fa','pl','ro','ru','sr','sk','sl','es','sw','sv','th','tr','uk','vi','cy','yi']
@@ -463,7 +464,7 @@ def later(self, user, channel):
                 #recover all nicks on channel
                 recv = self.irc_sock.recv( 4096 )
 
-                if str(recv).find ( "353 orabot =" ) != -1:
+                if str(recv).find ( "353 "+config.bot_nick+" =" ) != -1:
                     user_nicks = str(recv).split(':')[2].rstrip()
                     user_nicks = user_nicks.replace('+','').replace('@','')
                     user_nicks = user_nicks.split(' ')
@@ -523,7 +524,7 @@ def last(self, user, channel):
             self.irc_sock.send (str_buff.encode())
             #recover all nicks on channel
             recv = self.irc_sock.recv( 4096 )
-            if str(recv).find ( "353 orabot =" ) != -1:
+            if str(recv).find ( "353 "+config.bot_nick+" =" ) != -1:
                 user_nicks = str(recv).split(':')[2].rstrip()
                 user_nicks = user_nicks.replace('+','').replace('@','')
                 user_nicks = user_nicks.split(' ')
