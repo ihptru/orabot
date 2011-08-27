@@ -244,15 +244,22 @@ class IRC_Server:
                     uid_users = row[0]
                     uid_users = uid_users + 1   # uid + 1
                     sql = """INSERT INTO users
-                            (uid,user)
+                            (uid,user,state)
                             VALUES
                             (
-                            """+str(uid_users)+",'"+str(irc_join_nick)+"'"+"""
+                            """+str(uid_users)+",'"+str(irc_join_nick)+"'"+""",1
                             )
                     """
                     cur.execute(sql)
                     conn.commit()
-                else:   #he can have ]later messages
+                else:   #user is in `users` table; he can have ]later messages
+                    #for ]last
+                    sql = """UPDATE users
+                            SET state = 1
+                            WHERE user = '"""+str(irc_join_nick)+"""'
+                    """
+                    cur.execute(sql)
+                    conn.commit()
                     sql = """SELECT reciever FROM later
                             WHERE reciever = '"""+irc_join_nick+"'"+"""
                     """
@@ -326,7 +333,7 @@ class IRC_Server:
                         conn.commit()
                 ### for ]last              
                 sql = """UPDATE users
-                        SET date = strftime('%Y-%m-%d-%H-%M-%S')
+                        SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
                         WHERE user = '"""+str(irc_quit_nick)+"'"+"""
                 """
                 cur.execute(sql)
@@ -384,7 +391,7 @@ class IRC_Server:
                         conn.commit()
                 ### for ]last              
                 sql = """UPDATE users
-                        SET date = strftime('%Y-%m-%d-%H-%M-%S')
+                        SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
                         WHERE user = '"""+str(irc_part_nick)+"'"+"""
                 """
                 cur.execute(sql)

@@ -113,7 +113,8 @@ def users():
     sql = """CREATE TABLE users (
         uid integer NOT NULL,
         user varchar(30) NOT NULL,
-        date date
+        date date,
+        state bool NOT NULL DEFAULT 0
         )               
     """
     cur.execute(sql)
