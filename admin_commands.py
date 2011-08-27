@@ -54,7 +54,7 @@ def log(self, user, channel, owner, authenticated):
                 actual.append(logs[i][1])
                 actual.append(logs[i][2])
                 actual.append(logs[i][3])
-                self.send_message_to_channel( ("User: "+actual[0]+"; Date: "+actual[2]+"; Command: ]"+actual[1].replace("~qq~","'")), user)
+                self.send_message_to_channel( ("User: "+actual[0]+"; Date: "+actual[2]+"; Command: ]"+actual[1]), user)
                 actual = []
                 time.sleep(0.5)
         else:
@@ -68,15 +68,6 @@ def adduser(self, user, channel, owner, authenticated):
     cur=conn.cursor()
     if ( len(command) == 2 ):
         nick = command[1]
-        sql = """SELECT * FROM users
-                ORDER BY uid DESC LIMIT 1
-        """
-        cur.execute(sql)
-        conn.commit()
-        for row in cur:
-            pass
-        uid_users=row[0]
-        uid_users = uid_users + 1
         
         sql = """SELECT * FROM users
                 WHERE user = '"""+nick+"'"+"""
@@ -90,10 +81,10 @@ def adduser(self, user, channel, owner, authenticated):
             self.send_reply( ("Error! User already exists"), user, channel )
         else:   
             sql = """INSERT INTO users
-                (uid,user)
+                (user)
                 VALUES
                 (
-                """+str(uid_users)+",'"+nick+"'"+"""
+                '"""+nick+"""'
                 )
             """
             cur.execute(sql)
@@ -178,21 +169,11 @@ def register(self, user, channel, owner, authenticated):
                 if register_nick in row:
                     self.send_message_to_channel( ("User "+register_nick+" already exists"), user)
                 else:
-                    sql = """SELECT * FROM register
-                            ORDER BY uid DESC LIMIT 1                                       
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                    row = []
-                    for row in cur:
-                        pass
-                    uid_register = row[0]
-                    uid_register = uid_register + 1
                     sql = """INSERT INTO register
-                            (uid,user)
+                            (user)
                             VALUES
                             (
-                            """+str(uid_register)+",'"+register_nick+"'"+"""
+                            '"""+register_nick+"""'
                             )
                     """
                     cur.execute(sql)

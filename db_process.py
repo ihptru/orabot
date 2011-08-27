@@ -38,11 +38,11 @@ def register(root_admin, root_admin_password):
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE register (
-    uid int NOT NULL,
-    user varchar(20) NOT NULL,
-    pass varchar(50),
-    owner boolean NOT NULL DEFAULT '0',
-    authenticated boolean NOT NULL DEFAULT '0'
+            uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
+            user varchar(20) NOT NULL,
+            pass varchar(50),
+            owner boolean NOT NULL DEFAULT '0',
+            authenticated boolean NOT NULL DEFAULT '0'
     )
     """
     cur.execute(sql)
@@ -50,10 +50,10 @@ def register(root_admin, root_admin_password):
 
     user_password = hashlib.md5(root_admin_password.encode('utf-8')).hexdigest()     
     sql = """INSERT INTO register
-            (uid,user,pass,owner)
+            (user,pass,owner)
             VALUES
             (
-            1,'"""+root_admin+"','"+str(user_password)+"'"+""",1
+            '"""+root_admin+"','"+str(user_password)+"'"+""",1
             )       
     """
     cur.execute(sql)
@@ -64,20 +64,11 @@ def black_list():
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE black_list (
-        uid integer NOT NULL,
+        uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
         user varchar(30) NOT NULL,
         date_time date NOT NULL,
         count integer NOT NULL
         )        
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """INSERT INTO black_list
-        (uid,user,date_time,count)
-        VALUES
-        (
-        1,'test',strftime('%Y-%m-%d-%H-%M'),1
-        )
     """
     cur.execute(sql)
     conn.commit()
@@ -87,7 +78,7 @@ def commands():
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE commands (
-                uid integer NOT NULL,
+                uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
                 user varchar(30) NOT NULL,
                 command varchar(300) NOT NULL,
                 date_time date NOT NULL
@@ -97,10 +88,10 @@ def commands():
     conn.commit()
     for i in range(31):
         sql = """INSERT INTO commands
-            (uid,user,command,date_time)
+            (user,command,date_time)
             VALUES
             (
-            1,'test','test_command',strftime('%Y-%m-%d-%H-%M-%S')
+            'test','test_command',strftime('%Y-%m-%d-%H-%M-%S')
             )
         """
         cur.execute(sql)
@@ -111,20 +102,11 @@ def users():
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE users (
-        uid integer NOT NULL,
+        uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
         user varchar(30) NOT NULL,
         date date,
         state bool NOT NULL DEFAULT 0
-        )               
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql= """INSERT INTO users
-            (uid,user)
-            VALUES
-            (
-            1,'test'
-            )
+        )
     """
     cur.execute(sql)
     conn.commit()
@@ -134,22 +116,13 @@ def later():
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE later (
-            uid integer NOT NULL,
+            uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
             sender varchar(30) NOT NULL,
             reciever varchar(30) NOT NULL,
             channel varchar(30) NOT NULL,
             date date NOT NULL,
             message varchar(1000) NOT NULL
-    )             
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """INSERT INTO later
-            (uid,sender,reciever,channel,date,message)
-            VALUES
-            (
-            1,'test','test','#test',strftime('%Y-%m-%d-%H-%M-%S'),'Hello, how are you?'
-            )                
+    )
     """
     cur.execute(sql)
     conn.commit()

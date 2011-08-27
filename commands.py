@@ -484,23 +484,12 @@ def later(self, user, channel):
                         pass
                     if user_nick not in row:
                         self.send_message_to_channel( ("Error! No such user in my database"), channel)
-                    else:   #users exists
-                        #get uid
-                        sql = """SELECT * FROM later
-                                ORDER BY uid DESC LIMIT 1
-                        """
-                        cur.execute(sql)
-                        conn.commit()
-                        row = ''
-                        for row in cur:
-                            pass
-                        uid_later=row[0]
-                        uid_later = uid_later + 1
+                    else:   #user exists
                         sql = """INSERT INTO later
-                                (uid,sender,reciever,channel,date,message)
+                                (sender,reciever,channel,date,message)
                                 VALUES
                                 (
-                                """+str(uid_later)+",'"+user+"','"+user_nick+"','"+channel+"',strftime('%Y-%m-%d-%H-%M'),'"+user_message.replace("'","~qq~")+"'"+"""
+                                '"""+user+"','"+user_nick+"','"+channel+"',strftime('%Y-%m-%d-%H-%M'),'"+user_message.replace("'","''")+"""'
                                 )
                         """
                         cur.execute(sql)

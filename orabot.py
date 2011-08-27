@@ -220,94 +220,85 @@ class IRC_Server:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
                 irc_join_nick = str(recv).split( '!' ) [ 0 ].split( ':' ) [ 1 ]
-                irc_join_host = str(recv).split( '!' ) [ 1 ].split( ' ' ) [ 0 ]
-                supy_host = str(recv).split()[0][3:]
-                chan = str(recv).split()[2].replace(':','')[0:-5].rstrip()
-                sql = """SELECT * FROM users
-                        WHERE user = '"""+irc_join_nick+"'"+"""
-                """
-                cur.execute(sql)
-                conn.commit()
-                row = []
-                for row in cur:
-                    pass
-                if irc_join_nick not in row:     #user NOT found, add him (if user is not in db, he could not have ]later message)
-                    #get last uid
+                if ( len(irc_join_nick.split()) == 1 ):
+                    irc_join_host = str(recv).split( '!' ) [ 1 ].split( ' ' ) [ 0 ]
+                    supy_host = str(recv).split()[0][3:]
+                    chan = str(recv).split()[2].replace(':','')[0:-5].rstrip()
                     sql = """SELECT * FROM users
-                            ORDER BY uid DESC LIMIT 1
+                            WHERE user = '"""+irc_join_nick+"'"+"""
                     """
                     cur.execute(sql)
                     conn.commit()
                     row = []
                     for row in cur:
                         pass
-                    uid_users = row[0]
-                    uid_users = uid_users + 1   # uid + 1
-                    sql = """INSERT INTO users
-                            (uid,user,state)
-                            VALUES
-                            (
-                            """+str(uid_users)+",'"+str(irc_join_nick)+"'"+""",1
-                            )
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                else:   #user is in `users` table; he can have ]later messages
-                    #for ]last
-                    sql = """UPDATE users
-                            SET state = 1
-                            WHERE user = '"""+str(irc_join_nick)+"""'
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                    sql = """SELECT reciever FROM later
-                            WHERE reciever = '"""+irc_join_nick+"'"+"""
-                    """
-                    cur.execute(sql)
-                    conn.commit()
+                    if irc_join_nick not in row:     #user NOT found, add him (if user is not in db, he could not have ]later message)
+                        sql = """INSERT INTO users
+                                (user,state)
+                                VALUES
+                                (
+                                '"""+str(irc_join_nick)+"""',1
+                                )
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                    else:   #user is in `users` table; he can have ]later messages
+                        #for ]last
+                        sql = """UPDATE users
+                                SET state = 1
+                                WHERE user = '"""+str(irc_join_nick)+"""'
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                        sql = """SELECT reciever FROM later
+                                WHERE reciever = '"""+irc_join_nick+"'"+"""
+                        """
+                        cur.execute(sql)
+                        conn.commit()
 
-                    row = []
-                    for row in cur:
-                        pass
-                    if irc_join_nick in row:    #he has messages in database, read it
-                        sql = """SELECT * FROM later
-                                WHERE reciever = '"""+irc_join_nick+"'"+"""
-                        """
-                        cur.execute(sql)
-                        conn.commit()
                         row = []
-                        msgs = []
                         for row in cur:
-                            msgs.append(row)
-                        msgs_length = len(msgs) #number of messages for player
-                        self.send_message_to_channel( ("You have "+str(msgs_length)+" offline messages:"), irc_join_nick )
-                        for i in range(int(msgs_length)):
-                            who_sent = msgs[i][1]
-                            on_channel = msgs[i][3]
-                            message_date = msgs[i][4]
-                            offline_message = msgs[i][5]
-                            self.send_message_to_channel( ("### From: "+who_sent+";  channel: "+on_channel+";  date: "+message_date), irc_join_nick )
-                            self.send_message_to_channel( (offline_message.replace("~qq~","'")), irc_join_nick )
-                        time.sleep(0.1)
-                        sql = """DELETE FROM later
-                                WHERE reciever = '"""+irc_join_nick+"'"+"""
+                            pass
+                        if irc_join_nick in row:    #he has messages in database, read it
+                            sql = """SELECT * FROM later
+                                    WHERE reciever = '"""+irc_join_nick+"'"+"""
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            row = []
+                            msgs = []
+                            for row in cur:
+                                msgs.append(row)
+                            msgs_length = len(msgs) #number of messages for player
+                            self.send_message_to_channel( ("You have "+str(msgs_length)+" offline messages:"), irc_join_nick )
+                            for i in range(int(msgs_length)):
+                                who_sent = msgs[i][1]
+                                on_channel = msgs[i][3]
+                                message_date = msgs[i][4]
+                                offline_message = msgs[i][5]
+                                self.send_message_to_channel( ("### From: "+who_sent+";  channel: "+on_channel+";  date: "+message_date), irc_join_nick )
+                                self.send_message_to_channel( (offline_message), irc_join_nick )
+                            time.sleep(0.1)
+                            sql = """DELETE FROM later
+                                    WHERE reciever = '"""+irc_join_nick+"'"+"""
                         
-                        """
-                        cur.execute(sql)
-                        conn.commit()
-                    cur.close()
-                ###logs
-                if chan in config.log_channels.split(','):
-                    row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+irc_join_nick+' <'+supy_host+'> has joined '+chan+'\n'
-                    chan_d = chan.replace('#','')
-                    filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
-                    dir = os.path.dirname(filename)
-                    if not os.path.exists(dir):
-                        os.makedirs(dir)
-                    file = open(filename,'a')
-                    file.write(row)
-                    file.close()
-                ###
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                    ###logs
+                    if chan in config.log_channels.split(','):
+                        row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+irc_join_nick+' <'+supy_host+'> has joined '+chan+'\n'
+                        chan_d = chan.replace('#','')
+                        filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
+                        dir = os.path.dirname(filename)
+                        if not os.path.exists(dir):
+                            os.makedirs(dir)
+                        file = open(filename,'a')
+                        file.write(row)
+                        file.close()
+                    ###
+                cur.close()
+                
             if str(recv).find ( " QUIT " ) != -1:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
@@ -611,31 +602,27 @@ class IRC_Server:
             else:   #no need to ignore, ignore_minutes < difference
                 check_ignore = '0'
         if check_ignore == '0':
-            #get last uid_commands
-            sql = """SELECT * FROM commands
+            sql = """SELECT uid FROM commands
                     ORDER BY uid DESC LIMIT 1
             """
             cur.execute(sql)
             conn.commit()
-            
+            row = []
             for row in cur:
                 pass
-            uid_commands=row[0]
-            
-            uid_commands = uid_commands + 1
-            #clear 'commands' table after each 1 000 000 record
-            if uid_commands >= 1000:
-                uid_commands = 1
-                sql = """DELETE FROM commands WHERE uid > 1"""
+            uid_commands = row[0]
+            #clear 'commands' table after each 1 000 record
+            if int(uid_commands) >= 1000:
+                sql = """DELETE FROM commands WHERE uid > 30"""
                 cur.execute(sql)
                 conn.commit()
     
             #write each command into 'commands' table 
             sql = """INSERT INTO commands
-                    (uid,user,command,date_time)
+                    (user,command,date_time)
                     VALUES
                     (
-                    """+str(uid_commands)+",'"+str(user)+"','"+string_command.replace("'","~qq~")+"',"+"strftime('%Y-%m-%d-%H-%M-%S')"+""" 
+                    '"""+str(user)+"','"+string_command.replace("'","''")+"',"+"strftime('%Y-%m-%d-%H-%M-%S')"+""" 
                     )        
             """
             cur.execute(sql)
@@ -646,8 +633,7 @@ class IRC_Server:
                 ORDER BY uid DESC LIMIT 30
             """
             cur.execute(sql)
-            
-        
+
             var=[]
             for row in cur:
                 var.append(row)
@@ -679,24 +665,11 @@ class IRC_Server:
                     for row in cur:
                         pass
                     if user not in row:   #user does not exist in 'black_list' table yet
-                        #get last uid_black_list
-
-                        sql = """SELECT * FROM black_list
-                                ORDER BY uid DESC LIMIT 1
-                        """
-                        cur.execute(sql)
-                        conn.commit()
-       
-                        for row in cur:
-                            pass
-                        uid_black_list=row[0]
-                        uid_black_list = uid_black_list + 1
-                        
                         sql = """INSERT INTO black_list
-                            (uid,user,date_time,count)
+                            (user,date_time,count)
                             VALUES
                             (
-                            """+str(uid_black_list)+",'"+user+"',strftime('%Y-%m-%d-%H-%M'),"+str(1)+"""
+                            '"""+user+"',strftime('%Y-%m-%d-%H-%M'),"+str(1)+"""
                             )                   
                         """
                         cur.execute(sql)
@@ -723,7 +696,7 @@ class IRC_Server:
                         ignore_count = row[3]
                         ignore_minutes = str(ignore_count)+'0'
                         check_ignore = '1'  #lock, start ignore        
-                        self.send_reply( (user+", your actions are counted as spam, I will ignore you for "+str(ignore_minutes)+" minutes"), user, channel )
+                        self.send_reply( (user+", your actions are counted as spam, I'll ignore you for "+str(ignore_minutes)+" minutes"), user, channel )
                         return
 ### END OF SPAM FILTER
 ############    COMMADS:
