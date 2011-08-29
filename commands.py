@@ -24,6 +24,7 @@ import pywapi
 import urllib.request
 import time
 import math
+import traceback
 
 import config
 import pyrand
@@ -73,8 +74,7 @@ def games(self, user, channel):
                         code_index = codes.index(code)
                         country = match_codes[code_index]   #got country name
                         
-                        sname = lines[a1].encode('utf-8').decode('utf-8')
-                        sname = str(sname)
+                        sname = str(lines[a1].encode('utf-8').decode('utf-8'))
                         if ( len(sname) == 0 ):
                             sname = 'noname'
                         map_hash = lines[m].split()[1]
@@ -110,7 +110,7 @@ def games(self, user, channel):
                 if ( count == "0" ):    #appeared no games in State: 1
                     self.send_reply( ("No games waiting for players found"), user, channel )
         except:
-            exc = "Crash; Request: "+str(command)+" | "+str(sys.exc_info())+"\n"
+            exc = "Crash; Request: "+str(command)+" | "+str(sys.exc_info())+"\n"+str(traceback.format_exc())+"\n"
             filename = 'except.log'
             file = open(filename, 'a')
             file.write(exc)
@@ -148,8 +148,7 @@ def games(self, user, channel):
                             code_index = codes.index(code)
                             country = match_codes[code_index]
                             
-                            sname = lines[a1].encode('utf-8').decode('utf-8')
-                            sname = str(sname)
+                            sname = str(lines[a1].encode('utf-8').decode('utf-8'))
                             if ( len(sname) == 0 ):
                                 sname = 'noname'
                             map_hash = lines[m].split()[1]
@@ -204,8 +203,7 @@ def games(self, user, channel):
                             code_index = codes.index(code)
                             country = match_codes[code_index]
                             
-                            sname = lines[a1].encode('utf-8').decode('utf-8')
-                            sname = str(sname)
+                            sname = str(lines[a1].encode('utf-8').decode('utf-8'))
                             if ( len(sname) == 0 ):
                                 sname = 'noname'
                             map_hash = lines[m].split()[1]
@@ -260,8 +258,7 @@ def games(self, user, channel):
                         code_index = codes.index(code)
                         country = match_codes[code_index]
                         
-                        sname = lines[a1].encode('utf-8').decode('utf-8')
-                        sname = str(sname)
+                        sname = str(lines[a1].encode('utf-8').decode('utf-8'))
                         if ( len(sname) == 0 ):
                             sname = 'noname'
                         map_hash = lines[m].split()[1]
@@ -293,6 +290,53 @@ def games(self, user, channel):
                         a3=a3+9
                         m=m+9
                         a4=a4+9
+                    flood_protection = 0
+                elif ( (command[1]) == "-s" ):
+                    length = length / 9 # number of games
+                    a1=2    #name
+                    a2=4    #state
+                    a3=5    #players
+                    a4=7    #version
+                    games_state1 = ''
+                    games_state2 = ''
+                    for i in range(int(length)):
+                        if ( lines[a2].lstrip().rstrip() == 'State: 1' ):
+                            state = 'W'
+                        elif ( lines[a2].lstrip().rstrip() == 'State: 2' ):
+                            state = 'P'
+                        
+                        sname = str(lines[a1].encode('utf-8').decode('utf-8'))
+                        if ( len(sname) == 0 ):
+                            sname = 'noname'
+                        modinfo = " ".join(lines[a4].strip().split(' ')[1:]).split('@')
+                        if ( state == 'W' ):
+                            games_state1 = games_state1+'\t['+lines[a3].lstrip().rstrip().split()[1]+'] '+sname.lstrip().rstrip()[6:].lstrip()+' ('+(modinfo[0].upper()+'@'+ modinfo[1])+')||'
+                        elif ( state == 'P' ):
+                            games_state2 = games_state2+'\t['+lines[a3].lstrip().rstrip().split()[1]+'] '+sname.lstrip().rstrip()[6:].lstrip()+' ('+(modinfo[0].upper()+'@'+ modinfo[1])+')||'
+                        a1=a1+9
+                        a2=a2+9
+                        a3=a3+9
+                        a4=a4+9
+                    split_games_state1 = games_state1.split('||')
+                    split_games_state2 = games_state2.split('||')
+                    if ( len(split_games_state2) > 1 ):
+                        self.send_reply( ('Playing:'), user, channel )
+                        for i in range(int(len(split_games_state2) - 1)):
+                            flood_protection = flood_protection + 1
+                            if flood_protection == 7:
+                                time.sleep(5)
+                                flood_protection = 0
+                            self.send_reply( (split_games_state2[i]), user, channel )
+                            time.sleep(0.5)
+                    if ( len(split_games_state1) > 1 ):
+                        self.send_reply( ('Waiting:'), user, channel )
+                        for i in range(int(len(split_games_state1) - 1)):
+                            flood_protection = flood_protection + 1
+                            if flood_protection == 7:
+                                time.sleep(5)
+                                flood_protection = 0
+                            self.send_reply( (split_games_state1[i]), user, channel )
+                            time.sleep(0.5)
                     flood_protection = 0
                 else:   #it is pattern
                     chars=['*','.','$','^','@','{','}','+','?'] # chars to ignore
@@ -326,8 +370,7 @@ def games(self, user, channel):
                                 code_index = codes.index(code)
                                 country = match_codes[code_index]
                                 
-                                sname = lines[a1].encode('utf-8').decode('utf-8')
-                                sname = str(sname)
+                                sname = str(lines[a1].encode('utf-8').decode('utf-8'))
                                 if ( len(sname) == 0 ):
                                     sname = 'noname'
                                 map_hash = lines[m].split()[1]
@@ -363,7 +406,7 @@ def games(self, user, channel):
                     if ( count == "0" ):    #appeared no matches
                         self.send_reply( ("No matches"), user, channel )
         except:
-            exc = "Crash; Request: "+str(command)+" | "+str(sys.exc_info())+"\n"
+            exc = "Crash; Request: "+str(command)+" | "+str(sys.exc_info())+"\n"+str(traceback.format_exc())+"\n"
             filename = 'except_log.txt'
             file = open(filename, 'a')
             file.write(exc)
