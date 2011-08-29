@@ -338,16 +338,40 @@ def games(self, user, channel):
                             self.send_reply( (split_games_state1[i]), user, channel )
                             time.sleep(0.5)
                     flood_protection = 0
-                else:   #it is pattern
+                elif ( (command[1]) == "-r" ):
+                    self.send_reply( ("A pattern required"), user, channel )
+                else:
+                    self.send_reply( ("Incorrect option!"), user, channel )                    
+        except:
+            exc = "Crash; Request: "+str(command)+" | "+str(sys.exc_info())+"\n"+str(traceback.format_exc())+"\n"
+            filename = 'except_log.txt'
+            file = open(filename, 'a')
+            file.write(exc)
+            file.close()
+    elif ( len(command) > 2 ):
+        if ( command[1] == "-r" ):  #patter request
+            try:
+                url = 'http://master.open-ra.org/list.php'
+                stream = urllib.request.urlopen(url).read()
+                stream = stream.decode('utf-8')
+                lines = []
+                sep_games = stream.split('\nGame')
+                for i in range(int(len(sep_games))):
+                    lines =  lines + sep_games[i].split('\n\t') #got a list
+                length = len(lines)
+                if ( length == 1 ):
+                    self.send_reply( ("No games found"), user, channel )
+                else:   # there are one or more games
                     chars=['*','.','$','^','@','{','}','+','?'] # chars to ignore
+                    request_pattern = " ".join(command[2:])
                     for i in range(int(len(chars))):
-                        if chars[i] in command[1]:
+                        if chars[i] in request_pattern:
                             check = 'tru'
                             break
                         else:
                             check = 'fals'
                     if ( check == 'fals' ):     #requested pattern does not contain any of 'forbidden' chars
-                        p = re.compile(command[1], re.IGNORECASE)
+                        p = re.compile(request_pattern, re.IGNORECASE)
                         length = length / 9 # number of games
                         a1=2    #name
                         loc=3   #ip
@@ -369,7 +393,7 @@ def games(self, user, channel):
                                 code = gi.country_code_by_addr(ip)  #got country code
                                 code_index = codes.index(code)
                                 country = match_codes[code_index]
-                                
+
                                 sname = str(lines[a1].encode('utf-8').decode('utf-8'))
                                 if ( len(sname) == 0 ):
                                     sname = 'noname'
@@ -403,14 +427,16 @@ def games(self, user, channel):
                             m=m+9
                             a4=a4+9
                         flood_protection = 0
-                    if ( count == "0" ):    #appeared no matches
-                        self.send_reply( ("No matches"), user, channel )
-        except:
-            exc = "Crash; Request: "+str(command)+" | "+str(sys.exc_info())+"\n"+str(traceback.format_exc())+"\n"
-            filename = 'except_log.txt'
-            file = open(filename, 'a')
-            file.write(exc)
-            file.close()
+                        if ( count == "0" ):    #appeared no matches
+                            self.send_reply( ("No matches"), user, channel )
+            except:
+                exc = "Crash; Request: "+str(command)+" | "+str(sys.exc_info())+"\n"+str(traceback.format_exc())+"\n"
+                filename = 'except_log.txt'
+                file = open(filename, 'a')
+                file.write(exc)
+                file.close()
+        else:
+            self.send_reply( ("Error, wrong request"), user, channel )
     else:
         self.send_reply( ("Error, wrong request"), user, channel )
     cur.close()
