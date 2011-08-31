@@ -905,9 +905,11 @@ def notify(self, user, channel):
         result_mod = "all"
         result_version = "all"
         result_timeout = "all"
+        result_num = "any"
         mod_defined = 0
         version_defined = 0
         timeout_defined = 0
+        num_defined = 0
         mods = ['ra','cnc','yf','all']
         timeouts = ['s','m','h','d']
         sql = """SELECT user FROM notify
@@ -1097,6 +1099,70 @@ def notify(self, user, channel):
                             self.irc_sock.send (str_buff.encode())
                             cur.close()
                             return
+                    elif ( argument[0] == '-n' ):   #num players on server
+                        if ( num_defined == 0 ):
+                            try:
+                                if ( (argument[1] == 'any') or type(int(argument[1][0:])) is int ):
+                                    num_defined = 1
+                                    result_num = argument[1]
+                                    sql = """SELECT user FROM notify
+                                            WHERE user = '"""+user+"""'
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    row = []
+                                    for row in cur:
+                                        pass
+                                    if ( user in row ):
+                                        sql = """UPDATE notify
+                                                SET num_players = '"""+argument[1]+"""'
+                                                WHERE user = '"""+user+"""'
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                    else:
+                                        sql = """INSERT INTO notify
+                                                (user,date,num_players)
+                                                VALUES
+                                                (
+                                                '"""+user+"',strftime('%Y-%m-%d-%H-%M-%S'),'"+argument[1]+"""'
+                                                )
+                                        """
+                                        cur.execute(sql)
+                                        conn.commit()
+                                else:
+                                    sql = """DELETE FROM notify
+                                            WHERE user = '"""+user+"""'
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                    message = "-n Syntax Error! Try again"
+                                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                    self.irc_sock.send (str_buff.encode())
+                                    cur.close()
+                                    return
+                            except:
+                                sql = """DELETE FROM notify
+                                        WHERE user = '"""+user+"""'
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                                message = "-n Syntax Error! Try again"
+                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                                self.irc_sock.send (str_buff.encode())
+                                cur.close()
+                                return
+                        else:
+                            sql = """DELETE FROM notify
+                                    WHERE user = '"""+user+"""'
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                            message = "Error! You have already defined amount of players (-n)! Try again"
+                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
+                            self.irc_sock.send (str_buff.encode())
+                            cur.close()
+                            return
                     else:
                         sql = """DELETE FROM notify
                                 WHERE user = '"""+user+"""'
@@ -1119,7 +1185,7 @@ def notify(self, user, channel):
                     self.irc_sock.send (str_buff.encode())
                     cur.close()
                     return
-            message = "You are subscribed for new games notification; Mod: "+result_mod+"; Version: "+result_version+"; Timeout: "+result_timeout
+            message = "You are subscribed for new games notification; Mod: "+result_mod+"; Version: "+result_version+"; Minimum amount of players: "+result_num+"; Timeout: "+result_timeout
             str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
             self.irc_sock.send (str_buff.encode())
     cur.close()

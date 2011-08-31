@@ -266,7 +266,7 @@ def notify():
         mod VARCHAR NOT NULL DEFAULT "all",
         version VARCHAR NOT NULL DEFAULT "all",
         timeout VARCHAR NOT NULL DEFAULT "all",
-        timezone VARCHAR NOT NULL DEFAULT "GMT"
+        num_players VARCHAR NOT NULL DEFAULT "all"
     )                
     """
     cur.execute(sql)
