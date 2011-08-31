@@ -215,7 +215,7 @@ def start(self):
                                         if ( re.search(db_version, version) or db_version.lower() == 'all' ):
                                             try:
                                                 db_num_players = int(db_num_players)
-                                                if db_num_players >= int(players):
+                                                if db_num_players <= int(players):
                                                     check_num_players = True
                                                 else:
                                                     check_num_players = False
