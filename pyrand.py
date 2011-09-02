@@ -72,24 +72,27 @@ def rand(self, user, channel, players, output_name):
             players.append("~bye~"+str(byenum))
             byenum=byenum+1
             numTeams=len(players)
-    if (numTeams<=8 and numTeams>4):
+    elif (numTeams<=8 and numTeams>4):
         teams=teams8
         while (numTeams<8):
             players.append("~bye~"+str(byenum))
             byenum=byenum+1
             numTeams=len(players)
-    if (numTeams<=16 and numTeams>8):
+    elif (numTeams<=16 and numTeams>8):
         teams=teams16
         while (numTeams<16):
             players.append("~bye~"+str(byenum))
             byenum=byenum+1
             numTeams=len(players)
-    if (numTeams<=32 and numTeams>16):
+    elif (numTeams<=32 and numTeams>16):
         teams=teams32
         while (numTeams<32):
             players.append("~bye~"+str(byenum))
             byenum=byenum+1
             numTeams=len(players)
+    else:
+        self.send_reply( ('I support 64 teams max!'), user, channel )
+        return
 
     players2=[]
     for i in range(0,numTeams):
