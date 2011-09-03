@@ -30,8 +30,6 @@ nickserv_password = ''
 # root admin
 root_admin = "ihptru"
 
-root_admin_password = "password" #only for the successful first run, dont forget to remove it later
-
 
 
 ### Notifications ###

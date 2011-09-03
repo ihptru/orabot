@@ -18,7 +18,6 @@ import os
 import re
 from datetime import date
 import sqlite3
-import hashlib
 import random
 import pywapi
 import urllib.request
@@ -32,7 +31,7 @@ from commands import *
 
 ###
 if not os.path.exists('db/openra.sqlite'):
-    db_process.start(config.root_admin, config.root_admin_password)
+    db_process.start()
 ###
 
 # Defining a class to run the server. One per connection. This class will do most of our work.
@@ -508,7 +507,7 @@ class IRC_Server:
 
         if str(recv).find ( "353 "+config.bot_nick+" =" ) != -1:
             user_nicks = str(recv).split(':')[2].rstrip()
-            if '+'+user in user_nicks.split() or '@'+user in user_nicks.split() or '%'+user in user_nicks.split():
+            if '+'+user in user_nicks.split() or '@'+user in user_nicks.split() or '%'+user in user_nicks.split() or user == config.root_admin:
                 return True
             else:
                 return False
