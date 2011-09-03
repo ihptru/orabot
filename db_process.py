@@ -350,3 +350,17 @@ def maps():
     cur.executescript(sql)
     conn.commit()
     cur.close()
+
+def faq():
+    conn = sqlite3.connect('db/openra.sqlite')
+    cur = conn.cursor()
+    sql = """CREATE TABLE "faq" (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "item" VARCHAR NOT NULL ,
+        "whoset" VARCHAR NOT NULL ,
+        "desc" VARCHAR NOT NULL
+    )
+    """
+    cur.execute(sql)
+    conn.commit()
+    cur.close()

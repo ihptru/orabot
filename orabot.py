@@ -533,7 +533,22 @@ class IRC_Server:
     # This function is for pickup matches code
     def players_for_mode(self, mode):
         return sum( map( int, mode.split('v') ) )
+    
+    def OpVoice(self, user, channel):
+        #send NAMES channel to server
+        str_buff = ( "NAMES %s \r\n" ) % (channel)
+        self.irc_sock.send (str_buff.encode())
+        #recover all nicks on channel
+        recv = self.irc_sock.recv( 4096 )
 
+        if str(recv).find ( "353 "+config.bot_nick+" =" ) != -1:
+            user_nicks = str(recv).split(':')[2].rstrip()
+            if '+'+user in user_nicks.split() or '@'+user in user_nicks.split():
+                return True
+            else:
+                return False
+    
+    
     def evalAdminCommand(self, commandname, user, channel, owner, authenticated):
         imp.reload(admin_commands)
         command_function=getattr(admin_commands, commandname, None)

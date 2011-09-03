@@ -19,7 +19,7 @@ import time
 
 import config
 
-show_possible=['games', 'help', 'version', 'hi', 'randomteam', 'tr', 'lang', 'last', 'online', 'weather', 'lastgame', 'who', 'promote', 'maps', 'say','mapinfo','calc']
+show_possible=['games', 'help', 'version', 'hi', 'randomteam', 'tr', 'lang', 'last', 'online', 'weather', 'lastgame', 'who', 'promote', 'maps', 'say','mapinfo','calc','faq']
 
 ### Admin commands
 
