@@ -30,7 +30,6 @@ import notifications
 import config
 from commands import *
 
-
 ###
 if not os.path.exists('db/openra.sqlite'):
     db_process.start(config.root_admin, config.root_admin_password)
