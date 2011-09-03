@@ -26,10 +26,10 @@ import imp
 import inspect
 
 import db_process
-import notify
-import commands
-import admin_commands
+import notifications
 import config
+from commands import *
+
 
 ###
 if not os.path.exists('db/openra.sqlite'):
@@ -190,7 +190,7 @@ class IRC_Server:
                                     site = urllib.request.urlopen(link)
                                     site = site.read()
                                     site = site.decode('utf-8')
-                                    title = site.split('<title>')[1].split('</title>')[0].rstrip().lstrip()
+                                    title = site.split('<title>')[1].split('</title>')[0].rstrip().lstrip().replace('\n','')
                                     self.send_message_to_channel( ("Title: "+title), chan )
                                 except:
                                     pass    #do not write title in private
@@ -304,24 +304,7 @@ class IRC_Server:
                 cur=conn.cursor()
                 irc_quit_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
                 supy_host = str(recv).split()[0][3:]
-                #change authenticated status
-                sql = """SELECT * FROM register
-                        WHERE user = '"""+irc_quit_nick+"'"+"""
-                """
-                cur.execute(sql)
-                conn.commit()
-                row = []
-                for row in cur:
-                    pass
-                if irc_quit_nick in row:
-                    authenticated = row[4]
-                    if authenticated == 1:
-                        sql = """UPDATE register
-                                SET authenticated = 0
-                                WHERE user = '"""+irc_quit_nick+"'"+"""
-                        """
-                        cur.execute(sql)
-                        conn.commit()
+
                 ### for ]last              
                 sql = """UPDATE users
                         SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
@@ -362,24 +345,7 @@ class IRC_Server:
                 irc_part_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
                 supy_host = str(recv).split()[0][3:]
                 chan = str(recv)[0:-5].split()[2].rstrip()
-                ###logout
-                sql = """SELECT * FROM register
-                        WHERE user = '"""+irc_part_nick+"'"+"""
-                """
-                cur.execute(sql)
-                conn.commit()
-                row = []
-                for row in cur:
-                    pass
-                if irc_part_nick in row:
-                    authenticated = row[4]
-                    if authenticated == 1:
-                        sql = """UPDATE register
-                                SET authenticated = 0
-                                WHERE user = '"""+irc_part_nick+"'"+"""
-                        """
-                        cur.execute(sql)
-                        conn.commit()
+
                 ### for ]last              
                 sql = """UPDATE users
                         SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
@@ -543,28 +509,21 @@ class IRC_Server:
 
         if str(recv).find ( "353 "+config.bot_nick+" =" ) != -1:
             user_nicks = str(recv).split(':')[2].rstrip()
-            if '+'+user in user_nicks.split() or '@'+user in user_nicks.split():
+            if '+'+user in user_nicks.split() or '@'+user in user_nicks.split() or '%'+user in user_nicks.split():
                 return True
             else:
                 return False
-    
-    
-    def evalAdminCommand(self, commandname, user, channel, owner, authenticated):
-        imp.reload(admin_commands)
-        command_function=getattr(admin_commands, commandname, None)
-        if command_function != None:
-            if inspect.isfunction(command_function):
-                command_function(self, user, channel, owner, authenticated)
             
     def evalCommand(self, commandname, user, channel):
-        imp.reload(commands)    
-        command_function=getattr(commands, commandname, None)
-        if command_function != None:
-            if inspect.isfunction(command_function):
-                command_function(self, user, channel)
-            
+        if imp.find_module('commands/'+commandname):
+            imp.reload(eval(commandname))
+            command_function=getattr(eval(commandname), commandname, None)
+            if command_function != None:
+                if inspect.isfunction(command_function):
+                    command_function(self, user, channel)
+
     def process_command(self, user, channel):
-        # This line makes sure an actual command was sent, not a plain "!"
+        # This line makes sure an actual command was sent, not a plain command prefix
         if ( len(self.command.split()) == 0):
             error = "Usage: ]command [arguments]"
             self.send_reply( (error), user, channel )
@@ -712,29 +671,13 @@ class IRC_Server:
                         ignore_minutes = str(ignore_count)+'0'
                         check_ignore = '1'  #lock, start ignore        
                         self.send_reply( (user+", your actions are counted as spam, I'll ignore you for "+str(ignore_minutes)+" minutes"), user, channel )
+                        cur.close()
                         return
 ### END OF SPAM FILTER
 ############    COMMADS:
-            ### check if user is registered for privileged commands
-            sql = """SELECT * FROM register
-                    WHERE user = '"""+user+"'"+"""
-            """
-            cur.execute(sql)
-            conn.commit()
-            row = []
-            for row in cur:
-                pass
-            if user in row:     #user exists in 'register' table
-                owner = row[3]
-                authenticated = row[4]
-                if (authenticated == 1):    #he is also authenticated           
-                    ### All admin only commands go in here.
-                    self.evalAdminCommand(command[0].lower(), user, channel, str(owner), str(authenticated))
-                    
-            cur.close()
-                    
             ### All public commands go here
             self.evalCommand(command[0].lower(), user, channel)
+        cur.close()
 #####
 class BotCrashed(Exception): # Raised if the bot has crashed.
     pass
@@ -747,7 +690,7 @@ def main():
     ### run notification process
     if ( config.notifications == True ):
         print("Run 'notifications' process...")
-        run_notify = multiprocessing.Process(None,notify.start(connect_class))
+        run_notify = multiprocessing.Process(None,notifications.start(connect_class))
         run_notify.start()
     try:
         while(connect_class.should_reconnect):

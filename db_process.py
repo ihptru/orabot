@@ -33,33 +33,6 @@ def start(root_admin, root_admin_password):
     notify()
     maps()
     
-    
-def register(root_admin, root_admin_password):
-    conn = sqlite3.connect('db/openra.sqlite')
-    cur = conn.cursor()
-    sql = """CREATE TABLE register (
-            uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
-            user varchar(20) NOT NULL,
-            pass varchar(50),
-            owner boolean NOT NULL DEFAULT '0',
-            authenticated boolean NOT NULL DEFAULT '0'
-    )
-    """
-    cur.execute(sql)
-    conn.commit()
-
-    user_password = hashlib.md5(root_admin_password.encode('utf-8')).hexdigest()     
-    sql = """INSERT INTO register
-            (user,pass,owner)
-            VALUES
-            (
-            '"""+root_admin+"','"+str(user_password)+"'"+""",1
-            )       
-    """
-    cur.execute(sql)
-    conn.commit()
-    cur.close()
-    
 def black_list():
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
