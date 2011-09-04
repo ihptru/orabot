@@ -6,17 +6,20 @@ server = 'irc.freenode.net'
 port = 6667
 
 #channels to connect to (comma as delimiter)
-channels = '#openra,#openra-dev'
+channels = '#channel1,#channel2'
+
+#write channel logs?
+write_logs = False
 
 #channel to write logs of (comma as delimiter)
-log_channels = '#openra,#openra-dev'
+log_channels = '#channel1,#channel2'
 
 
 
 
 ### Bot Data ###
 #bot nick
-bot_nick = 'orabot'
+bot_nick = 'change_bot_nick'
 
 #identify with NickServ? ( True or False )
 nickserv = False
@@ -26,12 +29,7 @@ nickserv_password = ''
 
 
 
-### Administrative user ###
-# root admin
-root_admin = "ihptru"
-
-
 
 ### Notifications ###
 #support notifications? ( True or False )
-notifications = True
+notifications = False

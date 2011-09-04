@@ -499,7 +499,7 @@ class IRC_Server:
     def players_for_mode(self, mode):
         return sum( map( int, mode.split('v') ) )
     
-    def OpVoice(self, user, channel, root_admin):
+    def OpVoice(self, user, channel):
         #send NAMES channel to server
         str_buff = ( "NAMES %s \r\n" ) % (channel)
         self.irc_sock.send (str_buff.encode())
@@ -508,7 +508,7 @@ class IRC_Server:
 
         if str(recv).find ( "353 "+config.bot_nick+" =" ) != -1:
             user_nicks = str(recv).split(':')[2].rstrip()
-            if '+'+user in user_nicks.split() or '@'+user in user_nicks.split() or '%'+user in user_nicks.split() or user == root_admin:
+            if '+'+user in user_nicks.split() or '@'+user in user_nicks.split() or '%'+user in user_nicks.split():
                 return True
             else:
                 return False

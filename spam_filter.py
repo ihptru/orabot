@@ -57,6 +57,7 @@ def start(self, user, channel):
         difference = int(localtime) - int(ignore_date)  #how many minutes after last ignore
         if int(difference) < int(ignore_minutes):
             check_ignore = '1'  #lock, start ignore
+            cur.close()
             return False
         else:   #no need to ignore, ignore_minutes < difference
             check_ignore = '0'

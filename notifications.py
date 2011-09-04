@@ -19,6 +19,59 @@ import urllib.request
 import re
 from datetime import date
 
+def check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user):
+    notify_message = "New game: "+name+" - mod: "+mod+version+" - Already "+players+" players in"
+    if ( db_timeout.lower() == 'all' ):
+        self.send_reply( (notify_message), db_user, db_user )
+    elif ( db_timeout.lower() == 'till_quit' ):
+        self.send_reply( (notify_message), db_user, db_user )
+    else:
+        date_of_adding = int(db_date.replace('-',''))
+        ###
+        a = date.today()
+        a = str(a)
+        a = a.split('-')
+        year = a[0]
+        month = a[1]
+        day = a[2]
+        b = time.localtime()
+        b = str(b)
+        hours = b.split('tm_hour=')[1].split(',')[0]
+        minutes = b.split('tm_min=')[1].split(',')[0]
+        seconds = b.split('tm_sec=')[1].split(',')[0]
+        if len(hours) == 1:
+            hours = '0'+hours
+        else:
+            hours = hours
+        if len(minutes) == 1:
+            minutes = '0'+minutes
+        else:
+            minutes = minutes
+        if len(seconds) == 1:
+            seconds = '0'+seconds
+        else:
+            seconds = seconds
+        localtime = year+month+day+hours+minutes+seconds
+        localtime = int(localtime)
+        difference = localtime - date_of_adding     #in result - must be less then timeout
+        if ( db_timeout[-1] == 's' ):
+            timeout = db_timeout[0:-1]
+        elif ( db_timeout[-1] == 'm' ):
+            timeout = int(db_timeout[0:-1]+'00')
+        elif ( db_timeout[-1] == 'h' ):
+            timeout = int(db_timeout[0:-1]+'0000')
+        elif ( db_timeout[-1] == 'd' ):
+            timeout = int(db_timeout[0:-1]+'000000')
+        if ( difference < timeout ):
+            self.send_reply( (notify_message), db_user, db_user )
+        else:   # timeout is over
+            sql = """DELETE from notify
+                    WHERE user = '"""+db_user+"""'
+            """
+            cur.execute(sql)
+            conn.commit()
+        ###
+
 def start(self):
     notify_ip_list = []
     notify_players_list = []
@@ -131,57 +184,7 @@ def start(self):
                                             except:
                                                 check_num_players = False
                                             if ( check_num_players == True ):
-                                                notify_message = "New game: "+name+" - mod: "+mod+version+" - Already "+players+" players in"
-                                                if ( db_timeout.lower() == 'all' ):
-                                                    self.send_reply( (notify_message), db_user, db_user )
-                                                elif ( db_timeout.lower() == 'till_quit' ):
-                                                    self.send_reply( (notify_message), db_user, db_user )
-                                                else:
-                                                    date_of_adding = int(db_date.replace('-',''))
-                                                    ###
-                                                    a = date.today()
-                                                    a = str(a)
-                                                    a = a.split('-')
-                                                    year = a[0]
-                                                    month = a[1]
-                                                    day = a[2]
-                                                    b = time.localtime()
-                                                    b = str(b)
-                                                    hours = b.split('tm_hour=')[1].split(',')[0]
-                                                    minutes = b.split('tm_min=')[1].split(',')[0]
-                                                    seconds = b.split('tm_sec=')[1].split(',')[0]
-                                                    if len(hours) == 1:
-                                                        hours = '0'+hours
-                                                    else:
-                                                        hours = hours
-                                                    if len(minutes) == 1:
-                                                        minutes = '0'+minutes
-                                                    else:
-                                                        minutes = minutes
-                                                    if len(seconds) == 1:
-                                                        seconds = '0'+seconds
-                                                    else:
-                                                        seconds = seconds
-                                                    localtime = year+month+day+hours+minutes+seconds
-                                                    localtime = int(localtime)
-                                                    difference = localtime - date_of_adding     #in result - must be less then timeout
-                                                    if ( db_timeout[-1] == 's' ):
-                                                        timeout = db_timeout[0:-1]
-                                                    elif ( db_timeout[-1] == 'm' ):
-                                                        timeout = int(db_timeout[0:-1]+'00')
-                                                    elif ( db_timeout[-1] == 'h' ):
-                                                        timeout = int(db_timeout[0:-1]+'0000')
-                                                    elif ( db_timeout[-1] == 'd' ):
-                                                        timeout = int(db_timeout[0:-1]+'000000')
-                                                    if ( difference < timeout ):
-                                                        self.send_reply( (notify_message), db_user, db_user )
-                                                    else:   # timeout is over
-                                                        sql = """DELETE from notify
-                                                                WHERE user = '"""+db_user+"""'
-                                                        """
-                                                        cur.execute(sql)
-                                                        conn.commit()
-                                                    ###
+                                                check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user)
                                 flood_protection = 0
                 else:   #ip is not in a list
                     if ( state == 'State: 1' ):
@@ -222,57 +225,7 @@ def start(self):
                                             except:
                                                 check_num_players = True
                                             if ( check_num_players == True ):
-                                                notify_message = "New game: "+name+" - mod: "+mod+version+" - Already "+players+" players in"
-                                                if ( db_timeout.lower() == 'all' ):
-                                                    self.send_reply( (notify_message), db_user, db_user )
-                                                elif ( db_timeout.lower() == 'till_quit' ):
-                                                    self.send_reply( (notify_message), db_user, db_user )
-                                                else:
-                                                    date_of_adding = int(db_date.replace('-',''))
-                                                    ###
-                                                    a = date.today()
-                                                    a = str(a)
-                                                    a = a.split('-')
-                                                    year = a[0]
-                                                    month = a[1]
-                                                    day = a[2]
-                                                    b = time.localtime()
-                                                    b = str(b)
-                                                    hours = b.split('tm_hour=')[1].split(',')[0]
-                                                    minutes = b.split('tm_min=')[1].split(',')[0]
-                                                    seconds = b.split('tm_sec=')[1].split(',')[0]
-                                                    if len(hours) == 1:
-                                                        hours = '0'+hours
-                                                    else:
-                                                        hours = hours
-                                                    if len(minutes) == 1:
-                                                        minutes = '0'+minutes
-                                                    else:
-                                                        minutes = minutes
-                                                    if len(seconds) == 1:
-                                                        seconds = '0'+seconds
-                                                    else:
-                                                        seconds = seconds
-                                                    localtime = year+month+day+hours+minutes+seconds
-                                                    localtime = int(localtime)
-                                                    difference = localtime - date_of_adding     #in result - must be less then timeout
-                                                    if ( db_timeout[-1] == 's' ):
-                                                        timeout = db_timeout[0:-1]
-                                                    elif ( db_timeout[-1] == 'm' ):
-                                                        timeout = int(db_timeout[0:-1]+'00')
-                                                    elif ( db_timeout[-1] == 'h' ):
-                                                        timeout = int(db_timeout[0:-1]+'0000')
-                                                    elif ( db_timeout[-1] == 'd' ):
-                                                        timeout = int(db_timeout[0:-1]+'000000')
-                                                    if ( difference < timeout ):
-                                                        self.send_reply( (notify_message), db_user, db_user )
-                                                    else:   # timeout is over
-                                                        sql = """DELETE from notify
-                                                                WHERE user = '"""+db_user+"""'
-                                                        """
-                                                        cur.execute(sql)
-                                                        conn.commit()
-                                                    ###
+                                                check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user)
                                 flood_protection = 0
             length = len(notify_ip_list)
             indexes = []
