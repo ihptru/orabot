@@ -371,6 +371,15 @@ class IRC_Server:
                 except:
                     print('####### ERROR !!! ###### Probably no write permissions to logs directory!')
     
+    def title_from_url(self, url):
+        # todo: security: can force the bot to download a large file.
+        #                 should limit to first 2K or similar.
+        # todo: security: can force the bot to output anything we like into
+        #                 the channel.
+        data = urllib.request.urlopen(url).read().decode('utf-8')
+        title = data.split('<title>')[1].split('</title>')[0].strip()
+        return title
+
     def parse_link(self, channel, message):
         if re.search('.*http.*://.*', message):
             flood_protection = 0
@@ -383,25 +392,18 @@ class IRC_Server:
                 link = http_link.split('://')[1]
                 pre = http_link.split('http')[1].split('//')[0]
                 link = 'http'+pre+'//'+link
-                if re.search('http.*youtube.com/watch.*', link):
-                    if re.search("^#", channel):
+                if re.search("^#", channel):
+                    if re.search('http.*youtube.com/watch.*', link):
                         link = link.split('&')[0]
                         try:
-                            site = urllib.request.urlopen(link)
-                            site = site.read()
-                            site = site.decode('utf-8')
-                            title = site.split('<title>')[1].split('</title>')[0].lstrip().split('- YouTube')[0].rstrip().replace('&amp;','&').replace('&#39;', '\'')
+                            title = self.title_from_url(link).split('- YouTube')[0].rstrip().replace('&amp;','&').replace('&#39;', '\'')
                             if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
                                 self.send_message_to_channel( ("Youtube: "+str(title)), channel )
                         except:
                             pass    #do not write title in private
-                else:
-                    if re.search("^#", channel):
+                    else:
                         try:
-                            site = urllib.request.urlopen(link)
-                            site = site.read()
-                            site = site.decode('utf-8')
-                            title = site.split('<title>')[1].split('</title>')[0].rstrip().lstrip().replace('\n','')
+                            title = self.title_from_url(link).replace('\n','')
                             self.send_message_to_channel( ("Title: "+title), channel )
                         except:
                             pass    #do not write title in private
@@ -420,9 +422,7 @@ class IRC_Server:
                     bug_or_feature_num = bug_report.split('#')[1]
                     url = 'http://bugs.open-ra.org/issues/'+bug_or_feature_num
                     try:
-                        stream = urllib.request.urlopen(url).read()
-                        stream = stream.decode('utf-8')
-                        fetched = stream.split('<title>')[1].split('</title>')[0].split('OpenRA - ')[1].split(' - open-ra')[0]
+                        fetched = self.title_from_url(url).split('OpenRA - ')[1].split(' - open-ra')[0]
                         self.send_message_to_channel( (fetched+" | "+url), channel )
                     except:
                         pass
