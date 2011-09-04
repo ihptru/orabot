@@ -280,7 +280,7 @@ class IRC_Server:
                     else:
                         channel_from_db = db_channels
                 sql = """UPDATE users
-                        SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0, channels = '"""+channels_from_db+"""'
+                        SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0, channels = '"""+channel_from_db+"""'
                         WHERE user = '"""+str(irc_part_nick)+"'"+"""
                 """
                 cur.execute(sql)
