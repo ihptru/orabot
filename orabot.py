@@ -232,7 +232,7 @@ class IRC_Server:
                         for chan in db_channels:
                             self.logs(irc_quit_nick, chan, 'quit', str(supy_host), '')
                 sql = """UPDATE users
-                        SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
+                        SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0, channels = ''
                         WHERE user = '"""+str(irc_quit_nick)+"'"+"""
                 """
                 cur.execute(sql)
