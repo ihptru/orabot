@@ -11,6 +11,9 @@ channels = '#channel1,#channel2'
 #write channel logs?
 write_logs = False
 
+#log directory
+log_dir = './logs/'
+
 #channel to write logs of (comma as delimiter)
 log_channels = '#channel1,#channel2'
 
@@ -28,6 +31,8 @@ nickserv = False
 nickserv_password = ''
 
 
+#commands start with:
+command_prefix = ']'
 
 
 ### Notifications ###

@@ -93,31 +93,7 @@ class IRC_Server:
     def listen(self):
         while self.is_connected:
             recv = self.irc_sock.recv( 4096 )
-            ### for logs
-            a = date.today()
-            a = str(a)
-            a = a.split('-')
-            year = a[0]
-            month = a[1]
-            day = a[2]
-            b = time.localtime()
-            b = str(b)
-            hours = b.split('tm_hour=')[1].split(',')[0]
-            minutes = b.split('tm_min=')[1].split(',')[0]
-            seconds = b.split('tm_sec=')[1].split(',')[0]
-            if len(hours) == 1:
-                real_hours = '0'+hours
-            else:
-                real_hours = hours
-            if len(minutes) == 1:
-                real_minutes = '0'+minutes
-            else:
-                real_minutes = minutes
-            if len(seconds) == 1:
-                real_seconds = '0'+seconds
-            else:
-                real_seconds = seconds
-            ### for logs end
+
             if str(recv).find ( "PING" ) != -1:
                 self.irc_sock.send ( "PONG ".encode() + recv.split() [ 1 ] + "\r\n".encode() )             
 
@@ -129,33 +105,15 @@ class IRC_Server:
                 ###logs
                 if re.search('^.*01ACTION', irc_user_message) and re.search('01$', irc_user_message):
                     irc_user_message_me = irc_user_message.split('01ACTION ')[1][0:-4]
-                    if chan in config.log_channels.split(','):
-                        row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' * '+irc_user_nick+' '+irc_user_message_me+'\n'
-                        chan_d = chan.replace('#','')
-                        filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
-                        dir = os.path.dirname(filename)
-                        if not os.path.exists(dir):
-                            os.makedirs(dir)
-                        file = open(filename,'a')
-                        file.write(row)
-                        file.close()
+                    self.logs(irc_user_nick, chan, 'action', str(irc_user_message_me), '')
                 else:
-                    if chan in config.log_channels.split(','):
-                        row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' <'+irc_user_nick+'> '+str(irc_user_message)+'\n'
-                        chan_d = chan.replace('#','')
-                        filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
-                        dir = os.path.dirname(filename)
-                        if not os.path.exists(dir):
-                            os.makedirs(dir)
-                        file = open(filename,'a')
-                        file.write(row)
-                        file.close()
+                    self.logs(irc_user_nick, chan, 'privmsg', str(irc_user_message), '')
                 ### logs end
                 
                 print ( irc_user_nick + ": " + irc_user_message)
-                # "]" Indicated a command
+                # Message starts with command prefix?
                 if ( str(irc_user_message) != '' ):
-                    if ( str(irc_user_message[0]) == "]" ):
+                    if ( str(irc_user_message[0]) == config.command_prefix ):
                         self.command = str(irc_user_message[1:])
                         # (str(recv)).split()[2] ) is simply the channel the command was heard on.
                         self.process_command(irc_user_nick, ( (str(recv)).split()[2] ))
@@ -223,6 +181,11 @@ class IRC_Server:
                     irc_join_host = str(recv).split( '!' ) [ 1 ].split( ' ' ) [ 0 ]
                     supy_host = str(recv).split()[0][3:]
                     chan = str(recv).split()[2].replace(':','')[0:-5].rstrip()
+                    
+                    ###logs
+                    self.logs(irc_join_nick, chan, 'join', str(supy_host), '')
+                    ###
+                    
                     sql = """SELECT * FROM users
                             WHERE user = '"""+irc_join_nick+"'"+"""
                     """
@@ -284,18 +247,6 @@ class IRC_Server:
                             """
                             cur.execute(sql)
                             conn.commit()
-                    ###logs
-                    if chan in config.log_channels.split(','):
-                        row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+irc_join_nick+' <'+supy_host+'> has joined '+chan+'\n'
-                        chan_d = chan.replace('#','')
-                        filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
-                        dir = os.path.dirname(filename)
-                        if not os.path.exists(dir):
-                            os.makedirs(dir)
-                        file = open(filename,'a')
-                        file.write(row)
-                        file.close()
-                    ###
                 cur.close()
                 
             if str(recv).find ( " QUIT " ) != -1:
@@ -303,7 +254,10 @@ class IRC_Server:
                 cur=conn.cursor()
                 irc_quit_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
                 supy_host = str(recv).split()[0][3:]
-
+                ##logs
+                for chan in config.log_channels.split(','):
+                    self.logs(irc_quit_nick, chan, 'quit', str(supy_host), '')
+                ###
                 ### for ]last              
                 sql = """UPDATE users
                         SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
@@ -311,7 +265,6 @@ class IRC_Server:
                 """
                 cur.execute(sql)
                 conn.commit()
-                cur.close()
                 ### for ]pick
                 modes = ['1v1','2v2','3v3','4v4','5v5']
                 diff_mode = ''
@@ -327,24 +280,17 @@ class IRC_Server:
                 """
                 cur.execute(sql)
                 conn.commit()
-                ##logs
-                for chan in config.log_channels.split(','):
-                    row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+irc_quit_nick+' <'+supy_host+'> has quit IRC\n'
-                    chan_d = chan.replace('#','')
-                    filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
-                    dir = os.path.dirname(filename)
-                    if not os.path.exists(dir):
-                        os.makedirs(dir)
-                    file = open(filename,'a')
-                    file.write(row)
-                    file.close()
+                cur.close()
+                
             if str(recv).find ( " PART " ) != -1:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
                 irc_part_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
                 supy_host = str(recv).split()[0][3:]
                 chan = str(recv)[0:-5].split()[2].rstrip()
-
+                ###logs
+                self.logs(irc_part_nick, chan, 'part', str(supy_host), '')
+                ###
                 ### for ]last              
                 sql = """UPDATE users
                         SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
@@ -352,7 +298,6 @@ class IRC_Server:
                 """
                 cur.execute(sql)
                 conn.commit()
-                cur.close()
                 ### for ]pick
                 modes = ['1v1','2v2','3v3','4v4','5v5']
                 diff_mode = ''
@@ -368,64 +313,26 @@ class IRC_Server:
                 """
                 cur.execute(sql)
                 conn.commit()
-                ###logs
-                if chan in config.log_channels.split(','):
-                    row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+irc_part_nick+' <'+supy_host+'> has left '+chan+'\n'
-                    chan_d = chan.replace('#','')
-                    filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
-                    dir = os.path.dirname(filename)
-                    if not os.path.exists(dir):
-                        os.makedirs(dir)
-                    file = open(filename,'a')
-                    file.write(row)
-                    file.close()
-                ###
+                cur.close()
                 
             if str(recv).find ( " NICK " ) != -1:
                 original_nick = str(recv).split(':')[1].split('!')[0]
                 new_nick = str(recv).split()[2].replace(':','')[0:-5]
                 for chan in config.log_channels.split(','):
-                    row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+original_nick+' is now known as '+new_nick+'\n'
-                    chan_d = chan.replace('#','')
-                    filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
-                    dir = os.path.dirname(filename)
-                    if not os.path.exists(dir):
-                        os.makedirs(dir)
-                    file = open(filename,'a')
-                    file.write(row)
-                    file.close()
+                    self.logs(original_nick, chan, 'nick', new_nick, '')
             
             if str(recv).find ( " TOPIC " ) != -1:
                 nick = str(recv).split(':')[1].split('!')[0]
                 topic = " ".join(str(recv).split()[3:]).replace(':','')[0:-5]
                 chan = str(recv).split()[2]
-                if chan in config.log_channels.split(','):
-                    row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+nick+' changes topic to "'+topic+'"\n'
-                    chan_d = chan.replace('#','')
-                    filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
-                    dir = os.path.dirname(filename)
-                    if not os.path.exists(dir):
-                        os.makedirs(dir)
-                    file = open(filename,'a')
-                    file.write(row)
-                    file.close()
-                
+                self.logs(nick, chan, 'topic', topic, '')
                 
             if str(recv).find ( " KICK " ) != -1:
                 by = str(recv).split(':')[1].split('!')[0]
                 whom = str(recv).split()[3]
                 chan = str(recv).split()[2]
                 reason = " ".join(str(recv).split()[4:]).replace(':','')[0:-5]
-                if chan in config.log_channels.split(','):
-                    row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' '+'*** '+whom+' was kicked by '+by+' ('+reason+')\n'
-                    chan_d = chan.replace('#','')
-                    filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
-                    dir = os.path.dirname(filename)
-                    if not os.path.exists(dir):
-                        os.makedirs(dir)
-                    file = open(filename,'a')
-                    file.write(row)
-                    file.close()
+                self.logs(whom, chan, 'kick', by, reason)
                 
         if self.should_reconnect:
             self.connect()
@@ -444,43 +351,8 @@ class IRC_Server:
     def send_message_to_channel(self,data,channel):
         print ( ( "%s: %s") % (self.irc_nick, data) )
         self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (channel, data)).encode() )
+        self.logs(self.irc_nick, channel, 'privmsg', str(data), '')
         
-        ### for logs
-        a = date.today()
-        a = str(a)
-        a = a.split('-')
-        year = a[0]
-        month = a[1]
-        day = a[2]
-        b = time.localtime()
-        b = str(b)
-        hours = b.split('tm_hour=')[1].split(',')[0]
-        minutes = b.split('tm_min=')[1].split(',')[0]
-        seconds = b.split('tm_sec=')[1].split(',')[0]
-        if len(hours) == 1:
-            real_hours = '0'+hours
-        else:
-            real_hours = hours
-        if len(minutes) == 1:
-            real_minutes = '0'+minutes
-        else:
-            real_minutes = minutes
-        if len(seconds) == 1:
-            real_seconds = '0'+seconds
-        else:
-            real_seconds = seconds
-        if channel in config.log_channels.split(','):
-            row = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds+' <'+self.irc_nick+'> '+str(data)+'\n'
-            chan_d = str(channel).replace('#','')
-            filename = '/var/openra/irc/logs/'+chan_d+'/'+year+'/'+month+'/'+day
-            dir = os.path.dirname(filename)
-            if not os.path.exists(dir):
-                os.makedirs(dir)
-            file = open(filename,'a')
-            file.write(row)
-            file.close()
-        ### for logs end
-
     # This function takes a channel, which must start with a #.
     def join_channel(self,channel):
         if (channel[0] == "#"):
@@ -495,6 +367,61 @@ class IRC_Server:
             self.irc_sock.send (str_buff.encode())
             # This needs to modify the list of active channels
     
+    def logs(self, irc_user, channel, logs_of, some_data, some_more_data):
+        if config.write_logs == True:
+            a = date.today()
+            a = str(a)
+            a = a.split('-')
+            year = a[0]
+            month = a[1]
+            day = a[2]
+            b = time.localtime()
+            b = str(b)
+            hours = b.split('tm_hour=')[1].split(',')[0]
+            minutes = b.split('tm_min=')[1].split(',')[0]
+            seconds = b.split('tm_sec=')[1].split(',')[0]
+            if len(hours) == 1:
+                real_hours = '0'+hours
+            else:
+                real_hours = hours
+            if len(minutes) == 1:
+                real_minutes = '0'+minutes
+            else:
+                real_minutes = minutes
+            if len(seconds) == 1:
+                real_seconds = '0'+seconds
+            else:
+                real_seconds = seconds
+            if channel in config.log_channels.split(','):
+                time_prefix = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds
+                if ( logs_of == 'privmsg' ):
+                    row = time_prefix+' <'+irc_user+'> '+some_data+'\n'
+                elif ( logs_of == 'action' ):
+                    row = time_prefix+' * '+irc_user+' '+some_data+'\n'
+                elif ( logs_of == 'join' ):
+                    row = time_prefix+' *** '+irc_user+' <'+some_data+'> has joined '+channel+'\n'
+                elif ( logs_of == 'quit' ):
+                    row = time_prefix+' *** '+irc_user+' <'+some_data+'> has quit IRC\n'
+                elif ( logs_of == 'part' ):
+                    row = time_prefix+' *** '+irc_user+' <'+some_data+'> has left '+channel+'\n'
+                elif ( logs_of == 'nick' ):
+                    row = time_prefix+' *** '+irc_user+' is now known as '+some_data+'\n'
+                elif ( logs_of == 'topic' ):
+                    row = time_prefix+' *** '+irc_user+' changes topic to "'+some_data+'"\n'
+                elif ( logs_of == 'kick' ):
+                    row = time_prefix+' *** '+irc_user+' was kicked by '+some_data+' ('+some_more_data+')\n'                
+                chan_d = str(channel).replace('#','')
+                filename = config.log_dir+chan_d+'/'+year+'/'+month+'/'+day
+                dir = os.path.dirname(filename)
+                try:
+                    if not os.path.exists(dir):
+                        os.makedirs(dir)
+                    file = open(filename,'a')
+                    file.write(row)
+                    file.close()
+                except:
+                    print('####### ERROR !!! ###### Probably no write permissions to logs directory!')
+
     # This function is for pickup matches code
     def players_for_mode(self, mode):
         return sum( map( int, mode.split('v') ) )
