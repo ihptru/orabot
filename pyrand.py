@@ -91,7 +91,7 @@ def rand(self, user, channel, players, output_name):
             byenum=byenum+1
             numTeams=len(players)
     else:
-        self.send_reply( ('I support 64 teams max!'), user, channel )
+        self.send_reply( ('I support 32 teams max!'), user, channel )
         return
 
     players2=[]
