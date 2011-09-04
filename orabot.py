@@ -161,7 +161,7 @@ class IRC_Server:
                         cur.execute(sql)
                         records = cur.fetchall()
                         conn.commit()
-                        if ( records[0][0] == '' ) or ( records[0][0] == None ):
+                        if ( records[0][0] == '' ) or ( str(records[0][0]) == 'None' ):
                             channel_to_db = chan
                         else:
                             channel_to_db = records[0][0]+','+chan
@@ -224,11 +224,11 @@ class IRC_Server:
                     for chan in config.log_channels.split(','):
                         self.logs(irc_quit_nick, chan, 'quit', str(supy_host), '')
                 else:   #user found
-                    db_channels = records[0][0].split(',')
-                    if ( len(db_channels) == 0 ):   #no channels found; reason(probably bot was offline when user joined or user was added manually)
+                    if ( records[0][0] == '' ) or ( str(records[0][0]) == 'None' ):  #no channels found; reason(probably bot was offline when user joined or user was added manually)
                         for chan in config.log_channels.split(','):
                             self.logs(irc_quit_nick, chan, 'quit', str(supy_host), '')
                     else:   #there are channels
+                        db_channels = records[0][0].split(',') 
                         for chan in db_channels:
                             self.logs(irc_quit_nick, chan, 'quit', str(supy_host), '')
                 sql = """UPDATE users
