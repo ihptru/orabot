@@ -318,55 +318,35 @@ class IRC_Server:
     
     def logs(self, irc_user, channel, logs_of, some_data, some_more_data):
         if config.write_logs == True:
-            a = date.today()
-            a = str(a)
-            a = a.split('-')
-            year = a[0]
-            month = a[1]
-            day = a[2]
-            b = time.localtime()
-            b = str(b)
-            hours = b.split('tm_hour=')[1].split(',')[0]
-            minutes = b.split('tm_min=')[1].split(',')[0]
-            seconds = b.split('tm_sec=')[1].split(',')[0]
-            if len(hours) == 1:
-                real_hours = '0'+hours
-            else:
-                real_hours = hours
-            if len(minutes) == 1:
-                real_minutes = '0'+minutes
-            else:
-                real_minutes = minutes
-            if len(seconds) == 1:
-                real_seconds = '0'+seconds
-            else:
-                real_seconds = seconds
+            chan_d = str(channel).replace('#','')
+            t = time.time()
+            time_prefix = time.strftime( '%Y-%m-%dT%T', t )
+            filename = config.log_dir + chan_d + time.strftime( '/%Y/%m/%d', t )
             if channel in config.log_channels.split(','):
-                time_prefix = year+'-'+month+'-'+day+'T'+real_hours+':'+real_minutes+':'+real_seconds
                 if ( logs_of == 'privmsg' ):
-                    row = time_prefix+' <'+irc_user+'> '+some_data+'\n'
+                    row = ' <'+irc_user+'> '+some_data+'\n'
                 elif ( logs_of == 'action' ):
-                    row = time_prefix+' * '+irc_user+' '+some_data+'\n'
+                    row = ' * '+irc_user+' '+some_data+'\n'
                 elif ( logs_of == 'join' ):
-                    row = time_prefix+' *** '+irc_user+' <'+some_data+'> has joined '+channel+'\n'
+                    row = ' *** '+irc_user+' <'+some_data+'> has joined '+channel+'\n'
                 elif ( logs_of == 'quit' ):
-                    row = time_prefix+' *** '+irc_user+' <'+some_data+'> has quit IRC\n'
+                    row = ' *** '+irc_user+' <'+some_data+'> has quit IRC\n'
                 elif ( logs_of == 'part' ):
-                    row = time_prefix+' *** '+irc_user+' <'+some_data+'> has left '+channel+'\n'
+                    row = ' *** '+irc_user+' <'+some_data+'> has left '+channel+'\n'
                 elif ( logs_of == 'nick' ):
-                    row = time_prefix+' *** '+irc_user+' is now known as '+some_data+'\n'
+                    row = ' *** '+irc_user+' is now known as '+some_data+'\n'
                 elif ( logs_of == 'topic' ):
-                    row = time_prefix+' *** '+irc_user+' changes topic to "'+some_data+'"\n'
+                    row = ' *** '+irc_user+' changes topic to "'+some_data+'"\n'
                 elif ( logs_of == 'kick' ):
-                    row = time_prefix+' *** '+irc_user+' was kicked by '+some_data+' ('+some_more_data+')\n'                
-                chan_d = str(channel).replace('#','')
-                filename = config.log_dir+chan_d+'/'+year+'/'+month+'/'+day
+                    row = ' *** '+irc_user+' was kicked by '+some_data+' ('+some_more_data+')\n'
+                else:
+                    return  # probably an error.
                 dir = os.path.dirname(filename)
                 try:
                     if not os.path.exists(dir):
                         os.makedirs(dir)
                     file = open(filename,'a')
-                    file.write(row)
+                    file.write(time_prefix + row)
                     file.close()
                 except:
                     print('####### ERROR !!! ###### Probably no write permissions to logs directory!')
