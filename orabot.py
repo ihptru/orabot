@@ -145,18 +145,28 @@ class IRC_Server:
                         pass
                     if irc_join_nick not in row:     #user NOT found, add him (if user is not in db, he could not have ]later message)
                         sql = """INSERT INTO users
-                                (user,state)
+                                (user,state,channels)
                                 VALUES
                                 (
-                                '"""+str(irc_join_nick)+"""',1
+                                '"""+str(irc_join_nick)+"""',1,'"""+chan+"""'
                                 )
                         """
                         cur.execute(sql)
                         conn.commit()
                     else:   #user is in `users` table; he can have ]later messages
-                        #for ]last
+                        #for ]last and for logs (add channel in list)
+                        sql = """SELECT channels FROM users
+                                WHERE user = '"""+irc_join_nick+"""'
+                        """
+                        cur.execute(sql)
+                        records = cur.fetchall()
+                        conn.commit()
+                        if ( records[0][0] == '' ) or ( records[0][0] == None ):
+                            channel_to_db = chan
+                        else:
+                            channel_to_db = records[0][0]+','+chan
                         sql = """UPDATE users
-                                SET state = 1
+                                SET state = 1, channels = '"""+channel_to_db+"""'
                                 WHERE user = '"""+str(irc_join_nick)+"""'
                         """
                         cur.execute(sql)
@@ -203,11 +213,24 @@ class IRC_Server:
                 cur=conn.cursor()
                 irc_quit_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
                 supy_host = str(recv).split()[0][3:]
-                ##logs
-                for chan in config.log_channels.split(','):
-                    self.logs(irc_quit_nick, chan, 'quit', str(supy_host), '')
-                ###
-                ### for ]last              
+                ### for ]last and logs
+                sql = """SELECT channels FROM users
+                        WHERE user = '"""+irc_quit_nick+"""'
+                """
+                cur.execute(sql)
+                records = cur.fetchall()
+                conn.commit()
+                if ( len(records) == 0 ):   #user not found in table users
+                    for chan in config.log_channels.split(','):
+                        self.logs(irc_quit_nick, chan, 'quit', str(supy_host), '')
+                else:   #user found
+                    db_channels = records[0][0].split(',')
+                    if ( len(db_channels) == 0 ):   #no channels found; reason(probably bot was offline when user joined or user was added manually)
+                        for chan in config.log_channels.split(','):
+                            self.logs(irc_quit_nick, chan, 'quit', str(supy_host), '')
+                    else:   #there are channels
+                        for chan in db_channels:
+                            self.logs(irc_quit_nick, chan, 'quit', str(supy_host), '')
                 sql = """UPDATE users
                         SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
                         WHERE user = '"""+str(irc_quit_nick)+"'"+"""
@@ -240,9 +263,24 @@ class IRC_Server:
                 ###logs
                 self.logs(irc_part_nick, chan, 'part', str(supy_host), '')
                 ###
-                ### for ]last              
+                ### for ]last  and logs
+                sql = """SELECT channels FROM users
+                        WHERE user = '"""+irc_part_nick+"""'
+                """
+                cur.execute(sql)
+                records = cur.fetchall()
+                conn.commit()
+                channel_from_db = ''
+                if not ( records[0][0] == '' ) or ( records[0][0] == None ):
+                    db_channels = records[0][0].split(',')
+                    if chan in db_channels:
+                        chan_index = db_channels.index(chan)
+                        del db_channels[chan_index]
+                        channel_from_db = db_channels
+                    else:
+                        channel_from_db = db_channels
                 sql = """UPDATE users
-                        SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
+                        SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0, channels = '"""+channels_from_db+"""'
                         WHERE user = '"""+str(irc_part_nick)+"'"+"""
                 """
                 cur.execute(sql)

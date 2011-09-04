@@ -76,7 +76,8 @@ def users():
         uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
         user varchar(30) NOT NULL,
         date date,
-        state bool NOT NULL DEFAULT 0
+        state bool NOT NULL DEFAULT 0,
+        channels VARCHAR
         )
     """
     cur.execute(sql)
