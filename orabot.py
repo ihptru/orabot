@@ -357,7 +357,7 @@ class IRC_Server:
     def logs(self, irc_user, channel, logs_of, some_data, some_more_data):
         if config.write_logs == True:
             chan_d = str(channel).replace('#','')
-            t = time.time()
+            t = time.localtime( time.time() )
             time_prefix = time.strftime( '%Y-%m-%dT%T', t )
             filename = config.log_dir + chan_d + time.strftime( '/%Y/%m/%d', t )
             if channel in config.log_channels.split(','):
