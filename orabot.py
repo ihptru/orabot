@@ -117,60 +117,9 @@ class IRC_Server:
                         self.command = str(irc_user_message[1:])
                         # (str(recv)).split()[2] ) is simply the channel the command was heard on.
                         self.process_command(irc_user_nick, ( (str(recv)).split()[2] ))
-### when message cotains link, show title
-                if re.search('.*http.*://.*', str(irc_user_message)):
-                    flood_protection = 0
-                    matches = re.findall(r"http.?://[^\s]*", str(irc_user_message))
-                    for http_link in matches:
-                        flood_protection = flood_protection + 1
-                        if flood_protection == 5:
-                            time.sleep(6)
-                            flood_protection = 0
-                        link = http_link.split('://')[1]
-                        pre = http_link.split('http')[1].split('//')[0]
-                        link = 'http'+pre+'//'+link
-                        if re.search('http.*youtube.com/watch.*', link):
-                            if re.search("^#", chan):
-                                link = link.split('&')[0]
-                                try:
-                                    site = urllib.request.urlopen(link)
-                                    site = site.read()
-                                    site = site.decode('utf-8')
-                                    title = site.split('<title>')[1].split('</title>')[0].lstrip().split('- YouTube')[0].rstrip().replace('&amp;','&').replace('&#39;', '\'')
-                                    if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
-                                        self.send_message_to_channel( ("Youtube: "+str(title)), chan )
-                                except:
-                                    pass    #do not write title in private
-                        else:
-                            if re.search("^#", chan):
-                                try:
-                                    site = urllib.request.urlopen(link)
-                                    site = site.read()
-                                    site = site.decode('utf-8')
-                                    title = site.split('<title>')[1].split('</title>')[0].rstrip().lstrip().replace('\n','')
-                                    self.send_message_to_channel( ("Title: "+title), chan )
-                                except:
-                                    pass    #do not write title in private
-                    flood_protection = 0
-                if re.search('.*\#[0-9]*.*', str(irc_user_message)):
-                    flood_protection = 0
-                    matches = re.findall(r"#[0-9]*", str(irc_user_message))
-                    if re.search("^#", chan):
-                        for bug_report in matches:
-                            flood_protection = flood_protection + 1
-                            if flood_protection == 5:
-                                time.sleep(6)
-                                flood_protection = 0
-                            bug_or_feature_num = bug_report.split('#')[1]
-                            url = 'http://bugs.open-ra.org/issues/'+bug_or_feature_num
-                            try:
-                                stream = urllib.request.urlopen(url).read()
-                                stream = stream.decode('utf-8')
-                                fetched = stream.split('<title>')[1].split('</title>')[0].split('OpenRA - ')[1].split(' - open-ra')[0]
-                                self.send_message_to_channel( (fetched+" | "+url), chan )
-                            except:
-                                pass
-                        flood_protection = 0
+### parse links and bug reports numbers
+                self.parse_link(chan, str(irc_user_message))
+                self.parse_bug_num(chan, str(irc_user_message))
 ###
 
             if str(recv).find ( " JOIN " ) != -1:
@@ -421,7 +370,64 @@ class IRC_Server:
                     file.close()
                 except:
                     print('####### ERROR !!! ###### Probably no write permissions to logs directory!')
+    
+    def parse_link(self, channel, message):
+        if re.search('.*http.*://.*', message):
+            flood_protection = 0
+            matches = re.findall(r"http.?://[^\s]*", message)
+            for http_link in matches:
+                flood_protection = flood_protection + 1
+                if flood_protection == 5:
+                    time.sleep(6)
+                    flood_protection = 0
+                link = http_link.split('://')[1]
+                pre = http_link.split('http')[1].split('//')[0]
+                link = 'http'+pre+'//'+link
+                if re.search('http.*youtube.com/watch.*', link):
+                    if re.search("^#", channel):
+                        link = link.split('&')[0]
+                        try:
+                            site = urllib.request.urlopen(link)
+                            site = site.read()
+                            site = site.decode('utf-8')
+                            title = site.split('<title>')[1].split('</title>')[0].lstrip().split('- YouTube')[0].rstrip().replace('&amp;','&').replace('&#39;', '\'')
+                            if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
+                                self.send_message_to_channel( ("Youtube: "+str(title)), channel )
+                        except:
+                            pass    #do not write title in private
+                else:
+                    if re.search("^#", channel):
+                        try:
+                            site = urllib.request.urlopen(link)
+                            site = site.read()
+                            site = site.decode('utf-8')
+                            title = site.split('<title>')[1].split('</title>')[0].rstrip().lstrip().replace('\n','')
+                            self.send_message_to_channel( ("Title: "+title), channel )
+                        except:
+                            pass    #do not write title in private
+            flood_protection = 0
 
+    def parse_bug_num(self, channel, message):
+        if re.search('.*\#[0-9]*.*', message):
+            flood_protection = 0
+            matches = re.findall(r"#[0-9]*", message)
+            if re.search("^#", channel):
+                for bug_report in matches:
+                    flood_protection = flood_protection + 1
+                    if flood_protection == 5:
+                        time.sleep(6)
+                        flood_protection = 0
+                    bug_or_feature_num = bug_report.split('#')[1]
+                    url = 'http://bugs.open-ra.org/issues/'+bug_or_feature_num
+                    try:
+                        stream = urllib.request.urlopen(url).read()
+                        stream = stream.decode('utf-8')
+                        fetched = stream.split('<title>')[1].split('</title>')[0].split('OpenRA - ')[1].split(' - open-ra')[0]
+                        self.send_message_to_channel( (fetched+" | "+url), channel )
+                    except:
+                        pass
+                flood_protection = 0
+    
     # This function is for pickup matches code
     def players_for_mode(self, mode):
         return sum( map( int, mode.split('v') ) )
