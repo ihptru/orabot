@@ -31,8 +31,7 @@ def notify(self, user, channel):
             pass
         if ( user in row ):
             message = "You are already subscribed for new games notification"
-            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-            self.irc_sock.send (str_buff.encode())
+            self.send_notice( message, user )
         else:
             sql = """INSERT INTO notify
                     (user,date)
@@ -44,8 +43,7 @@ def notify(self, user, channel):
             cur.execute(sql)
             conn.commit()
             message = "You are subscribed for new games notification"
-            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-            self.irc_sock.send (str_buff.encode())
+            self.send_notice( message, user )
     elif ( len(command) > 1 ):
         length = len(command)
         result_mod = "all"
@@ -68,8 +66,7 @@ def notify(self, user, channel):
             pass
         if ( user in row ):
             message = "You are already subscribed for new games notification"
-            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-            self.irc_sock.send (str_buff.encode())
+            self.send_notice( message, user )
             cur.close()
             return
         else:
@@ -113,8 +110,7 @@ def notify(self, user, channel):
                                 cur.execute(sql)
                                 conn.commit()
                                 message = "Error! I don't know such game mod! Try again"
-                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                self.irc_sock.send (str_buff.encode())
+                                self.send_notice( message, user )
                                 cur.close()
                                 return 
                         else:
@@ -124,8 +120,7 @@ def notify(self, user, channel):
                             cur.execute(sql)
                             conn.commit()
                             message = "Error! You have already defined mod! Try again"
-                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                            self.irc_sock.send (str_buff.encode())
+                            self.send_notice( message, user )
                             cur.close()
                             return
                     elif ( argument[0] == '-v' ):   #version
@@ -166,8 +161,7 @@ def notify(self, user, channel):
                                 cur.execute(sql)
                                 conn.commit()
                                 message = "Error! Incorrect version!"
-                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                self.irc_sock.send (str_buff.encode())
+                                self.send_notice( message, user )
                                 cur.close()
                                 return
                         else:
@@ -177,8 +171,7 @@ def notify(self, user, channel):
                             cur.execute(sql)
                             conn.commit()
                             message = "Error! You have already defined version! Try again"
-                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                            self.irc_sock.send (str_buff.encode())
+                            self.send_notice( message, user )
                             cur.close()
                             return
                     elif ( argument[0] == '-t' ):   #timeout
@@ -219,8 +212,7 @@ def notify(self, user, channel):
                                     cur.execute(sql)
                                     conn.commit()
                                     message = "Timeout Syntax Error! Try again"
-                                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                    self.irc_sock.send (str_buff.encode())
+                                    self.send_notice( message, user )
                                     cur.close()
                                     return
                             except:
@@ -230,8 +222,7 @@ def notify(self, user, channel):
                                 cur.execute(sql)
                                 conn.commit()
                                 message = "Timeout Syntax Error! Try again"
-                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                self.irc_sock.send (str_buff.encode())
+                                self.send_notice( message, user )
                                 cur.close()
                                 return
                         else:
@@ -241,8 +232,7 @@ def notify(self, user, channel):
                             cur.execute(sql)
                             conn.commit()
                             message = "Error! You have already defined timeout! Try again"
-                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                            self.irc_sock.send (str_buff.encode())
+                            self.send_notice( message, user )
                             cur.close()
                             return
                     elif ( argument[0] == '-n' ):   #num players on server
@@ -283,8 +273,7 @@ def notify(self, user, channel):
                                     cur.execute(sql)
                                     conn.commit()
                                     message = "-n Syntax Error! Try again"
-                                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                    self.irc_sock.send (str_buff.encode())
+                                    self.send_notice( message, user )
                                     cur.close()
                                     return
                             except:
@@ -294,8 +283,7 @@ def notify(self, user, channel):
                                 cur.execute(sql)
                                 conn.commit()
                                 message = "-n Syntax Error! Try again"
-                                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                                self.irc_sock.send (str_buff.encode())
+                                self.send_notice( message, user )
                                 cur.close()
                                 return
                         else:
@@ -305,8 +293,7 @@ def notify(self, user, channel):
                             cur.execute(sql)
                             conn.commit()
                             message = "Error! You have already defined amount of players (-n)! Try again"
-                            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                            self.irc_sock.send (str_buff.encode())
+                            self.send_notice( message, user )
                             cur.close()
                             return
                     else:
@@ -316,8 +303,7 @@ def notify(self, user, channel):
                         cur.execute(sql)
                         conn.commit()
                         message = "Syntax error!"+" What is "+argument[0]
-                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                        self.irc_sock.send (str_buff.encode())
+                        self.send_notice( message, user )
                         cur.close()
                         return
                 else:
@@ -327,11 +313,9 @@ def notify(self, user, channel):
                     cur.execute(sql)
                     conn.commit()
                     message = "Syntax error!"
-                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())
+                    self.send_notice( message, user )
                     cur.close()
                     return
             message = "You are subscribed for new games notification; Mod: "+result_mod+"; Version: "+result_version+"; Minimum amount of players: "+result_num+"; Timeout: "+result_timeout
-            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-            self.irc_sock.send (str_buff.encode())
+            self.send_notice( message, user )
     cur.close()

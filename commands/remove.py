@@ -41,12 +41,10 @@ def remove(self, user, channel):
                         cur.execute(sql)
                         conn.commit()
                         message = "You are removed from :: "+temp_mode+" ::"
-                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                        self.irc_sock.send (str_buff.encode())
+                        self.send_notice( message, user )
                         return
                 message = "Error, you are not detected added to any game"
-                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                self.irc_sock.send (str_buff.encode())
+                self.send_notice( message, user )
             else:
                 if command[1] in modes:
                     mode = command[1]
@@ -65,12 +63,10 @@ def remove(self, user, channel):
                         cur.execute(sql)
                         conn.commit()
                         message = "You are removed from :: "+mode+" ::"
-                        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                        self.irc_sock.send (str_buff.encode())
+                        self.send_notice( message, user )
                         return
                     message = "Error, you are not detected added to :: "+mode+" ::"
-                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())
+                    self.send_notice( message, user )
                 else:
                     self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
                     return

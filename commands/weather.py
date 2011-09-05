@@ -18,8 +18,7 @@ import pywapi
 def weather(self, user, channel):
     def weather_usage():
         message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
-        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-        self.irc_sock.send( str_buff.encode() )
+        self.send_notice( message, user )
 
     command = (self.command)
     command = command.split()
@@ -39,8 +38,7 @@ def weather(self, user, channel):
                     self.send_reply( (message), user, channel )
                 except:
                     message = "Error: No such location could be found."
-                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())
+                    self.send_notice( message, user )
         elif (command[1] == "--forecast" ):
             if ( len(command) == 2 ):
                 weather_usage()
@@ -59,12 +57,10 @@ def weather(self, user, channel):
                         weathers.append(day_of_week+": "+conditions+"; High of "+high_temp+"°C; Low of "+low_temp+"°C")
 
                     message = "Forecast for " +city+" | "+" | ".join(weathers)
-                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())
+                    self.send_notice( message, user )
                 except:
                     message = "Error: No such location could be found."
-                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())
+                    self.send_notice( message, user )
         elif (command[1] == "--all" ):
             if ( len(command) == 2 ):
                 weather_usage()
@@ -84,12 +80,10 @@ def weather(self, user, channel):
                         low_temp = str(int(round((int(data.get("forecasts")[i].get("low"))-32)/1.8)))
                         weathers.append(day_of_week+": "+conditions+"; High of "+high_temp+"°C; Low of "+low_temp+"°C")
                     message = " | ".join(weathers)
-                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())
+                    self.send_notice( message, user )
                 except:
                     message = "Error: No such location could be found."
-                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())
+                    self.send_notice( message, user )
         else:
             try:
                 location = command[1]
@@ -100,5 +94,4 @@ def weather(self, user, channel):
                 self.send_reply( (message), user, channel )
             except:
                 message = "Error: No such location could be found."
-                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                self.irc_sock.send (str_buff.encode())
+                self.send_notice( message, user )

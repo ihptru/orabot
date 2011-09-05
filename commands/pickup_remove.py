@@ -40,13 +40,11 @@ def pickup_remove(self, user, channel):
                     cur.execute(sql)
                     conn.commit()
                     message = "You removed "+command[1]+" from :: "+temp_mode+" ::"
-                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())
+                    self.send_notice( message, user )
                     cur.close()
                     return
             message = "Error, "+command[1]+" is not detected added to any game"
-            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-            self.irc_sock.send (str_buff.encode())
+            self.send_notice( message, user )
         cur.close()
     else:
         self.send_reply( ("Nice try!"), user, channel )

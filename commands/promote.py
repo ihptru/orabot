@@ -35,8 +35,7 @@ def promote(self, user, channel):
                 name.append(row[0])
             if ( name == [] ):
                 message = "Promote Error, no players added for "+mode
-                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                self.irc_sock.send (str_buff.encode())
+                self.send_notice( message, user )
             else:
                 message = "Please add up for :: "+mode+" :: ! "+ str(amount_players_required-int(len(name))) + " more people needed! (Type ]add "+mode+"  or  ]add "+mode+" host  ,if you can host)"
                 self.send_message_to_channel( (message), channel )
@@ -47,6 +46,5 @@ def promote(self, user, channel):
         self.send_message_to_channel( ("Error, wrong request"), channel )
     else:
         message = "Specify mode type to promote! 1v1, 2v2, 3v3, 4v4 or 5v5"
-        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-        self.irc_sock.send (str_buff.encode())
+        self.send_notice( message, user )
     cur.close()

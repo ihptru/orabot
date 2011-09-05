@@ -33,8 +33,7 @@ def complain(self, user, channel):
                 pass
             if name not in row:
                 message = "No such a user"
-                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                self.irc_sock.send (str_buff.encode())
+                self.send_notice( message, user )
             else:
                 complaints = row[1]
                 complaints = str(int(complaints) + 1)
@@ -45,8 +44,7 @@ def complain(self, user, channel):
                 cur.execute(sql)
                 conn.commit()
                 message = "Amount of "+name+"'s complaints increased by 1"
-                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                self.irc_sock.send (str_buff.encode())
+                self.send_notice( message, user )
         else:
             self.send_reply( ("Error, wrong request"), user, channel )
         cur.close()

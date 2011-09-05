@@ -277,9 +277,9 @@ class IRC_Server:
                         if chan in db_channels:
                             chan_index = db_channels.index(chan)
                             del db_channels[chan_index]
-                            channel_from_db = db_channels
+                            channel_from_db = ",".join(db_channels)
                         else:
-                            channel_from_db = db_channels
+                            channel_from_db = ",".join(db_channels)
                 sql = """UPDATE users
                         SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0, channels = '"""+channel_from_db+"""'
                         WHERE user = '"""+str(irc_part_nick)+"'"+"""
@@ -340,7 +340,11 @@ class IRC_Server:
         print ( ( "%s: %s") % (self.irc_nick, data) )
         self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (channel, data)).encode() )
         self.logs(self.irc_nick, channel, 'privmsg', str(data), '')
-        
+
+    def send_notice(self, data, user): 
+        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,data)
+        self.irc_sock.send (str_buff.encode())
+       
     # This function takes a channel, which must start with a #.
     def join_channel(self,channel):
         if (channel[0] == "#"):

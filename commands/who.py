@@ -42,12 +42,10 @@ def who(self, user, channel):
                     names.append(temp_mode + " ["+str(len(name))+"/"+str(amount_players_required)+"]: " + ", ".join(name))
             if names == []:
                 message = "No game going on!"
-                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                self.irc_sock.send (str_buff.encode())
+                self.send_notice( message, user )
             else:
                 message = "All games: "+" || ".join(names)
-                str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                self.irc_sock.send (str_buff.encode())
+                self.send_notice( message, user )
         else:
             if command[1] in modes:
                 mode = command[1]
@@ -65,12 +63,10 @@ def who(self, user, channel):
                         name.append(row[0])
                 if name == []:
                     message = "No players detected for :: "+mode+" ::"
-                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())
+                    self.send_notice( message, user )
                 else:
                     message = "@ " + mode + " ["+str(len(name))+"/"+str(amount_players_required)+"]: " + ", ".join(name)
-                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())
+                    self.send_notice( message, user )
             else:
                 self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
                 return

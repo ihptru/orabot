@@ -33,8 +33,7 @@ def lastgame(self, user, channel):
             last_date = "-".join(row[5].split('-')[0:3])
             last_time = ":".join(row[5].split('-')[3:5])
             message = "@ "+row[2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+row[3]+" || Map: "+row[4]+" || Team 1: "+row[0]+" || Team 2: "+row[1]
-            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-            self.irc_sock.send (str_buff.encode())
+            self.send_notice( message, user )
         else:
             modes = ['1v1','2v2','3v3','4v4','5v5']
             if command[1] in modes:
@@ -52,12 +51,10 @@ def lastgame(self, user, channel):
                     last_date = "-".join(row[5].split('-')[0:3])
                     last_time = ":".join(row[5].split('-')[3:5])
                     message = "@ "+row[2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+row[3]+" || Map: "+row[4]+" || Team 1: "+row[0]+" || Team 2: "+row[1]
-                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())
+                    self.send_notice( message, user )
                 else:
                     message = "No "+mode+" games played"
-                    str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-                    self.irc_sock.send (str_buff.encode())
+                    self.send_notice( message, user )
             else:
                 self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
                 return

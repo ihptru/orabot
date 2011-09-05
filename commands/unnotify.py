@@ -36,14 +36,11 @@ def unnotify(self, user, channel):
             cur.execute(sql)
             conn.commit()
             message = "You are unsubscribed from new games notification"
-            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-            self.irc_sock.send (str_buff.encode())
+            self.send_notice( message, user )
         else:
             message = "You are not subscribed for new games notification"
-            str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-            self.irc_sock.send (str_buff.encode())
+            self.send_notice( message, user )
     else:
         message = "Error arguments"
-        str_buff = ( "NOTICE %s :%s\r\n" ) % (user,message)
-        self.irc_sock.send (str_buff.encode())
+        self.send_notice( message, user )
     cur.close()
