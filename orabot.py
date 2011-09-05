@@ -271,14 +271,15 @@ class IRC_Server:
                 records = cur.fetchall()
                 conn.commit()
                 channel_from_db = ''
-                if not ( records[0][0] == '' ) or ( records[0][0] == None ):
-                    db_channels = records[0][0].split(',')
-                    if chan in db_channels:
-                        chan_index = db_channels.index(chan)
-                        del db_channels[chan_index]
-                        channel_from_db = db_channels
-                    else:
-                        channel_from_db = db_channels
+                if ( len(records) != 0 ):
+                    if not (( records[0][0] == '' ) or ( str(records[0][0]) == 'None' )):
+                        db_channels = records[0][0].split(',')
+                        if chan in db_channels:
+                            chan_index = db_channels.index(chan)
+                            del db_channels[chan_index]
+                            channel_from_db = db_channels
+                        else:
+                            channel_from_db = db_channels
                 sql = """UPDATE users
                         SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0, channels = '"""+channel_from_db+"""'
                         WHERE user = '"""+str(irc_part_nick)+"'"+"""
