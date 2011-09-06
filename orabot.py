@@ -395,11 +395,9 @@ class IRC_Server:
                     print('####### ERROR !!! ###### Probably no write permissions to logs directory!')
     
     def title_from_url(self, url):
-        # todo: security: can force the bot to download a large file.
-        #                 should limit to first 2K or similar.
         # todo: security: can force the bot to output anything we like into
         #                 the channel.
-        data = urllib.request.urlopen(url).read().decode('utf-8')
+        data = urllib.request.urlopen(url).read(2048).decode('utf-8')
         title = data.split('<title>')[1].split('</title>')[0].strip()
         return title
 
@@ -423,7 +421,7 @@ class IRC_Server:
                             if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
                                 self.send_message_to_channel( ("Youtube: "+str(title)), channel )
                         except:
-                            pass    #do not write title in private
+                            pass    #probably socket error in title_from_url() or remote page has some `special` charset bot can not decode()
                     else:
                         try:
                             title = self.title_from_url(link).replace('\n','').replace('&amp;','&').replace('&#39;', '\'')
