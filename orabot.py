@@ -327,7 +327,7 @@ class IRC_Server:
 
     def data_to_message(self,data):
         data = data[data.find(':')+1:len(data)]
-        data = " ".join(data.split()[3:])[1:-5].rstrip()
+        data = " ".join(data.split()[3:])[1:-5].rstrip()    #seems [1:-5] must be changed to [1:-2] if bot is run on MAC
         return data
 
     # helper to remove some insanity.
@@ -426,7 +426,7 @@ class IRC_Server:
                             pass    #do not write title in private
                     else:
                         try:
-                            title = self.title_from_url(link).replace('\n','')
+                            title = self.title_from_url(link).replace('\n','').replace('&amp;','&').replace('&#39;', '\'')
                             self.send_message_to_channel( ("Title: "+title), channel )
                         except:
                             pass    #do not write title in private
@@ -470,12 +470,15 @@ class IRC_Server:
                 return False
             
     def evalCommand(self, commandname, user, channel):
-        if imp.find_module('commands/'+commandname):
-            imp.reload(eval(commandname))
-            command_function=getattr(eval(commandname), commandname, None)
-            if command_function != None:
-                if inspect.isfunction(command_function):
-                    command_function(self, user, channel)
+        try:
+            imp.find_module('commands/'+commandname)
+        except:
+            return  #no such command
+        imp.reload(eval(commandname))
+        command_function=getattr(eval(commandname), commandname, None)
+        if command_function != None:
+            if inspect.isfunction(command_function):
+                command_function(self, user, channel)
 
     def process_command(self, user, channel):
         command = (self.command)
