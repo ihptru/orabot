@@ -28,9 +28,12 @@ def games(self, user, channel):
     cur=conn.cursor()
     flood_protection = 0
     if ( len(command) == 1 ):
-        content = urllib.request.urlopen(url).read().decode('utf-8')
-        y = yaml.load(content.replace('\t','    '))
-        keys_list = y.keys()
+        try:
+            content = urllib.request.urlopen(url).read().decode('utf-8')
+            y = yaml.load(content.replace('\t','    '))
+            keys_list = y.keys()
+        except:
+            return
         if ( len(keys_list) == 0 ):
             self.send_reply( ("No games found"), user, channel )
         else:
@@ -72,9 +75,12 @@ def games(self, user, channel):
             if ( count == "0" ):    #appeared no games in State: 1
                 self.send_reply( ("No games waiting for players found"), user, channel )           
     elif ( len(command) == 2 ):   # ]games with args
-        content = urllib.request.urlopen(url).read().decode('utf-8')
-        y = yaml.load(content.replace('\t','    '))
-        keys_list = y.keys()
+        try:
+            content = urllib.request.urlopen(url).read().decode('utf-8')
+            y = yaml.load(content.replace('\t','    '))
+            keys_list = y.keys()
+        except:
+            return
         if ( len(keys_list) == 0 ):
             self.send_reply( ("No games found"), user, channel )
         else:   # there are one or more games
@@ -234,9 +240,12 @@ def games(self, user, channel):
                 self.send_reply( ("Incorrect option!"), user, channel )
     elif ( len(command) > 2 ):
         if ( command[1] == "-r" ):  #patter request
-            content = urllib.request.urlopen(url).read().decode('utf-8')
-            y = yaml.load(content.replace('\t','    '))
-            keys_list = y.keys()
+            try:
+                content = urllib.request.urlopen(url).read().decode('utf-8')
+                y = yaml.load(content.replace('\t','    '))
+                keys_list = y.keys()
+            except:
+                return
             if ( len(keys_list) == 0 ):
                 self.send_reply( ("No games found"), user, channel )
             else:   # there are one or more games

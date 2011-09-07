@@ -13,13 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import socket, sys, multiprocessing, time
+import socket, multiprocessing, time
 import os
 import re
 from datetime import date
 import sqlite3
-import random
-import pywapi
 import urllib.request
 import imp
 import inspect
@@ -39,7 +37,6 @@ if not os.path.exists('db/openra.sqlite'):
 class IRC_Server:
 
     # The default constructor - declaring our global variables
-    # channel should be rewritten to be a list, which then loops to connect, per channel.
     # This needs to support an alternate nick.
     def __init__(self, host, port, nick, channel , password =""):
         self.irc_host = host
@@ -56,9 +53,7 @@ class IRC_Server:
     def __del__(self):
         self.irc_sock.close()
 
-    # This is the bit that controls connection to a server & channel.
-    # It should be rewritten to allow multiple channels in a single server.
-    # This needs to have an "auto identify" as part of its script, or support a custom connect message.       
+    # This is the bit that controls connection to a server & channel.       
     def connect(self):
         self.should_reconnect = True
         try:
@@ -71,17 +66,22 @@ class IRC_Server:
         str_buff = ("NICK %s \r\n") % (self.irc_nick)
         self.irc_sock.send (str_buff.encode())
         print ("Setting bot nick to " + str(self.irc_nick) )
-
+        time.sleep(2)
+        recv = self.irc_sock.recv( 4096 )
+        if str(recv).find ( " 433 * "+self.irc_nick+" " ) != -1:
+            print('Nick is already in use!!! Change nickname and restart bot!')
+            return
+                    
         str_buff = ("USER %s 8 * :X\r\n") % (self.irc_nick)
         self.irc_sock.send (str_buff.encode())
         print ("Setting User")
         # Insert Alternate nick code here.
 
-        # Insert Auto-Identify code here.
         if config.nickserv == True:
+            print ("Attempt to identify with NickServ...")
             data = "identify "+config.nickserv_password
             self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('NickServ', data)).encode() )
-        
+
         for i in range(int(len(self.irc_channel))):
             str_buff = ( "JOIN %s \r\n" ) % (self.irc_channel[i])
             self.irc_sock.send (str_buff.encode())
@@ -101,7 +101,7 @@ class IRC_Server:
                 irc_user_nick = str(recv).split ( '!' ) [ 0 ] . split ( ":")[1]
                 irc_user_host = str(recv).split ( '@' ) [ 1 ] . split ( ' ' ) [ 0 ]
                 irc_user_message = self.data_to_message(str(recv))
-                chan = (str(recv)).split()[2]  #channel ex: #openra
+                chan = (str(recv)).split()[2]  #channel
                 ###logs
                 if re.search('^.*01ACTION', irc_user_message) and re.search('01$', irc_user_message):
                     irc_user_message_me = irc_user_message.split('01ACTION ')[1][0:-4]
@@ -115,8 +115,7 @@ class IRC_Server:
                 if ( str(irc_user_message) != '' ):
                     if ( str(irc_user_message[0]) == config.command_prefix ):
                         self.command = str(irc_user_message[1:])
-                        # (str(recv)).split()[2] ) is simply the channel the command was heard on.
-                        self.process_command(irc_user_nick, ( (str(recv)).split()[2] ))
+                        self.process_command(irc_user_nick, ( chan ))
 ### parse links and bug reports numbers
                 self.parse_link(chan, str(irc_user_message))
                 self.parse_bug_num(chan, str(irc_user_message))
@@ -335,13 +334,15 @@ class IRC_Server:
         target = channel if channel.startswith('#') else user
         self.send_message_to_channel(data,target)
 
-    # This function sends a message to a channel, which must start with a #.
+    # This function sends a message to a channel or user
     def send_message_to_channel(self,data,channel):
         print ( ( "%s: %s") % (self.irc_nick, data) )
         self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (channel, data)).encode() )
+        ### logs
         self.logs(self.irc_nick, channel, 'privmsg', str(data), '')
 
-    def send_notice(self, data, user): 
+    def send_notice(self, data, user):
+        print ( ( "NOTICE to %s: %s" ) % (user, data) )
         str_buff = ( "NOTICE %s :%s\r\n" ) % (user,data)
         self.irc_sock.send (str_buff.encode())
        
@@ -427,7 +428,7 @@ class IRC_Server:
                             title = self.title_from_url(link).replace('\n','').replace('&amp;','&').replace('&#39;', '\'')
                             self.send_message_to_channel( ("Title: "+title), channel )
                         except:
-                            pass    #do not write title in private
+                            pass    #probably socket error in title_from_url() or remote page has some `special` charset bot can not decode()
             flood_protection = 0
 
     def parse_bug_num(self, channel, message):
