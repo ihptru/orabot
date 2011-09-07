@@ -9,3 +9,5 @@ To start:
 ./run.py
 
 ###
+python3 dependences:
+yaml, pygeoip
