@@ -78,9 +78,16 @@ class IRC_Server:
         # Insert Alternate nick code here.
 
         if config.nickserv == True:
-            print ("Attempt to identify with NickServ...")
+            print ("Attempting to identify with NickServ...")
             data = "identify "+config.nickserv_password
+            time.sleep(3)
             self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('NickServ', data)).encode() )
+            time.sleep(3)
+            recv = self.irc_sock.recv( 8192 )
+            if str(recv).find ( " NOTICE "+config.bot_nick+" :You are now identified for " ) != -1:
+                print("Identification succeeded")
+            else:
+                print("### Identification failed! ###")
 
         for i in range(int(len(self.irc_channel))):
             str_buff = ( "JOIN %s \r\n" ) % (self.irc_channel[i])
