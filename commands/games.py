@@ -28,29 +28,26 @@ def games(self, user, channel):
     cur=conn.cursor()
     flood_protection = 0
     if ( len(command) == 1 ):
-        try:
-            content = urllib.request.urlopen(url).read().decode('utf-8')
-            if ( len(content) == 0 ):
-                self.send_reply( ("No games found"), user, channel )
-                return
-            y = yaml.load(content.replace('\t','    '))
-        except:
+        content = urllib.request.urlopen(url).read().decode('utf-8').replace('[down]','--down--')
+        if ( len(content) == 0 ):
+            self.send_reply( ("No games found"), user, channel )
             return
+        y = yaml.load(content.replace('\t','    '))
         count='0'
-        for i in range(int(len(keys_list))):
-            if ( y['Game@'+str(i)]['State'] == 1 ):
+        for game in y.values():
+            if ( game['State'] == 1 ):
                 count='1'   # lock - there are games in State: 1
                 state = '(W)'
                 ### for location
-                ip = " ".join(y['Game@'+str(i)]['Address'].split(':')[0:-1])    # ip address
+                ip = " ".join(game['Address'].split(':')[0:-1])    # ip address
                 gi = pygeoip.GeoIP('../GeoIP.dat')
                 country = gi.country_name_by_addr(ip).upper()   #got country name
                 ###
-                sname = y['Game@'+str(i)]['Name']
+                sname = game['Name'].replace('--down--','[down]')
                 if ( len(sname) == 0 ):
                     sname = 'noname'
                 sql = """SELECT title,players FROM maps
-                        WHERE hash = '"""+y['Game@'+str(i)]['Map']+"""'
+                        WHERE hash = '"""+game['Map']+"""'
                 """
                 cur.execute(sql)
                 records = cur.fetchall()
@@ -61,8 +58,8 @@ def games(self, user, channel):
                 else:
                     map_name = 'unknown'
                     max_players = ''
-                players = str(y['Game@'+str(i)]['Players'])
-                modinfo = y['Game@'+str(i)]['Mods'].split('@')
+                players = str(game['Players'])
+                modinfo = game['Mods'].split('@')
                 games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
                 time.sleep(0.5)
                 flood_protection = flood_protection + 1
@@ -72,7 +69,7 @@ def games(self, user, channel):
                 self.send_reply( (games), user, channel )
         flood_protection = 0
         if ( count == "0" ):    #appeared no games in State: 1
-            self.send_reply( ("No games waiting for players found"), user, channel )           
+            self.send_reply( ("No games waiting for players found"), user, channel )
     elif ( len(command) == 2 ):   # ]games with args
         try:
             content = urllib.request.urlopen(url).read().decode('utf-8')

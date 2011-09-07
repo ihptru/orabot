@@ -35,7 +35,7 @@ def show(self, user, channel):
                     #recover all nicks on channel
                     recv = self.irc_sock.recv( 4096 )
 
-                    if str(recv).find ( "353 "+config.bot_nick+" =" ) != -1:
+                    if str(recv).find ( " 353 "+config.bot_nick ) != -1:
                         user_nicks = str(recv).split(':')[2].rstrip()
                         user_nicks = user_nicks.replace('+','').replace('@','').replace('%','')
                         user_nicks = user_nicks.split(' ')
