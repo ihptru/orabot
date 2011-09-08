@@ -28,6 +28,12 @@ def get_map_info( cur, sha ):
         return (records[0][0], '/' + str(records[0][1]))
     else:
         return ('unknown', '')
+def modinfo( mod ):
+    mod_split = mod.split('@')
+    if ( len(mod_split) == 1 ):
+        return (mod_split[0].upper()).ljust(20)
+    else:
+        return (mod_split[0].upper() + '@' + mod_split[1]).ljust(20)
 
 def games(self, user, channel):
     command = (self.command)
@@ -57,8 +63,7 @@ def games(self, user, channel):
                     sname = 'noname'
                 map_name, max_players = get_map_info(cur, game['Map'])
                 players = str(game['Players'])
-                modinfo = game['Mods'].split('@')
-                games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
+                games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+modinfo(game['Mods'])+' - '+country
                 time.sleep(0.5)
                 flood_protection = flood_protection + 1
                 if flood_protection == 7:
@@ -90,8 +95,7 @@ def games(self, user, channel):
                         sname = 'noname'
                     map_name, max_players = get_map_info(cur, game['Map'])
                     players = str(game['Players'])
-                    modinfo = game['Mods'].split('@')
-                    games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
+                    games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+modinfo(game['Mods'])+' - '+country
                     time.sleep(0.5)
                     flood_protection = flood_protection + 1
                     if flood_protection == 7:
@@ -117,8 +121,7 @@ def games(self, user, channel):
                         sname = 'noname'
                     map_name, max_players = get_map_info(cur, game['Map'])
                     players = str(game['Players'])
-                    modinfo = game['Mods'].split('@')
-                    games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
+                    games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+modinfo(game['Mods'])+' - '+country
                     time.sleep(0.5)
                     flood_protection = flood_protection + 1
                     if flood_protection == 7:
@@ -144,8 +147,7 @@ def games(self, user, channel):
                     sname = 'noname'
                 map_name, max_players = get_map_info(cur, game['Map'])
                 players = str(game['Players'])
-                modinfo = game['Mods'].split('@')
-                games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
+                games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+modinfo(game['Mods'])+' - '+country
                 time.sleep(0.5)
                 flood_protection = flood_protection + 1
                 if flood_protection == 7:
@@ -164,12 +166,11 @@ def games(self, user, channel):
                 sname = game['Name'].replace('--down--','[down]')
                 if ( len(sname) == 0 ):
                     sname = 'noname'
-                modinfo = game['Mods'].split('@')
                 players = str(game['Players'])
                 if ( state == 'W' ):
-                    games_state1 = games_state1+'\t['+players+'] '+sname.strip()+' ('+(modinfo[0].upper()+'@'+ modinfo[1])+')||'
+                    games_state1 = games_state1+'\t['+players+'] '+sname.strip()+' ('+modinfo(game['Mods'])+')||'
                 elif ( state == 'P' ):
-                    games_state2 = games_state2+'\t['+players+'] '+sname.strip()+' ('+(modinfo[0].upper()+'@'+ modinfo[1])+')||'
+                    games_state2 = games_state2+'\t['+players+'] '+sname.strip()+' ('+modinfo(game['Mods'])+')||'
             split_games_state1 = games_state1.split('||')
             split_games_state2 = games_state2.split('||')
             if ( len(split_games_state2) > 1 ):
@@ -230,8 +231,7 @@ def games(self, user, channel):
                             sname = 'noname'
                         map_name, max_players = get_map_info(cur, game['Map'])
                         players = str(game['Players'])
-                        modinfo = game['Mods'].split('@')
-                        games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+(modinfo[0].upper()+'@'+ modinfo[1]).ljust(20)+' - '+country
+                        games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+modinfo(game['Mods'])+' - '+country
                         time.sleep(0.5)
                         flood_protection = flood_protection + 1
                         if flood_protection == 7:
