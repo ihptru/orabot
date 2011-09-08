@@ -14,14 +14,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 def quit(self, user, channel):
-    if self.OpVoice(user, channel):
-        command = (self.command)
-        command = command.split()
-        if ( len(command) == 1 ):
-            str_buff = ( "QUIT %s \r\n" ) % (channel)
-            self.irc_sock.send (str_buff.encode())
-            self.irc_sock.close()
-            self.is_connected = False
-            self.should_reconnect = False
-    else:
-        self.send_reply( ("Nice try!"), user, channel )
+    if not self.OpVoice(user, channel):
+        return
+    command = (self.command)
+    command = command.split()
+    if ( len(command) == 1 ):
+        str_buff = ( "QUIT %s \r\n" ) % (channel)
+        self.irc_sock.send (str_buff.encode())
+        self.irc_sock.close()
+        self.is_connected = False
+        self.should_reconnect = False

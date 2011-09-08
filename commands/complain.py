@@ -16,37 +16,36 @@
 import sqlite3
 
 def complain(self, user, channel):
-    if self.OpVoice(user, channel):
-        command = (self.command)
-        command = command.split()
-        conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
-        cur=conn.cursor()
-        if ( len(command) == 2 ):
-            name = command[1]
-            sql = """SELECT name,complaints FROM pickup_stats
+    if not self.OpVoice(user, channel):
+        return
+    command = (self.command)
+    command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
+    if ( len(command) == 2 ):
+        name = command[1]
+        sql = """SELECT name,complaints FROM pickup_stats
+                WHERE name = '"""+name+"""'
+        """
+        cur.execute(sql)
+        conn.commit()
+        row = []
+        for row in cur:
+            pass
+        if name not in row:
+            message = "No such a user"
+            self.send_notice( message, user )
+        else:
+            complaints = row[1]
+            complaints = str(int(complaints) + 1)
+            sql = """UPDATE pickup_stats
+                    SET complaints = """+complaints+"""
                     WHERE name = '"""+name+"""'
             """
             cur.execute(sql)
             conn.commit()
-            row = []
-            for row in cur:
-                pass
-            if name not in row:
-                message = "No such a user"
-                self.send_notice( message, user )
-            else:
-                complaints = row[1]
-                complaints = str(int(complaints) + 1)
-                sql = """UPDATE pickup_stats
-                        SET complaints = """+complaints+"""
-                        WHERE name = '"""+name+"""'
-                """
-                cur.execute(sql)
-                conn.commit()
-                message = "Amount of "+name+"'s complaints increased by 1"
-                self.send_notice( message, user )
-        else:
-            self.send_reply( ("Error, wrong request"), user, channel )
-        cur.close()
+            message = "Amount of "+name+"'s complaints increased by 1"
+            self.send_notice( message, user )
     else:
-        self.send_reply( ("Nice try!"), user, channel )
+        self.send_reply( ("Error, wrong request"), user, channel )
+    cur.close()

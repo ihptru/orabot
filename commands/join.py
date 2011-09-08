@@ -14,14 +14,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 def join(self, user, channel):
-    if self.OpVoice(user, channel):
-        command = (self.command)
-        command = command.split()
-        if ( len(command) == 2 ):
-            if ( (command[1])[0] == "#"):
-                irc_channel = command[1]
-            else:
-                irc_channel = "#" + command[1]
-            self.join_channel(irc_channel)
-    else:
-        self.send_reply( ("Nice try!"), user, channel )
+    if not self.OpVoice(user, channel):
+        return
+    command = (self.command)
+    command = command.split()
+    if ( len(command) == 2 ):
+        if ( (command[1])[0] == "#"):
+            irc_channel = command[1]
+        else:
+            irc_channel = "#" + command[1]
+        self.join_channel(irc_channel)

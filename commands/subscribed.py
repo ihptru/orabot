@@ -16,40 +16,39 @@
 import sqlite3
 
 def subscribed(self, user, channel):
-    if self.OpVoice(user, channel):
-        command = (self.command)
-        command = command.split()
-        conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
-        cur=conn.cursor()
-        if ( len(command) == 1 ):
-            sql = """SELECT user FROM notify
-            """
-            cur.execute(sql)
-            conn.commit()
-            row = []
-            subscribed = []
-            for row in cur:
-                subscribed.append(row[0])
-            if ( subscribed == [] ):
-                self.send_reply( ("No one is subscribed for notifications"), user, channel )
-            else:
-                subscribed = ", ".join(subscribed)
-                self.send_reply( ("Subscribed users: "+subscribed), user, channel )
-        elif ( len(command) == 2 ):
-            sql = """SELECT user FROM notify
-                    WHERE user = '"""+command[1]+"""'
-            """
-            cur.execute(sql)
-            conn.commit()
-            row = []
-            for row in cur:
-                pass
-            if ( command[1] in row ):
-                self.send_reply( ("Yes, "+command[1]+" is subscribed for notifications"), user, channel )
-            else:
-                self.send_reply( ("No, "+command[1]+" is not subscribed for notifications"), user, channel )
+    if not self.OpVoice(user, channel):
+        return
+    command = (self.command)
+    command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
+    if ( len(command) == 1 ):
+        sql = """SELECT user FROM notify
+        """
+        cur.execute(sql)
+        conn.commit()
+        row = []
+        subscribed = []
+        for row in cur:
+            subscribed.append(row[0])
+        if ( subscribed == [] ):
+            self.send_reply( ("No one is subscribed for notifications"), user, channel )
         else:
-            self.send_reply( ("Error, wrong request"), user, channel )
-        cur.close()
+            subscribed = ", ".join(subscribed)
+            self.send_reply( ("Subscribed users: "+subscribed), user, channel )
+    elif ( len(command) == 2 ):
+        sql = """SELECT user FROM notify
+                WHERE user = '"""+command[1]+"""'
+        """
+        cur.execute(sql)
+        conn.commit()
+        row = []
+        for row in cur:
+            pass
+        if ( command[1] in row ):
+            self.send_reply( ("Yes, "+command[1]+" is subscribed for notifications"), user, channel )
+        else:
+            self.send_reply( ("No, "+command[1]+" is not subscribed for notifications"), user, channel )
     else:
-        self.send_reply( ("Nice try!"), user, channel )
+        self.send_reply( ("Error, wrong request"), user, channel )
+    cur.close()

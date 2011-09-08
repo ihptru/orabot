@@ -16,37 +16,36 @@
 import sqlite3
 
 def adduser(self, user, channel):
-    if self.OpVoice(user, channel):
-        command = (self.command)
-        command = command.split()
-        conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
-        cur=conn.cursor()
-        if ( len(command) == 2 ):
-            nick = command[1]
+    if not self.OpVoice(user, channel):
+        return
+    command = (self.command)
+    command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
+    if ( len(command) == 2 ):
+        nick = command[1]
 
-            sql = """SELECT * FROM users
-                    WHERE user = '"""+nick+"'"+"""
+        sql = """SELECT * FROM users
+                WHERE user = '"""+nick+"'"+"""
+        """
+        cur.execute(sql)
+        conn.commit()
+        row = []
+        for row in cur:
+            pass
+        if nick in row: #users exists in database already
+            self.send_reply( ("Error! User already exists"), user, channel )
+        else:   
+            sql = """INSERT INTO users
+                (user)
+                VALUES
+                (
+                '"""+nick+"""'
+                )
             """
             cur.execute(sql)
             conn.commit()
-            row = []
-            for row in cur:
-                pass
-            if nick in row: #users exists in database already
-                self.send_reply( ("Error! User already exists"), user, channel )
-            else:   
-                sql = """INSERT INTO users
-                    (user)
-                    VALUES
-                    (
-                    '"""+nick+"""'
-                    )
-                """
-                cur.execute(sql)
-                conn.commit()
-                self.send_reply( ("Confirmed"), user, channel )
-        else:
-            self.send_reply( ("Error, wrong request"), user, channel )
-        cur.close()
+            self.send_reply( ("Confirmed"), user, channel )
     else:
-        self.send_reply( ("Nice try!"), user, channel )
+        self.send_reply( ("Error, wrong request"), user, channel )
+    cur.close()

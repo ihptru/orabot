@@ -16,35 +16,34 @@
 import sqlite3
 
 def pickup_remove(self, user, channel):
-    if self.OpVoice(user, channel):
-        command = (self.command)
-        command = command.split()
-        conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
-        cur=conn.cursor()
-        if ( len(command) == 2 ):
-            modes = ['1v1','2v2','3v3','4v4','5v5']
-            temp_mode = ''
-            for temp_mode in modes:
-                sql = """SELECT name FROM pickup_"""+temp_mode+"""
+    if not self.OpVoice(user, channel):
+        return
+    command = (self.command)
+    command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
+    if ( len(command) == 2 ):
+        modes = ['1v1','2v2','3v3','4v4','5v5']
+        temp_mode = ''
+        for temp_mode in modes:
+            sql = """SELECT name FROM pickup_"""+temp_mode+"""
+                    WHERE name = '"""+command[1]+"""'
+            """
+            cur.execute(sql)
+            conn.commit()
+            row = []
+            for row in cur:
+                pass
+            if command[1] in row:
+                sql = """DELETE FROM pickup_"""+temp_mode+"""
                         WHERE name = '"""+command[1]+"""'
                 """
                 cur.execute(sql)
                 conn.commit()
-                row = []
-                for row in cur:
-                    pass
-                if command[1] in row:
-                    sql = """DELETE FROM pickup_"""+temp_mode+"""
-                            WHERE name = '"""+command[1]+"""'
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                    message = "You removed "+command[1]+" from :: "+temp_mode+" ::"
-                    self.send_notice( message, user )
-                    cur.close()
-                    return
-            message = "Error, "+command[1]+" is not detected added to any game"
-            self.send_notice( message, user )
-        cur.close()
-    else:
-        self.send_reply( ("Nice try!"), user, channel )
+                message = "You removed "+command[1]+" from :: "+temp_mode+" ::"
+                self.send_notice( message, user )
+                cur.close()
+                return
+        message = "Error, "+command[1]+" is not detected added to any game"
+        self.send_notice( message, user )
+    cur.close()

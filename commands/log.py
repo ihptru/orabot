@@ -18,30 +18,29 @@ import time
 import re
 
 def log(self, user, channel):
-    if self.OpVoice(user, channel):
-        command = (self.command)
-        command = command.split()
-        conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
-        cur=conn.cursor()
-        if ( len(command) == 1 ):
-            sql = """SELECT * FROM commands
-                    ORDER BY uid DESC LIMIT 10
-            """
-            cur.execute(sql)
-            conn.commit()
-            row = []
-            logs = []
+    if not self.OpVoice(user, channel):
+        return
+    command = (self.command)
+    command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
+    if ( len(command) == 1 ):
+        sql = """SELECT * FROM commands
+                ORDER BY uid DESC LIMIT 10
+        """
+        cur.execute(sql)
+        conn.commit()
+        row = []
+        logs = []
+        actual = []
+        for row in cur:
+            logs.append(row)
+        for i in range(int(len(logs))):
+            actual.append(logs[i][1])
+            actual.append(logs[i][2])
+            actual.append(logs[i][3])
+            message = "User: "+actual[0]+"; Date: "+actual[2]+"; Command: ]"+actual[1]
+            self.send_notice( message, user )
             actual = []
-            for row in cur:
-                logs.append(row)
-            for i in range(int(len(logs))):
-                actual.append(logs[i][1])
-                actual.append(logs[i][2])
-                actual.append(logs[i][3])
-                message = "User: "+actual[0]+"; Date: "+actual[2]+"; Command: ]"+actual[1]
-                self.send_notice( message, user )
-                actual = []
-                time.sleep(0.5)
-        cur.close()
-    else:
-        self.send_reply( ("Nice try!"), user, channel )
+            time.sleep(0.5)
+    cur.close()

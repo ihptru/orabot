@@ -161,4 +161,3 @@ def start(self, user, channel):
                     return False
     cur.close()
     return True
-    

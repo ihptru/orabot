@@ -14,8 +14,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 def say(self, user, channel):
-    if self.OpVoice(user, channel):
-        command = (self.command)
-        command = command.split()
-        if ( len(command) > 1 ):
-            self.send_reply( (" ".join(command[1:])), user, channel )
+    if not self.OpVoice(user, channel):
+        return
+    command = (self.command)
+    command = command.split()
+    if ( len(command) > 1 ):
+        self.send_reply( (" ".join(command[1:])), user, channel )

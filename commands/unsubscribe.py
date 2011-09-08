@@ -16,31 +16,30 @@
 import sqlite3
 
 def unsubscribe(self, user, channel):
-    if self.OpVoice(user, channel):
-        command = (self.command)
-        command = command.split()
-        conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
-        cur=conn.cursor()
-        if ( len(command) == 2 ):
-            sql = """SELECT user FROM notify
+    if not self.OpVoice(user, channel):
+        return
+    command = (self.command)
+    command = command.split()
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
+    if ( len(command) == 2 ):
+        sql = """SELECT user FROM notify
+                WHERE user = '"""+command[1]+"""'
+        """
+        cur.execute(sql)
+        conn.commit()
+        row = []
+        for row in cur:
+            pass
+        if command[1] in row:
+            sql = """DELETE FROM notify
                     WHERE user = '"""+command[1]+"""'
             """
             cur.execute(sql)
             conn.commit()
-            row = []
-            for row in cur:
-                pass
-            if command[1] in row:
-                sql = """DELETE FROM notify
-                        WHERE user = '"""+command[1]+"""'
-                """
-                cur.execute(sql)
-                conn.commit()
-                self.send_reply( ("Successfully"), user, channel )
-            else:
-                self.send_reply( (command[1]+" is not subscribed for notifications"), user, channel )
+            self.send_reply( ("Successfully"), user, channel )
         else:
-            self.send_reply( ("I take only 1 argument as user's name"), user, channel )
-        cur.close()
+            self.send_reply( (command[1]+" is not subscribed for notifications"), user, channel )
     else:
-        self.send_reply( ("Nice try!"), user, channel )
+        self.send_reply( ("I take only 1 argument as user's name"), user, channel )
+    cur.close()

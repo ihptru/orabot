@@ -55,25 +55,24 @@ def faq(self, user, channel):
             else:
                 self.send_reply( (item+": "+records[0][0]), user, channel )
         elif ( command[1] == "remove" ):
-            if self.OpVoice(user, channel):
-                item = command[2]
-                sql = """SELECT item FROM faq
+            if not self.OpVoice(user, channel):
+                return
+            item = command[2]
+            sql = """SELECT item FROM faq
+                    WHERE item = '"""+item+"""'
+            """
+            cur.execute(sql)
+            records = cur.fetchall()
+            conn.commit()
+            if ( len(records) == 0 ):
+                self.send_reply( (item + ": not found..."), user, channel )
+            else:
+                sql = """DELETE FROM faq
                         WHERE item = '"""+item+"""'
                 """
                 cur.execute(sql)
-                records = cur.fetchall()
                 conn.commit()
-                if ( len(records) == 0 ):
-                    self.send_reply( (item + ": not found..."), user, channel )
-                else:
-                    sql = """DELETE FROM faq
-                            WHERE item = '"""+item+"""'
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                    self.send_reply( (item + ": removed"), user, channel )
-            else:
-                self.send_reply( ("No rights!"), user, channel )
+                self.send_reply( (item + ": removed"), user, channel )
         elif ( command[1] == "set" ):
             self.send_reply( ("Usage: ]faq set new_item_name item_description"), user, channel )
         else:
@@ -84,30 +83,29 @@ def faq(self, user, channel):
         elif ( command[1] == "remove" ):
             self.send_reply( ("Usage: ]faq remove item_name"), user, channel )
         elif ( command[1] == "set" ):
-            if self.OpVoice(user, channel):
-                item = command[2]
-                sql = """SELECT item FROM faq
-                        WHERE item = '"""+item+"""'
+            if not self.OpVoice(user, channel):
+                return
+            item = command[2]
+            sql = """SELECT item FROM faq
+                    WHERE item = '"""+item+"""'
+            """
+            cur.execute(sql)
+            records = cur.fetchall()
+            conn.commit()
+            if not ( len(records) == 0 ):
+                self.send_reply( ("Error! Item already exists!"), user, channel )
+            else:
+                desc = " ".join(command[3:])
+                sql = """INSERT INTO faq
+                        (item,whoset,desc)
+                        VALUES
+                        (
+                        '"""+item+"','"+user+"','"+desc+"""'
+                        )
                 """
                 cur.execute(sql)
-                records = cur.fetchall()
                 conn.commit()
-                if not ( len(records) == 0 ):
-                    self.send_reply( ("Error! Item already exists!"), user, channel )
-                else:
-                    desc = " ".join(command[3:])
-                    sql = """INSERT INTO faq
-                            (item,whoset,desc)
-                            VALUES
-                            (
-                            '"""+item+"','"+user+"','"+desc+"""'
-                            )
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                    self.send_reply( ("Done"), user, channel )
-            else:
-                self.send_reply( ("No rights!"), user, channel )
+                self.send_reply( ("Done"), user, channel )
         else:
             self.send_reply( ("Error!"), user, channel )
     cur.close()

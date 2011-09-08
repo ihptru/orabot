@@ -47,7 +47,6 @@ class IRC_Server:
         self.is_connected = False
         self.should_reconnect = False
         self.command = ""
-        
 
     ## The destructor - Close socket.
     def __del__(self):
@@ -473,6 +472,7 @@ class IRC_Server:
             if '+'+user in user_nicks.split() or '@'+user in user_nicks.split() or '%'+user in user_nicks.split():
                 return True
             else:
+                self.send_reply( ("No rights!"), user, channel )
                 return False
             
     def evalCommand(self, commandname, user, channel):
