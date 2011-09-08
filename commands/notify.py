@@ -14,8 +14,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sqlite3
+import config
 
 def notify(self, user, channel):
+    if config.notifications == False:
+        message = "The bot is run without notifications support!"
+        self.send_notice( message, user )
+        return
     command = (self.command)
     command = command.split()
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
