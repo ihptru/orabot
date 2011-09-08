@@ -67,6 +67,7 @@ class IRC_Server:
         print ("Setting bot nick to " + str(self.irc_nick) )
         time.sleep(2)
         recv = self.irc_sock.recv( 4096 )
+        recv=self.decode_stream(recv)
         if str(recv).find ( " 433 * "+self.irc_nick+" " ) != -1:
             print('Nick is already in use!!! Change nickname and restart bot!')
             return
@@ -83,6 +84,8 @@ class IRC_Server:
             self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('NickServ', data)).encode() )
             time.sleep(3)
             recv = self.irc_sock.recv( 8192 )
+            recv=self.decode_stream(recv)
+            
             if str(recv).find ( " NOTICE "+config.bot_nick+" :You are now identified for " ) != -1:
                 print("Identification succeeded")
             else:
@@ -99,9 +102,10 @@ class IRC_Server:
     def listen(self):
         while self.is_connected:
             recv = self.irc_sock.recv( 4096 )
+            recv=self.decode_stream(recv)
 
             if str(recv).find ( "PING" ) != -1:
-                self.irc_sock.send ( "PONG ".encode() + recv.split() [ 1 ] + "\r\n".encode() )             
+                self.irc_sock.send ( ("PONG "+ recv.split() [ 1 ] + "\r\n").encode() )             
 
             if str(recv).find ( " PRIVMSG " ) != -1:
                 irc_user_nick = str(recv).split ( '!' ) [ 0 ] . split ( ":")[1]
@@ -331,14 +335,20 @@ class IRC_Server:
             self.connect()
 
     def data_to_message(self,data):
-        data = data[data.find(':')+1:len(data)]
-        data = " ".join(data.split()[3:])[1:-5].rstrip()    #seems [1:-5] must be changed to [1:-2] if bot is run on MAC
-        return data
+        data=data[data.find(" :")+2:] # Notice the space before the :
+        return data[:-2] # Without \r\n
 
     # helper to remove some insanity.
     def send_reply(self,data,user,channel):
         target = channel if channel.startswith('#') else user
         self.send_message_to_channel(data,target)
+    
+    #another helper
+    def decode_stream(self,stream):
+        try:
+            return stream.decode("utf8")
+        except:
+            return stream.decode("CP1252")
 
     # This function sends a message to a channel or user
     def send_message_to_channel(self,data,channel):
@@ -466,6 +476,7 @@ class IRC_Server:
         self.irc_sock.send (str_buff.encode())
         #recover all nicks on channel
         recv = self.irc_sock.recv( 4096 )
+        recv=self.decode_stream(recv)
 
         if str(recv).find ( " 353 "+config.bot_nick ) != -1:
             user_nicks = str(recv).split(':')[2].rstrip()
