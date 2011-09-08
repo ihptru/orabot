@@ -35,7 +35,6 @@ def later(self, user, channel):
                 #recover all nicks on channel
                 recv = self.irc_sock.recv( 4096 )
                 recv=self.decode_stream(recv)
-                print(str(recv))
                 if str(recv).find ( " 353 "+config.bot_nick ) != -1:
                     user_nicks = str(recv).split(':')[2].rstrip()
                     user_nicks = user_nicks.replace('+','').replace('@','')
