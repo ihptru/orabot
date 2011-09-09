@@ -168,9 +168,9 @@ def games(self, user, channel):
                     sname = 'noname'
                 players = str(game['Players'])
                 if ( state == 'W' ):
-                    games_state1 = games_state1+'\t['+players+'] '+sname.strip()+' ('+modinfo(game['Mods'])+')||'
+                    games_state1 = games_state1+'\t'+('['+players+']').ljust(5)+sname.strip()+' - '+modinfo(game['Mods'])+'||'
                 elif ( state == 'P' ):
-                    games_state2 = games_state2+'\t['+players+'] '+sname.strip()+' ('+modinfo(game['Mods'])+')||'
+                    games_state2 = games_state2+'\t'+('['+players+']').ljust(5)+sname.strip()+' - '+modinfo(game['Mods'])+'||'
             split_games_state1 = games_state1.split('||')
             split_games_state2 = games_state2.split('||')
             if ( len(split_games_state2) > 1 ):

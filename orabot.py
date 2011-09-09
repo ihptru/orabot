@@ -443,13 +443,13 @@ class IRC_Server:
                             if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
                                 self.send_message_to_channel( ("Youtube: "+str(title)), channel )
                         except:
-                            pass    #probably socket error in title_from_url() or remote page has some `special` charset bot can not decode()
+                            pass    #probably socket error in title_from_url() or remote page has charset bot can not decode
                     else:
                         try:
                             title = self.title_from_url(link).replace('\n','').replace('&amp;','&').replace('&#39;', '\'')
                             self.send_message_to_channel( ("Title: "+title), channel )
                         except:
-                            pass    #probably socket error in title_from_url() or remote page has some `special` charset bot can not decode()
+                            pass    #probably socket error in title_from_url() or remote page has charset bot can not decode
             flood_protection = 0
 
     def parse_bug_num(self, channel, message):
@@ -475,6 +475,7 @@ class IRC_Server:
     def players_for_mode(self, mode):
         return sum( map( int, mode.split('v') ) )
     
+    # Special admin commands for Op/HalfOp/Voice
     def OpVoice(self, user, channel):
         #send NAMES channel to server
         str_buff = ( "NAMES %s \r\n" ) % (channel)
@@ -490,7 +491,8 @@ class IRC_Server:
             else:
                 self.send_reply( ("No rights!"), user, channel )
                 return False
-            
+    
+    # Execute command        
     def evalCommand(self, commandname, user, channel):
         try:
             imp.find_module('commands/'+commandname)
