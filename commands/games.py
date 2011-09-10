@@ -43,7 +43,7 @@ def games(self, user, channel):
     cur=conn.cursor()
     flood_protection = 0
     if ( len(command) == 1 ):
-        content = urllib.request.urlopen(url).read().decode('utf-8').replace('[down]','--down--')
+        content = urllib.request.urlopen(url).read().decode('utf-8').replace('[','-..-').replace(']','.--.')
         if ( len(content) == 0 ):
             self.send_reply( ("No games found"), user, channel )
             return
@@ -58,7 +58,7 @@ def games(self, user, channel):
                 gi = pygeoip.GeoIP('../GeoIP.dat')
                 country = gi.country_name_by_addr(ip).upper()   #got country name
                 ###
-                sname = game['Name'].replace('--down--','[down]')
+                sname = game['Name'].replace('-..-','[').replace('.--.',']')
                 if ( len(sname) == 0 ):
                     sname = 'noname'
                 map_name, max_players = get_map_info(cur, game['Map'])
@@ -74,7 +74,7 @@ def games(self, user, channel):
         if ( count == "0" ):    #appeared no games in State: 1
             self.send_reply( ("No games waiting for players found"), user, channel )
     elif ( len(command) == 2 ):   # ]games with args
-        content = urllib.request.urlopen(url).read().decode('utf-8').replace('[down]','--down--')
+        content = urllib.request.urlopen(url).read().decode('utf-8').replace('[','-..-').replace(']','.--.')
         if ( len(content) == 0 ):
             self.send_reply( ("No games found"), user, channel )
             return
@@ -90,7 +90,7 @@ def games(self, user, channel):
                     gi = pygeoip.GeoIP('../GeoIP.dat')
                     country = gi.country_name_by_addr(ip).upper()   #got country name
                     ###
-                    sname = game['Name'].replace('--down--','[down]')
+                    sname = game['Name'].replace('-..-','[').replace('.--.',']')
                     if ( len(sname) == 0 ):
                         sname = 'noname'
                     map_name, max_players = get_map_info(cur, game['Map'])
@@ -116,7 +116,7 @@ def games(self, user, channel):
                     gi = pygeoip.GeoIP('../GeoIP.dat')
                     country = gi.country_name_by_addr(ip).upper()   #got country name
                     ###
-                    sname = game['Name'].replace('--down--','[down]')
+                    sname = game['Name'].replace('-..-','[').replace('.--.',']')
                     if ( len(sname) == 0 ):
                         sname = 'noname'
                     map_name, max_players = get_map_info(cur, game['Map'])
@@ -142,7 +142,7 @@ def games(self, user, channel):
                 gi = pygeoip.GeoIP('../GeoIP.dat')
                 country = gi.country_name_by_addr(ip).upper()   #got country name
                 ###
-                sname = game['Name'].replace('--down--','[down]')
+                sname = game['Name'].replace('-..-','[').replace('.--.',']')
                 if ( len(sname) == 0 ):
                     sname = 'noname'
                 map_name, max_players = get_map_info(cur, game['Map'])
@@ -155,7 +155,7 @@ def games(self, user, channel):
                     flood_protection = 0
                 self.send_reply( (games), user, channel )
             flood_protection = 0
-        elif ( (command[1]) == "-s" ):
+        elif ( (command[1]) == "-l" ):
             games_state1 = ''
             games_state2 = ''
             for game in y.values():
@@ -163,7 +163,7 @@ def games(self, user, channel):
                     state = 'W'
                 elif ( game['State'] == 2 ):
                     state = 'P'
-                sname = game['Name'].replace('--down--','[down]')
+                sname = game['Name'].replace('-..-','[').replace('.--.',']')
                 if ( len(sname) == 0 ):
                     sname = 'noname'
                 players = str(game['Players'])
@@ -192,13 +192,23 @@ def games(self, user, channel):
                     self.send_reply( (split_games_state1[i]), user, channel )
                     time.sleep(0.5)
             flood_protection = 0
+        elif ( (command[1]) == "-s" ):
+            waiting = 0
+            playing = 0
+            for game in y.values():
+                if ( game['State'] == 1 ):
+                    waiting = waiting + 1
+                elif ( game['State'] == 2 ):
+                    playing = playing + 1
+            games = "@ Games: waiting ["+str(waiting)+"] | playing ["+str(playing)+"]"
+            self.send_reply( (games), user, channel )
         elif ( (command[1]) == "-r" ):
             self.send_reply( ("A pattern required"), user, channel )
         else:
             self.send_reply( ("Incorrect option!"), user, channel )
     elif ( len(command) > 2 ):
         if ( command[1] == "-r" ):  #patter request
-            content = urllib.request.urlopen(url).read().decode('utf-8').replace('[down]','--down--')
+            content = urllib.request.urlopen(url).read().decode('utf-8').replace('[','-..-').replace(']','.--.')
             if ( len(content) == 0 ):
                 self.send_reply( ("No games found"), user, channel )
                 return
@@ -215,7 +225,7 @@ def games(self, user, channel):
                 p = re.compile(request_pattern, re.IGNORECASE)
                 count='0'
                 for game in y.values():
-                    sname = game['Name'].replace('--down--','[down]')
+                    sname = game['Name'].replace('-..-','[').replace('.--.',']')
                     if p.search(sname):
                         count='1'   # lock
                         if ( game['State'] == 1 ):

@@ -318,6 +318,8 @@ def maps():
         INSERT INTO "maps" VALUES(53,'cnc','eba46f0b247ab52e6b9d044b3711a1f28763e634','Crossing the Rubicon','8 Player North vs South Map','Arcturus','Conquest','TEMPERAT',8);
         INSERT INTO "maps" VALUES(54,'cnc','7761208e53d74e2a080255bbe60cf2d2fbc0388c','Sea and Cake','Use sea for air ambushes','Petrenko','Conquest','DESERT',2);
         INSERT INTO "maps" VALUES(55,'cnc','724457304d8a84a14a236d4af6e4c8dec85b575a','The Sentinel','A 1 versus 1 map in an icy place','Tiberian','Conquest','WINTER',2);
+        INSERT INTO "maps" VALUES(56,'ra','f9ce9066950638c1b10e9d2d34071a4adacb8071','Doughnut','3v3; Capture oil derricks for extra cash','hamb','Conquest','TEMPERAT',6);
+        INSERT INTO "maps" VALUES(57,'ra','0aac7b28eed9e4c09761929f96c7ecd7d919b3a1','Mjolnir 2','4v4','hamb','Conquest','TEMPERAT',8);
     """
     cur.executescript(sql)
     conn.commit()
