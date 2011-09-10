@@ -23,6 +23,7 @@ def start():
     except:
         print("Error! Can not create a directory, check permissions and try again")
         return
+    print("Creating database ...")
     black_list()
     commands()
     users()
@@ -335,6 +336,19 @@ def faq():
         "item" VARCHAR NOT NULL ,
         "whoset" VARCHAR NOT NULL ,
         "desc" VARCHAR NOT NULL
+    )
+    """
+    cur.execute(sql)
+    conn.commit()
+    cur.close()
+
+def pingme():
+    conn = sqlite3.connect('db/openra.sqlite')
+    cur = conn.cursor()
+    sql = """CREATE TABLE "pingme" (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "who" VARCHAR NOT NULL ,
+        "users_back" VARCHAR NOT NULL
     )
     """
     cur.execute(sql)

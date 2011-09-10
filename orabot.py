@@ -144,6 +144,35 @@ class IRC_Server:
                     self.logs(irc_join_nick, chan, 'join', str(supy_host), '')
                     ###
                     
+                    ### for pingme
+                    sql = """SELECT who,users_back FROM pingme
+                    """
+                    cur.execute(sql)
+                    records = cur.fetchall()
+                    conn.commit()
+                    if ( len(records) != 0 ):
+                        for i in range(len(records)):
+                            who = records[i][0]
+                            users_back = records[i][1].split(',')
+                            if ( irc_join_nick in users_back ):
+                                self.send_reply( (irc_join_nick +' has joined IRC!'), who, who )
+                                records_index = users_back.index(irc_join_nick)
+                                del users_back[records_index]
+                                users_back = ",".join(users_back)
+                                if ( len(users_back) == 0 ):
+                                    sql = """DELETE FROM pingme
+                                            WHERE who = '"""+who+"""'
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                else:
+                                    sql = """UPDATE pingme
+                                            SET users_back = '"""+users_back+"""'
+                                            WHERE who = '"""+who+"""'
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                    ###
                     sql = """SELECT * FROM users
                             WHERE user = '"""+irc_join_nick+"'"+"""
                     """
@@ -246,6 +275,12 @@ class IRC_Server:
                 """
                 cur.execute(sql)
                 conn.commit()
+                ### for ping me
+                sql = """DELETE FROM pingme
+                        WHERE who = '"""+irc_quit_nick+"""'
+                """
+                cur.execute(sql)
+                conn.commit()
                 ### for ]pick
                 modes = ['1v1','2v2','3v3','4v4','5v5']
                 diff_mode = ''
@@ -292,6 +327,12 @@ class IRC_Server:
                 sql = """UPDATE users
                         SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0, channels = '"""+channel_from_db+"""'
                         WHERE user = '"""+str(irc_part_nick)+"'"+"""
+                """
+                cur.execute(sql)
+                conn.commit()
+                ### for ping me
+                sql = """DELETE FROM pingme
+                        WHERE who = '"""+irc_part_nick+"""'
                 """
                 cur.execute(sql)
                 conn.commit()
