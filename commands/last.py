@@ -16,6 +16,36 @@
 import config
 import sqlite3
 import re
+import time
+import datetime
+
+def seen( last_time, current ):
+    last_time = time.mktime(time.strptime( last_time, '%Y-%m-%d-%H-%M-%S'))
+    current = time.mktime(time.strptime( current, '%Y-%m-%d-%H-%M-%S'))
+    difference = current - last_time
+    result = str(datetime.timedelta(seconds = difference))
+    result = result.split(', ')
+    if ( len(result) == 1 ):
+        days = ''
+        timest = result[0]
+    else:
+        days = ' ' + result[0]
+        timest = result[1]
+    timest = timest.split(':')
+    result_string = days
+    for i in range(len(timest)-1):
+        if int(timest[i]) != 0:
+            if ( ( timest[i][-1] == '1' ) and ( timest[i][-2:] != '11' ) ):
+                end = ''
+            else:
+                end = 's'
+            if i == 0:
+                st = 'hour'
+            elif i == 1:
+                st = 'minute'
+            st = st + end
+            result_string = result_string + ' ' + str(int(timest[i])) + ' ' + st
+    return result_string
 
 def last(self, user, channel):
     command = (self.command)
@@ -59,9 +89,13 @@ def last(self, user, channel):
                     if ( last_time == None or last_time == '' ):
                         self.send_message_to_channel( ("Sorry, I don't have any record of when user left"), channel)
                     else:
-                        last_date = "-".join(last_time.split('-')[0:3])
-                        last_time = ":".join(last_time.split('-')[3:6])
-                        self.send_message_to_channel( (command[1]+" was last seen at "+last_date+" "+last_time+" GMT"), channel)
+                        current = time.strftime('%Y-%m-%d-%H-%M-%S')
+                        seen_result = seen( last_time, current )
+                        if ( seen_result == '' ):
+                            result = ' just now'
+                        else:
+                            result = seen_result + ' ago'
+                        self.send_message_to_channel( (command[1]+" was last seen"+result), channel)
         else:
             self.send_message_to_channel( ("You can use ]last only on a channel"), user)
     elif ( len(command) == 1 ):
