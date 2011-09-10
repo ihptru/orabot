@@ -15,10 +15,12 @@
 
 import config
 import re
+import time
 
 show_possible=['games', 'help', 'version', 'hi', 'randomteam', 'tr', 'lang', 'last', 'online', 'weather', 'lastgame', 'who', 'promote', 'maps', 'say','mapinfo','calc','faq']
 
 def show(self, user, channel):
+    return
     if not self.OpVoice(user, channel):
         return
     command = (self.command)
@@ -29,22 +31,10 @@ def show(self, user, channel):
             if (( to_user[0] == '#' ) or ( to_user[0] == ',' )):
                 self.send_reply( ("Impossible to redirect output to channel!"), user, channel )
                 return
-            if re.search("^#", channel):
-                #send NAMES channel to server
-                str_buff = ( "NAMES %s \r\n" ) % (channel)
-                self.irc_sock.send (str_buff.encode())
-                #recover all nicks on channel
-                recv = self.irc_sock.recv( 4096 )
-                recv=self.decode_stream(recv)
-
-                if str(recv).find ( " 353 "+config.bot_nick ) != -1:
-                    user_nicks = str(recv).split(':')[2].rstrip()
-                    user_nicks = user_nicks.replace('+','').replace('@','').replace('%','')
-                    user_nicks = user_nicks.split(' ')
-
-                if ( to_user not in user_nicks ):  #reciever is NOT on the channel
-                    self.send_message_to_channel( (user+", I can not send an output of this command to user which is not on the channel!"), channel)
-                    return
+            if not re.search("^#", channel):
+                message = "Command can be used only on a channel..."
+                self.send_notice( message, user )
+                return
             show_command = command[1:-2]
             show_command = " ".join(show_command)
             show_command = show_command.replace(']','')

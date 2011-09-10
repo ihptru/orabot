@@ -54,17 +54,7 @@ def last(self, user, channel):
     cur=conn.cursor()
     if ( len(command) == 2 ):
         if re.search("^#", channel):
-            #send NAMES channel to server
-            str_buff = ( "NAMES %s \r\n" ) % (channel)
-            self.irc_sock.send (str_buff.encode())
-            #recover all nicks on channel
-            recv = self.irc_sock.recv( 4096 )
-            recv=self.decode_stream(recv)
-            if str(recv).find ( " 353 "+config.bot_nick ) != -1:
-                user_nicks = str(recv).split(':')[2].rstrip()
-                user_nicks = user_nicks.replace('+','').replace('@','')
-                user_nicks = user_nicks.split(' ')
-            
+            user_nicks = self.parse_names(self.get_names(channel))
             if command[1] in user_nicks:  #reciever is on the channel right now
                 self.send_message_to_channel( ("User is online!"), channel)
                 cur.close()

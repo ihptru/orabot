@@ -38,17 +38,7 @@ def pingme(self, user, channel):
             usage(self, user, channel)
             cur.close()
             return
-        #send NAMES channel to server
-        str_buff = ( "NAMES %s \r\n" ) % (channel)
-        self.irc_sock.send (str_buff.encode())
-        #recover all nicks on channel
-        recv = self.irc_sock.recv( 4096 )
-        recv=self.decode_stream(recv)
-        if str(recv).find ( " 353 "+config.bot_nick ) != -1:
-            user_nicks = str(recv).split(':')[2].rstrip()
-            user_nicks = user_nicks.replace('+','').replace('@','').replace('%','')
-            user_nicks = user_nicks.split(' ')
-            
+        user_nicks = self.parse_names(self.get_names(channel))
         if command[2] in user_nicks:  #reciever is on the channel right now
             self.send_message_to_channel( ("User is online!"), channel)
             cur.close()
@@ -72,6 +62,10 @@ def pingme(self, user, channel):
             self.send_reply( ("I will do it!"), user, channel )
         else:
             records_list = records[0][0].split(',')
+            if ( command[2] in records_list ):
+                message = "You've already requested to ping you when "+command[2]+" joins..."
+                self.send_notice( message, user )
+                return
             if ( len(records_list) == 20 ):
                 message = "Sorry, You've already requested `"+config.command_prefix+"pingme` of 20 users! I don't support more..."
                 self.send_notice( message, user )

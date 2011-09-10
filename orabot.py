@@ -402,7 +402,23 @@ class IRC_Server:
         print ( ( "NOTICE to %s: %s" ) % (user, data) )
         str_buff = ( "NOTICE %s :%s\r\n" ) % (user,data)
         self.irc_sock.send (str_buff.encode())
-       
+    
+    def get_names(self, channel):
+        str_buff = ( "NAMES %s \r\n" ) % (channel)
+        self.irc_sock.send (str_buff.encode())
+        #recover all nicks on channel
+        recv = self.irc_sock.recv( 4096 )
+        recv = self.decode_stream( recv )
+        return recv
+    
+    def parse_names(self, recv):
+        user_nicks = []
+        if recv.find ( " 353 "+config.bot_nick ) != -1:
+            user_nicks = recv.split(':')[2].rstrip()
+            user_nicks = user_nicks.replace('+','').replace('@','').replace('%','')
+            user_nicks = user_nicks.split(' ')
+        return user_nicks
+
     # This function takes a channel, which must start with a #.
     def join_channel(self,channel):
         if (channel[0] == "#"):
@@ -518,15 +534,10 @@ class IRC_Server:
     
     # Special admin commands for Op/HalfOp/Voice
     def OpVoice(self, user, channel):
-        #send NAMES channel to server
-        str_buff = ( "NAMES %s \r\n" ) % (channel)
-        self.irc_sock.send (str_buff.encode())
-        #recover all nicks on channel
-        recv = self.irc_sock.recv( 4096 )
-        recv=self.decode_stream(recv)
+        recv = self.get_names(channel)
 
-        if str(recv).find ( " 353 "+config.bot_nick ) != -1:
-            user_nicks = str(recv).split(':')[2].rstrip()
+        if recv.find ( " 353 "+config.bot_nick ) != -1:
+            user_nicks = recv.split(':')[2].rstrip()
             if '+'+user in user_nicks.split() or '@'+user in user_nicks.split() or '%'+user in user_nicks.split():
                 return True
             else:
