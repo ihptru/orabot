@@ -211,6 +211,8 @@ def pickup():
         INSERT INTO "pickup_maps" VALUES(34,'Daejeon',0,1,1,1,1);
         INSERT INTO "pickup_maps" VALUES(35,'Fire Alley',0,1,1,1,1);
         INSERT INTO "pickup_maps" VALUES(36,'High & Low Extended',0,0,1,1,1);
+        INSERT INTO "pickup_maps" VALUES(37,'Mjolnir 2',0,1,1,1,0);
+        INSERT INTO "pickup_maps" VALUES(38,'Doughnut',0,1,1,0,0);
     """
     cur.executescript(sql)
     conn.commit()
