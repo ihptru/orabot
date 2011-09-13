@@ -170,7 +170,7 @@ def start(self):
                     if flood_protection == 5:
                         time.sleep(5)
                         flood_protection = 0
-                    self.send_message_to_channel( ("News from github: "+commits_to_show[i]), '##orabot-test-channel' )
+                    self.send_message_to_channel( ("News from github: "+commits_to_show[i]), config.write_commit_notifications_to )
                 flood_protection = 0
 
             commits(self)
@@ -200,7 +200,7 @@ def start(self):
                     file.write(bug_report_title.split()[1]+"\n")
                     file.close()
                     message = bug_report_title+" | "+bug_report_url
-                    self.send_message_to_channel( (message), '#openra' )
+                    self.send_message_to_channel( (message), config.write_bug_notifications_to )
             bugreport(self)
         ### new game notifications part
         ip_current_games = []

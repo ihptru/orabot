@@ -38,3 +38,7 @@ command_prefix = ']'
 ### Notifications ###
 #support notifications? ( True or False )
 notifications = False
+
+write_bug_notifications_to = '#openra'
+
+write_commit_notifications_to = '#openra-dev'
