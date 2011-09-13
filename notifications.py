@@ -131,7 +131,7 @@ def start(self):
         bugreport_var = bugreport_var + 1
         commit_var = commit_var + 1
         ### commits
-        if ( commit_var == 50 ):
+        if ( commit_var == 20 ):
             commit_var = 0
             def commits(self):
                 flood_protection = 0
