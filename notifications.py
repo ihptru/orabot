@@ -19,6 +19,20 @@ import urllib.request
 import re
 from datetime import date
 
+def get_commits():
+    url = 'https://github.com/chrisforbes/OpenRA/commits/master'
+    titles = []
+    try:
+        stream = urllib.request.urlopen(url).read().decode('utf-8')
+    except:
+        return titles
+    commits = stream.split('<p class="commit-title">')
+    amount_commits = len(commits)
+    for i in range(amount_commits):
+        commit_title = commits[i].split('</a>')[0].split('">')[1].strip()
+        titles.append(commit_title)
+    return titles
+
 def check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user):
     notify_message = "New game: "+name+" - mod: "+mod+version+" - Already "+players+" players in"
     if ( db_timeout.lower() == 'all' ):
@@ -76,9 +90,90 @@ def start(self):
     notify_ip_list = []
     notify_players_list = []
     bugreport_var = 0
+    commit_var = 0
+    
+    def update_commits(titles):
+        conn = sqlite3.connect('../db/openra.sqlite')
+        cur = conn.cursor()
+        sql = """DELETE FROM commits
+        """
+        cur.execute(sql)
+        conn.commit()
+        for i in range(len(titles)):
+            sql = """INSERT INTO commits
+                    (title)
+                    VALUES
+                    (
+                    '"""+titles[i].replace("'","''")+"""'
+                    )
+            """
+            cur.execute(sql)
+            conn.commit()
+        cur.close()
+        print("Commits Table Updated...")
+
+    titles = get_commits()
+    if ( len(titles) == 0 ):
+        print("### Something went wrong fetching commits info! ### Clearing commits table...")
+        conn = sqlite3.connect('../db/openra.sqlite')
+        cur = conn.cursor()
+        sql = """DELETE FROM commits
+        """
+        cur.execute(sql)
+        conn.commit()
+        cur.close()
+    else:
+        update_commits(titles)
+
     while True:
         time.sleep(5)
         bugreport_var = bugreport_var + 1
+        commit_var = commit_var + 1
+        ### commits
+        if ( commit_var == 50 ):
+            commit_var = 0
+            def commits(self):
+                flood_protection = 0
+                conn = sqlite3.connect('../db/openra.sqlite')
+                cur = conn.cursor()
+                sql = """SELECT title FROM commits
+                """
+                cur.execute(sql)
+                records = cur.fetchall()
+                conn.commit()
+                titles = get_commits()
+                if ( len(titles) == 0 ):
+                    return
+                if ( len(records) == 0 ):   #There was an error at notification's start (probably fetching error(caused by socket)), so `commits` table is clear
+                    ### current fetch is full of commits, so we fill table; return; do not notify
+                    for i in range(len(titles)):
+                        sql = """INSERT INTO commits
+                                (title)
+                                VALUES
+                                (
+                                '"""+titles[i].replace("'","''")+"""'
+                                )
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                    return
+                commits_to_show = []
+                existing_commits = []
+                for i in range(len(records)):
+                    existing_commits.append(records[i][0])
+                for i in range(len(titles)):
+                    if titles[i] not in existing_commits:
+                        commits_to_show.append(titles[i])
+                commits_to_show.reverse()
+                for i in range(len(commits_to_show)):
+                    flood_protection = flood_protection + 1
+                    if flood_protection == 5:
+                        time.sleep(5)
+                        flood_protection = 0
+                    self.send_message_to_channel( ("News from github: "+commits_to_show[i]), '##orabot-test-channel' )
+                flood_protection = 0
+
+            commits(self)
         ### bugreport part:
         if ( bugreport_var == 100 ):
             bugreport_var = 0
@@ -105,7 +200,7 @@ def start(self):
                     file.write(bug_report_title.split()[1]+"\n")
                     file.close()
                     message = bug_report_title+" | "+bug_report_url
-                    self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('#openra', message)).encode())
+                    self.send_message_to_channel( (message), '#openra' )
             bugreport(self)
         ### new game notifications part
         ip_current_games = []

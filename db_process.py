@@ -354,3 +354,15 @@ def pingme():
     cur.execute(sql)
     conn.commit()
     cur.close()
+
+def commits():
+    conn = sqlite3.connect('db/openra.sqlite')
+    cur = conn.cursor()
+    sql = """CREATE TABLE "commits" (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "title" VARCHAR NOT NULL
+    )
+    """
+    cur.execute(sql)
+    conn.commit()
+    cur.close()

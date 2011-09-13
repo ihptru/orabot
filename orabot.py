@@ -567,7 +567,7 @@ class IRC_Server:
         if spam_filter.start(self, user, channel):
             # This line makes sure an actual command was sent, not a plain command prefix
             if ( len(command) == 0):
-                error = "Usage: ]command [arguments]"
+                error = "Usage: "+config.command_prefix+"command [arguments]"
                 self.send_reply( (error), user, channel )
                 return
             self.evalCommand(command[0].lower(), user, channel)

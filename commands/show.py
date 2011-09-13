@@ -20,7 +20,7 @@ import time
 show_possible=['games', 'help', 'version', 'hi', 'randomteam', 'tr', 'lang', 'last', 'online', 'weather', 'lastgame', 'who', 'promote', 'maps', 'say','mapinfo','calc','faq']
 
 def show(self, user, channel):
-    return
+    return  #command is broken
     if not self.OpVoice(user, channel):
         return
     command = (self.command)

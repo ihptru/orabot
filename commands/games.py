@@ -33,7 +33,7 @@ def modinfo( mod ):
     if ( len(mod_split) == 1 ):
         return (mod_split[0].upper()).ljust(20)
     else:
-        return (mod_split[0].upper() + '@' + mod_split[1]).ljust(20)
+        return (mod_split[0].upper() + '@' + "@".join(mod_split[1:])).ljust(20)
 
 def games(self, user, channel):
     command = (self.command)

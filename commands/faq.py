@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sqlite3
+import config
 
 def faq(self, user, channel):
     command = (self.command)
@@ -36,11 +37,11 @@ def faq(self, user, channel):
             self.send_reply( (result), user, channel )
     elif ( len(command) == 2 ):
         if ( command[1] == "set" ):
-            self.send_reply( ("Usage: ]faq set new_item_name item_description"), user, channel )
+            self.send_reply( ("Usage: "+config.command_prefix+"faq set new_item_name item_description"), user, channel )
         elif ( command[1] == "remove" ):
-            self.send_reply( ("Usage: ]faq remove item_name"), user, channel )
+            self.send_reply( ("Usage: "+config.command_prefix+"faq remove item_name"), user, channel )
         else:
-            self.send_reply( ("Usage: ]faq print item_name"), user, channel )
+            self.send_reply( ("Usage: "+config.command_prefix+"faq print item_name"), user, channel )
     elif ( len(command) == 3 ):
         if ( command[1] == "print" ):
             item = command[2]
@@ -74,14 +75,14 @@ def faq(self, user, channel):
                 conn.commit()
                 self.send_reply( (item + ": removed"), user, channel )
         elif ( command[1] == "set" ):
-            self.send_reply( ("Usage: ]faq set new_item_name item_description"), user, channel )
+            self.send_reply( ("Usage: "+config.command_prefix+"faq set new_item_name item_description"), user, channel )
         else:
             self.send_reply( ("Error!"), user, channel )
     elif ( len(command) >= 4 ):
         if ( command[1] == "print" ):
-            self.send_reply( ("Usage: ]faq print item_name"), user, channel )
+            self.send_reply( ("Usage: "+config.command_prefix+"faq print item_name"), user, channel )
         elif ( command[1] == "remove" ):
-            self.send_reply( ("Usage: ]faq remove item_name"), user, channel )
+            self.send_reply( ("Usage: "+config.command_prefix+"faq remove item_name"), user, channel )
         elif ( command[1] == "set" ):
             if not self.OpVoice(user, channel):
                 return
