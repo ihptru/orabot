@@ -52,7 +52,7 @@ class IRC_Server:
     def __del__(self):
         self.irc_sock.close()
 
-    # This is the bit that controls connection to a server & channel.       
+    # This is the bit that controls connection to a server & channel.
     def connect(self):
         self.should_reconnect = True
         try:
@@ -71,7 +71,7 @@ class IRC_Server:
         if str(recv).find ( " 433 * "+self.irc_nick+" " ) != -1:
             print('Nick is already in use!!! Change nickname and restart bot!')
             return
-                    
+
         str_buff = ("USER %s 8 * :X\r\n") % (self.irc_nick)
         self.irc_sock.send (str_buff.encode())
         print ("Setting User")
@@ -85,7 +85,7 @@ class IRC_Server:
             time.sleep(3)
             recv = self.irc_sock.recv( 8192 )
             recv=self.decode_stream(recv)
-            
+
             if str(recv).find ( " NOTICE "+config.bot_nick+" :You are now identified for " ) != -1:
                 print("Identification succeeded")
             else:
@@ -95,17 +95,52 @@ class IRC_Server:
             str_buff = ( "JOIN %s \r\n" ) % (self.irc_channel[i])
             self.irc_sock.send (str_buff.encode())
             print ("Joining channel " + self.irc_channel[i] )
-        
+
+        ### change existing users status to offline if their status in DB is online but they are not on any of the channels and upside down
+        conn = sqlite3.connect('../db/openra.sqlite')
+        cur = conn.cursor()
+        sql = """SELECT user,state FROM users
+        """
+        cur.execute(sql)
+        records = cur.fetchall()
+        conn.commit()
+        time.sleep(3)
+        if ( len(records) != 0 ):
+            for chan in config.channels.split(','):
+                time.sleep(2)
+                user_nicks = self.parse_names(self.get_names(chan))
+                print("Debug: "+str(user_nicks))
+                if ( len(user_nicks) != 0 ):    #no error on NAMES
+                    for i in range(len(records)):
+                        if ( records[i][0] not in user_nicks ):
+                            if ( str(records[i][1]) == '1' ):
+                                sql = """UPDATE users
+                                        SET state = 0
+                                        WHERE user = '"""+records[i][0]+"""'
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                        else:
+                            if ( str(records[i][1]) == '0' ):
+                                sql = """UPDATE users
+                                        SET state = 1
+                                        WHERE user = '"""+records[i][0]+"""'
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+        cur.close()
+        ###
+
         self.is_connected = True
         self.listen()
-        
+
     def listen(self):
         while self.is_connected:
             recv = self.irc_sock.recv( 4096 )
             recv=self.decode_stream(recv)
 
             if str(recv).find ( "PING" ) != -1:
-                self.irc_sock.send ( ("PONG "+ recv.split() [ 1 ] + "\r\n").encode() )             
+                self.irc_sock.send ( ("PONG "+ recv.split() [ 1 ] + "\r\n").encode() )
 
             if str(recv).find ( " PRIVMSG " ) != -1:
                 irc_user_nick = str(recv).split ( '!' ) [ 0 ] . split ( ":")[1]
@@ -119,7 +154,7 @@ class IRC_Server:
                 else:
                     self.logs(irc_user_nick, chan, 'privmsg', str(irc_user_message), '')
                 ### logs end
-                
+
                 print ( irc_user_nick + ": " + irc_user_message)
                 # Message starts with command prefix?
                 if ( str(irc_user_message) != '' ):
@@ -139,11 +174,11 @@ class IRC_Server:
                     irc_join_host = str(recv).split( '!' ) [ 1 ].split( ' ' ) [ 0 ]
                     supy_host = str(recv).split()[0][1:]
                     chan = str(recv).split()[2].replace(':','')[0:-5].rstrip()
-                    
+
                     ###logs
                     self.logs(irc_join_nick, chan, 'join', str(supy_host), '')
                     ###
-                    
+
                     ### for pingme
                     sql = """SELECT who,users_back FROM pingme
                     """
@@ -240,12 +275,12 @@ class IRC_Server:
                             time.sleep(0.1)
                             sql = """DELETE FROM later
                                     WHERE reciever = '"""+irc_join_nick+"'"+"""
-                        
+
                             """
                             cur.execute(sql)
                             conn.commit()
                 cur.close()
-                
+
             if str(recv).find ( " QUIT " ) != -1:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
@@ -266,7 +301,7 @@ class IRC_Server:
                         for chan in config.log_channels.split(','):
                             self.logs(irc_quit_nick, chan, 'quit', str(supy_host), '')
                     else:   #there are channels
-                        db_channels = records[0][0].split(',') 
+                        db_channels = records[0][0].split(',')
                         for chan in db_channels:
                             self.logs(irc_quit_nick, chan, 'quit', str(supy_host), '')
                 sql = """UPDATE users
@@ -297,7 +332,7 @@ class IRC_Server:
                 cur.execute(sql)
                 conn.commit()
                 cur.close()
-                
+
             if str(recv).find ( " PART " ) != -1:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
@@ -352,26 +387,26 @@ class IRC_Server:
                 cur.execute(sql)
                 conn.commit()
                 cur.close()
-                
+
             if str(recv).find ( " NICK " ) != -1:
                 original_nick = str(recv).split(':')[1].split('!')[0]
                 new_nick = str(recv).split()[2].replace(':','')[0:-5]
                 for chan in config.log_channels.split(','):
                     self.logs(original_nick, chan, 'nick', new_nick, '')
-            
+
             if str(recv).find ( " TOPIC " ) != -1:
                 nick = str(recv).split(':')[1].split('!')[0]
                 topic = " ".join(str(recv).split()[3:]).replace(':','')[0:-5]
                 chan = str(recv).split()[2]
                 self.logs(nick, chan, 'topic', topic, '')
-                
+
             if str(recv).find ( " KICK " ) != -1:
                 by = str(recv).split(':')[1].split('!')[0]
                 whom = str(recv).split()[3]
                 chan = str(recv).split()[2]
                 reason = " ".join(str(recv).split()[4:]).replace(':','')[0:-5]
                 self.logs(whom, chan, 'kick', by, reason)
-                
+
         if self.should_reconnect:
             self.connect()
 
@@ -383,7 +418,7 @@ class IRC_Server:
     def send_reply(self,data,user,channel):
         target = channel if channel.startswith('#') else user
         self.send_message_to_channel(data,target)
-    
+
     #another helper
     def decode_stream(self,stream):
         try:
@@ -402,7 +437,7 @@ class IRC_Server:
         print ( ( "NOTICE to %s: %s" ) % (user, data) )
         str_buff = ( "NOTICE %s :%s\r\n" ) % (user,data)
         self.irc_sock.send (str_buff.encode())
-    
+
     def get_names(self, channel):
         str_buff = ( "NAMES %s \r\n" ) % (channel)
         self.irc_sock.send (str_buff.encode())
@@ -410,7 +445,7 @@ class IRC_Server:
         recv = self.irc_sock.recv( 4096 )
         recv = self.decode_stream( recv )
         return recv
-    
+
     def parse_names(self, recv):
         user_nicks = []
         if recv.find ( " 353 "+config.bot_nick ) != -1:
@@ -432,7 +467,7 @@ class IRC_Server:
             str_buff = ( "PART %s \r\n" ) % (channel)
             self.irc_sock.send (str_buff.encode())
             # This needs to modify the list of active channels
-    
+
     def logs(self, irc_user, channel, logs_of, some_data, some_more_data):
         if config.write_logs == True:
             chan_d = str(channel).replace('#','')
@@ -467,7 +502,7 @@ class IRC_Server:
                     file.close()
                 except:
                     print('####### ERROR !!! ###### Probably no write permissions to logs directory!')
-    
+
     def title_from_url(self, url):
         # todo: security: can force the bot to output anything we like into
         #                 the channel.
@@ -527,11 +562,11 @@ class IRC_Server:
                     except:
                         pass
                 flood_protection = 0
-    
+
     # This function is for pickup matches code
     def players_for_mode(self, mode):
         return sum( map( int, mode.split('v') ) )
-    
+
     # Special admin commands for Op/HalfOp/Voice
     def OpVoice(self, user, channel):
         recv = self.get_names(channel)
@@ -543,8 +578,8 @@ class IRC_Server:
             else:
                 self.send_reply( ("No rights!"), user, channel )
                 return False
-    
-    # Execute command        
+
+    # Execute command
     def evalCommand(self, commandname, user, channel):
         try:
             imp.find_module('commands/'+commandname)
