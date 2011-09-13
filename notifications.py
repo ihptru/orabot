@@ -172,8 +172,17 @@ def start(self):
                         time.sleep(5)
                         flood_protection = 0
                     self.send_message_to_channel( ("News from github: "+commits_to_show[i]), config.write_commit_notifications_to )
+                    sql = """INSERT INTO commits
+                            (title)
+                            VALUES
+                            (
+                            '"""+commits_to_show[i].replace("'","''")+"""'
+                            )
+                    """
+                    cur.execute(sql)
+                    conn.commit()
                 flood_protection = 0
-
+                cur.close()
             commits(self)
         ### bugreport part:
         if ( bugreport_var == 100 ):
