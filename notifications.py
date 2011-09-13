@@ -18,6 +18,7 @@ import sqlite3
 import urllib.request
 import re
 from datetime import date
+import config
 
 def get_commits():
     url = 'https://github.com/chrisforbes/OpenRA/commits/master'
