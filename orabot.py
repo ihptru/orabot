@@ -106,10 +106,10 @@ class IRC_Server:
         conn.commit()
         time.sleep(3)
         if ( len(records) != 0 ):
+            user_nicks = self.parse_names(self.get_names(config.channels.split(',')[0]))
             for chan in config.channels.split(','):
                 time.sleep(2)
                 user_nicks = self.parse_names(self.get_names(chan))
-                print("Debug: "+str(user_nicks))
                 if ( len(user_nicks) != 0 ):    #no error on NAMES
                     for i in range(len(records)):
                         if ( records[i][0] not in user_nicks ):
@@ -442,6 +442,7 @@ class IRC_Server:
         str_buff = ( "NAMES %s \r\n" ) % (channel)
         self.irc_sock.send (str_buff.encode())
         #recover all nicks on channel
+        time.sleep(2)
         recv = self.irc_sock.recv( 4096 )
         recv = self.decode_stream( recv )
         return recv

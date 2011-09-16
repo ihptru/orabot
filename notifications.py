@@ -28,8 +28,9 @@ def get_commits():
     except:
         return titles
     commits = stream.split('<p class="commit-title">')
-    if ( len(commits) == 1 ):   #must be > 1
-        return titles       
+    if ( len(commits) == 1 ):   #must be > 1; possible reason: changed tag on github or some problems with service
+        return titles
+    del commits[0]
     amount_commits = len(commits)
     for i in range(amount_commits):
         commit_title = commits[i].split('</a>')[0].split('">')[1].strip()
