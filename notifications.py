@@ -28,6 +28,8 @@ def get_commits():
     except:
         return titles
     commits = stream.split('<p class="commit-title">')
+    if ( len(commits) == 1 ):   #must be > 1
+        return titles       
     amount_commits = len(commits)
     for i in range(amount_commits):
         commit_title = commits[i].split('</a>')[0].split('">')[1].strip()
@@ -144,6 +146,7 @@ def start(self):
                 conn.commit()
                 titles = get_commits()
                 if ( len(titles) == 0 ):
+                    print("### Something went wrong fetching commits info! ###")
                     return
                 if ( len(records) == 0 ):   #There was an error at notification's start (probably fetching error(caused by socket)), so `commits` table is clear
                     ### current fetch is full of commits, so we fill table; return; do not notify
