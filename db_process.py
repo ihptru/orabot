@@ -23,7 +23,7 @@ def start():
     except:
         print("Error! Can not create a directory, check permissions and try again")
         return
-    print("Creating database ...")
+    print("Creating databases")
     black_list()
     commands()
     users()
@@ -33,6 +33,7 @@ def start():
     maps()
     
 def black_list():
+    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE black_list (
@@ -47,6 +48,7 @@ def black_list():
     cur.close()
 
 def commands():
+    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE commands (
@@ -71,6 +73,7 @@ def commands():
     cur.close()
     
 def users():
+    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE users (
@@ -86,6 +89,7 @@ def users():
     cur.close()
 
 def later():
+    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE later (
@@ -102,6 +106,7 @@ def later():
     cur.close()
 
 def pickup():
+    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE "pickup_1v1" (
@@ -232,6 +237,7 @@ def pickup():
     cur.close()
 
 def notify():
+    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE "notify" (
@@ -249,6 +255,7 @@ def notify():
     cur.close()
 
 def maps():
+    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE "maps" (
@@ -329,6 +336,7 @@ def maps():
     cur.close()
 
 def faq():
+    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE "faq" (
@@ -343,6 +351,7 @@ def faq():
     cur.close()
 
 def pingme():
+    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE "pingme" (
@@ -356,11 +365,14 @@ def pingme():
     cur.close()
 
 def commits():
+    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE "commits" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "title" VARCHAR NOT NULL
+        "title" VARCHAR NOT NULL,
+        "repo" VARCHAR NOT NULL,
+        "branch" VARCHAR NOT NULL
     )
     """
     cur.execute(sql)

@@ -174,7 +174,8 @@ class IRC_Server:
                     irc_join_host = str(recv).split( '!' ) [ 1 ].split( ' ' ) [ 0 ]
                     supy_host = str(recv).split()[0][1:]
                     chan = str(recv).split()[2].replace(':','')[0:-5].rstrip()
-
+                    print(str(recv))
+                    print("Debug join: n_" + irc_join_nick + " host_" + irc_join_host + " supy_" + supy_host + " chan_" + chan)
                     ###logs
                     self.logs(irc_join_nick, chan, 'join', str(supy_host), '')
                     ###
@@ -393,6 +394,38 @@ class IRC_Server:
                 new_nick = str(recv).split()[2].replace(':','')[0:-5]
                 for chan in config.log_channels.split(','):
                     self.logs(original_nick, chan, 'nick', new_nick, '')
+                conn = sqlite3.connect('../db/openra.sqlite')
+                cur = conn.cursor()
+                sql = """UPDATE users
+                        SET state = 0
+                        WHERE user = '"""+original_nick+"""'
+                """
+                cur.execute(sql)
+                conn.commit()
+                sql = """SELECT user FROM users
+                        WHERE user = '"""+new_nick+"""'
+                """
+                cur.execute(sql)
+                records = cur.fetchall()
+                conn.commit()
+                if ( len(records) == 0 ):
+                    sql = """INSERT INTO users
+                            (user,state,channels)
+                            VALUES
+                            (
+                            '"""+new_nick+"""',1,'"""+chan+"""'
+                            )
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                else:
+                    sql = """UPDATE users
+                            SET state = 1
+                            WHERE user = '"""+new_nick+"""'
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                cur.close()
 
             if str(recv).find ( " TOPIC " ) != -1:
                 nick = str(recv).split(':')[1].split('!')[0]

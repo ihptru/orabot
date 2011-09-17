@@ -20,8 +20,24 @@ import re
 from datetime import date
 import config
 
-def get_commits():
-    url = 'https://github.com/chrisforbes/OpenRA/commits/master'
+def branch_list(repo):
+    try:
+        stream = urllib.request.urlopen(repo).read().decode('utf-8')
+    except:
+        return []
+    branches = stream.split('<ul class="subnav-dropdown-branches">')[1].split('</ul>')[0].split('<li>')
+    del branches[0]
+    branch_list = []
+    for i in range(len(branches)):
+        try:
+            branch = branches[i].split('</a>')[0].split('">')[1]
+        except:
+            branch = branches[i].split(' &#')[0].split('<strong>')[1]
+        branch_list.append(branch)
+    return branch_list
+        
+
+def get_commits(url):   #this functions must get url of Branch
     titles = []
     try:
         stream = urllib.request.urlopen(url).read().decode('utf-8')
@@ -96,38 +112,60 @@ def start(self):
     bugreport_var = 0
     commit_var = 0
     
-    def update_commits(titles):
+    conn = sqlite3.connect('../db/openra.sqlite')
+    cur = conn.cursor()
+    sql = """DELETE FROM commits
+    """
+    cur.execute(sql)
+    conn.commit()
+    cur.close()
+    
+    def update_commits(titles, repo, branch):
         conn = sqlite3.connect('../db/openra.sqlite')
         cur = conn.cursor()
         sql = """DELETE FROM commits
+                WHERE repo = '"""+repo+"""' AND branch = '"""+branch+"""'
         """
         cur.execute(sql)
         conn.commit()
         for i in range(len(titles)):
             sql = """INSERT INTO commits
-                    (title)
+                    (title,repo,branch)
                     VALUES
                     (
-                    '"""+titles[i].replace("'","''")+"""'
+                    '"""+titles[i].replace("'","''")+"""','"""+repo+"""','"""+branch+"""'
                     )
             """
             cur.execute(sql)
             conn.commit()
         cur.close()
-        print("Commits Table Updated...")
+        print("Updating commits table...")
 
-    titles = get_commits()
-    if ( len(titles) == 0 ):
-        print("### Something went wrong fetching commits info! ### Clearing commits table...")
-        conn = sqlite3.connect('../db/openra.sqlite')
-        cur = conn.cursor()
-        sql = """DELETE FROM commits
-        """
-        cur.execute(sql)
-        conn.commit()
-        cur.close()
-    else:
-        update_commits(titles)
+    repos = config.git_repos.split()
+    for repo in repos:
+        if ( repo[-1] == '/' ):
+            slash = ''
+        else:
+            slash = '/'
+        branches = branch_list(repo)
+        if ( len(branches) == 0 ):
+            print("Error fetching list of branches from repo: " + repo)
+        else:
+            for branch in branches:
+                url = repo + slash + 'commits/' + branch
+                titles = get_commits(url)
+                if ( len(titles) == 0 ):
+                    print("### Something went wrong fetching commits info! ###")
+                    conn = sqlite3.connect('../db/openra.sqlite')
+                    cur = conn.cursor()
+                    sql = """DELETE FROM commits
+                            WHERE repo = '"""+repo+"""' AND branch = '"""+branch+"""'
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                    cur.close()
+                else:
+                    update_commits(titles, repo, branch)
 
     while True:
         time.sleep(5)
@@ -138,55 +176,68 @@ def start(self):
             commit_var = 0
             def commits(self):
                 flood_protection = 0
-                conn = sqlite3.connect('../db/openra.sqlite')
-                cur = conn.cursor()
-                sql = """SELECT title FROM commits
-                """
-                cur.execute(sql)
-                records = cur.fetchall()
-                conn.commit()
-                titles = get_commits()
-                if ( len(titles) == 0 ):
-                    print("### Something went wrong fetching commits info! ###")
-                    return
-                if ( len(records) == 0 ):   #There was an error at notification's start (probably fetching error(caused by socket)), so `commits` table is clear
-                    ### current fetch is full of commits, so we fill table; return; do not notify
-                    for i in range(len(titles)):
-                        sql = """INSERT INTO commits
-                                (title)
-                                VALUES
-                                (
-                                '"""+titles[i].replace("'","''")+"""'
-                                )
+                repos = config.git_repos.split()
+                for repo in repos:
+                    if ( repo[-1] == '/' ):
+                        slash = ''
+                    else:
+                        slash = '/'
+                    branches = branch_list(repo)
+                    if ( len(branches) == 0 ):
+                        print("Error fetching list of branches from repo: " + repo)
+                        return
+                    for branch in branches:
+                        url = repo + slash + 'commits/' + branch
+                        conn = sqlite3.connect('../db/openra.sqlite')
+                        cur = conn.cursor()
+                        sql = """SELECT title FROM commits
+                                WHERE repo = '"""+repo+"""' AND branch = '"""+branch+"""'
                         """
                         cur.execute(sql)
+                        records = cur.fetchall()
                         conn.commit()
-                    return
-                commits_to_show = []
-                existing_commits = []
-                for i in range(len(records)):
-                    existing_commits.append(records[i][0])
-                for i in range(len(titles)):
-                    if titles[i] not in existing_commits:
-                        commits_to_show.append(titles[i])
-                commits_to_show.reverse()
-                for i in range(len(commits_to_show)):
-                    flood_protection = flood_protection + 1
-                    if flood_protection == 5:
-                        time.sleep(5)
+                        titles = get_commits(url)
+                        if ( len(titles) == 0 ):
+                            print("### Something went wrong fetching commits info! ###")
+                            return
+                        if ( len(records) == 0 ):   #There was an error at notification's start (probably fetching error(caused by socket)), so `commits` table is clear
+                            ### current fetch is full of commits, so we fill table; return; do not notify
+                            for i in range(len(titles)):
+                                sql = """INSERT INTO commits
+                                        (title,repo,branch)
+                                        VALUES
+                                        (
+                                        '"""+titles[i].replace("'","''")+"""','"""+repo+"""','"""+branch+"""'
+                                        )
+                                """
+                                cur.execute(sql)
+                                conn.commit()
+                            return
+                        commits_to_show = []
+                        existing_commits = []
+                        for i in range(len(records)):
+                            existing_commits.append(records[i][0])
+                        for i in range(len(titles)):
+                            if titles[i] not in existing_commits:
+                                commits_to_show.append(titles[i])
+                        commits_to_show.reverse()
+                        for i in range(len(commits_to_show)):
+                            flood_protection = flood_protection + 1
+                            if flood_protection == 5:
+                                time.sleep(5)
+                                flood_protection = 0
+                            self.send_message_to_channel( ("News from "+repo.split('github.com/')[1].split('/')[0]+"/"+branch+": "+commits_to_show[i]), config.write_commit_notifications_to )
+                            sql = """INSERT INTO commits
+                                    (title,repo,branch)
+                                    VALUES
+                                    (
+                                    '"""+commits_to_show[i].replace("'","''")+"""','"""+repo+"""','"""+branch+"""'
+                                    )
+                            """
+                            cur.execute(sql)
+                            conn.commit()
                         flood_protection = 0
-                    self.send_message_to_channel( ("News from github: "+commits_to_show[i]), config.write_commit_notifications_to )
-                    sql = """INSERT INTO commits
-                            (title)
-                            VALUES
-                            (
-                            '"""+commits_to_show[i].replace("'","''")+"""'
-                            )
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                flood_protection = 0
-                cur.close()
+                        cur.close()
             commits(self)
         ### bugreport part:
         if ( bugreport_var == 100 ):

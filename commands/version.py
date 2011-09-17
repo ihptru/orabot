@@ -27,6 +27,6 @@ def version(self, user, channel):
             newer = 'playtest is newer then release'
         else:
             newer = 'release is newer then playtest'
-        self.send_reply( ("Latest release: "+release[0:4]+""+release[4:8]+" | Latest playtest: "+playtest[0:4]+""+playtest[4:8]+" | "+newer), user, channel )
+        self.send_reply( ("Latest release: "+release[0:4]+" "+release[4:8]+"  | Latest playtest: "+playtest[0:4]+" "+playtest[4:8]+"  | "+newer), user, channel )
     else:
         self.send_reply( ("Error, wrong request"), user, channel )

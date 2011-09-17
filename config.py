@@ -19,8 +19,10 @@ log_channels = '#channel1,#channel2'
 
 
 
-
+################
 ### Bot Data ###
+################
+
 #bot nick
 bot_nick = 'change_bot_nick'
 
@@ -34,11 +36,18 @@ nickserv_password = ''
 #commands start with:
 command_prefix = ']'
 
-
+#####################
 ### Notifications ###
+#####################
+
 #support notifications? ( True or False )
 notifications = False
 
+### write bug reports to (comma as delimiter)
 write_bug_notifications_to = '#openra'
 
+### write new commit notifications to (comma as delimiter)
 write_commit_notifications_to = '#openra-dev'
+
+### GitHub repositories from where fetch new commit data (space as delimiter); Ex: https://github.com/OpenRA/OpenRA
+git_repos = 'https://github.com/chrisforbes/OpenRA https://github.com/hamb/OpenRA'
