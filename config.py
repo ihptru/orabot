@@ -1,4 +1,7 @@
+###################
 ### Server Data ###
+###################
+
 #server to connect
 server = 'irc.freenode.net'
 
@@ -35,6 +38,7 @@ nickserv_password = ''
 
 #commands start with:
 command_prefix = ']'
+
 
 #####################
 ### Notifications ###
