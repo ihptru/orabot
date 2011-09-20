@@ -496,8 +496,11 @@ class IRC_Server:
     def quit_channel(self,channel):
         if (channel[0] == "#"):
             str_buff = ( "PART %s \r\n" ) % (channel)
-            self.irc_sock.send (str_buff.encode())
+            self.irc_sock.send ( str_buff.encode() )
             # This needs to modify the list of active channels
+    def topic(self, channel, topic):
+        str_buff = ("PRIVMSG ChanServ :TOPIC %s %s\r\n") % (channel, topic)
+        self.irc_sock.send ( str_buff.encode() )
 
     def logs(self, irc_user, channel, logs_of, some_data, some_more_data):
         if config.write_logs == True:

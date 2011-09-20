@@ -55,3 +55,6 @@ write_commit_notifications_to = '#openra-dev'
 
 ### GitHub repositories from where fetch new commit data (space as delimiter); Ex: https://github.com/OpenRA/OpenRA
 git_repos = 'https://github.com/chrisforbes/OpenRA https://github.com/hamb/OpenRA'
+
+### Change topic of next channe in notifications process:
+change_topic_channel = '#openra'

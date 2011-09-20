@@ -31,6 +31,7 @@ def start():
     pickup()
     notify()
     maps()
+    print("Creating databases completed.")
     
 def black_list():
     print("...")

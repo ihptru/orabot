@@ -20,6 +20,37 @@ import re
 from datetime import date
 import config
 
+def change_topic(self):
+    def write_version(release, playtest):
+        filename = 'version.txt'
+        file = open(filename, 'w')
+        file.write(release + "\n" + playtest + "\n")
+        file.close()
+
+    url = 'http://openra.res0l.net/download/linux/deb/index.php'
+    try:
+        stream = urllib.request.urlopen(url).read().decode('utf-8')
+    except:
+        pass    #can not reach page in 90% cases
+    release = stream.split('<ul')[1].split('<li>')[1].split('>')[1].split('</a')[0]
+    playtest = stream.split('<ul')[2].split('<li>')[1].split('>')[1].split('</a')[0]
+    filename = 'version.txt'
+    lines = []
+    try:
+        file = open(filename, 'r')
+        lines = file.readlines()
+        file.close()
+    except:
+        pass    #no file exists
+    if ( lines == [] ):
+        write_version(release, playtest)
+        return
+    if ( (release + '\n' not in lines) or (playtest + '\n' not in lines) ):
+        topic = "open-source RTS | latest: "+release+" | testing: "+playtest+" | http://open-ra.org | bugs: http://bugs.open-ra.org"
+        self.topic(config.change_topic_channel, topic)
+        print("## DEBUG: attempt to change topic")
+        write_version(release, playtest)
+
 def branch_list(repo):
     try:
         stream = urllib.request.urlopen(repo).read().decode('utf-8')
@@ -111,7 +142,8 @@ def start(self):
     notify_players_list = []
     bugreport_var = 0
     commit_var = 0
-    
+    topic_var = 0
+
     conn = sqlite3.connect('../db/openra.sqlite')
     cur = conn.cursor()
     sql = """DELETE FROM commits
@@ -166,11 +198,17 @@ def start(self):
                     cur.close()
                 else:
                     update_commits(titles, repo, branch)
+    print("Updating commits table completed!")
 
     while True:
         time.sleep(5)
         bugreport_var = bugreport_var + 1
         commit_var = commit_var + 1
+        topic_var = topic_var + 1
+        ###change topic
+        if ( topic_var == 500 ):
+            topic_var = 0
+            change_topic(self)
         ### commits
         if ( commit_var == 20 ):
             commit_var = 0
@@ -227,7 +265,7 @@ def start(self):
                                 time.sleep(5)
                                 flood_protection = 0
                             for channel in config.write_commit_notifications_to.split(','):
-                                self.send_message_to_channel( ("News from "+repo.split('github.com/')[1].split('/')[0]+"/"+branch+": "+commits_to_show[i]), channel )
+                                self.send_message_to_channel( ("News from "+"".join(repo.split('github.com/')[1].split('/')[0:1])+"/"+branch+": "+commits_to_show[i]), channel )
                             sql = """INSERT INTO commits
                                     (title,repo,branch)
                                     VALUES
