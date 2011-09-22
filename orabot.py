@@ -171,7 +171,7 @@ class IRC_Server:
                 cur=conn.cursor()
                 irc_join_nick = str(recv).split( '!' ) [ 0 ].split( ':' ) [ 1 ]
                 if ( len(irc_join_nick.split()) == 1 ):
-                    supy_host = str(recv).split()[0][1:]
+                    supy_host = str(recv).split()[0].split('!')[1:]
                     chan = str(recv).split()[2].strip()
                     ###logs
                     self.logs(irc_join_nick, chan, 'join', str(supy_host), '')
@@ -283,7 +283,7 @@ class IRC_Server:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
                 irc_quit_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
-                supy_host = str(recv).split()[0][1:]
+                supy_host = str(recv).split()[0].split('!')[1:]
                 ### for ]last and logs
                 sql = """SELECT channels FROM users
                         WHERE user = '"""+irc_quit_nick+"""'
@@ -335,7 +335,7 @@ class IRC_Server:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
                 cur=conn.cursor()
                 irc_part_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
-                supy_host = str(recv).split()[0][1:]
+                supy_host = str(recv).split()[0].split('!')[1:]
                 chan = str(recv).split()[2].strip()
                 ###logs
                 self.logs(irc_part_nick, chan, 'part', str(supy_host), '')
