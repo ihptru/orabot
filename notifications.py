@@ -74,7 +74,7 @@ def get_commits(url):   #this functions must get url of Branch
         stream = urllib.request.urlopen(url).read().decode('utf-8')
     except:
         return titles
-    commits = stream.split('<p class="commit-title">')
+    commits = stream.split('<p class="commit-title ">')
     if ( len(commits) == 1 ):   #must be > 1; possible reason: changed tag on github or some problems with service
         return titles
     del commits[0]
@@ -265,7 +265,7 @@ def start(self):
                                 time.sleep(5)
                                 flood_protection = 0
                             for channel in config.write_commit_notifications_to.split(','):
-                                self.send_message_to_channel( ("News from "+"".join(repo.split('github.com/')[1].split('/')[0:1])+"/"+branch+": "+commits_to_show[i]), channel )
+                                self.send_message_to_channel( ("News from "+repo.split('github.com/')[1]+branch+": "+commits_to_show[i]), channel )
                             sql = """INSERT INTO commits
                                     (title,repo,branch)
                                     VALUES
