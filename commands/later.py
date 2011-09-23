@@ -24,7 +24,7 @@ def later(self, user, channel):
     cur=conn.cursor()
     if ( len(command) >= 3 ):
         if re.search("^#", channel):
-            user_nick = command[1] #reciever
+            user_nick = command[1].replace("'", "''") #reciever
             if ( user_nick == user ):
                 self.send_message_to_channel( (user+", you can not send a message to yourself"), channel)
             else:
