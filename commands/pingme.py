@@ -18,7 +18,7 @@ import re
 import sqlite3
 
 def usage(self, user, channel):
-    self.send_reply( ("Usage: "+config.command_prefix+"pingme when USERNAME back"), user, channel )
+    self.send_reply( ("Usage: "+config.command_prefix+"pingme when USERNAME join"), user, channel )
 
 def pingme(self, user, channel):
     command = (self.command)
