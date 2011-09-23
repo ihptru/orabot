@@ -39,7 +39,13 @@ def pingme(self, user, channel):
             cur.close()
             return
         user_nicks = self.parse_names(self.get_names(channel))
-        if command[2] in user_nicks:  #reciever is on the channel right now
+        user_join = command[2]
+        chars = ['`','-','_','[',']','{','}','\\','^']
+        for i in range(len(user_join)):
+            if ( (user_join[i] not in chars) and ( not re.search('[a-zA-Z0-9]', user_join[i])) ):
+                self.send_message_to_channel( ("Username Error!"), channel)
+                return
+        if user_join in user_nicks:  #reciever is on the channel right now
             self.send_message_to_channel( ("User is online!"), channel)
             cur.close()
             return
@@ -54,7 +60,7 @@ def pingme(self, user, channel):
                     (who,users_back)
                     VALUES
                     (
-                    '"""+user+"','"+command[2]+"""'
+                    '"""+user+"','"+user_join+"""'
                     )
             """
             cur.execute(sql)
@@ -62,8 +68,8 @@ def pingme(self, user, channel):
             self.send_reply( ("I will do it!"), user, channel )
         else:
             records_list = records[0][0].split(',')
-            if ( command[2] in records_list ):
-                message = "You've already requested to ping you when "+command[2]+" joins..."
+            if ( user_join in records_list ):
+                message = "You've already requested to ping you when "+user_join+" joins..."
                 self.send_notice( message, user )
                 return
             if ( len(records_list) == 20 ):
@@ -71,7 +77,7 @@ def pingme(self, user, channel):
                 self.send_notice( message, user )
                 cur.close()
                 return
-            records_list.append(command[2])
+            records_list.append(user_join)
             records_back = ",".join(records_list)
             sql = """UPDATE pingme
                     SET users_back = '"""+records_back+"""'
