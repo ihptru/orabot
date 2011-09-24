@@ -265,7 +265,7 @@ def start(self):
                                 time.sleep(5)
                                 flood_protection = 0
                             for channel in config.write_commit_notifications_to.split(','):
-                                self.send_message_to_channel( ("News from "+repo.split('github.com/')[1]+branch+": "+commits_to_show[i]), channel )
+                                self.send_message_to_channel( ("News from "+repo.split('github.com/')[1]+slash+branch+": "+commits_to_show[i]), channel )
                             sql = """INSERT INTO commits
                                     (title,repo,branch)
                                     VALUES
