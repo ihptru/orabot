@@ -202,7 +202,7 @@ def games(self, user, channel):
                     playing = playing + 1
             games = "@ Games: waiting ["+str(waiting)+"] | playing ["+str(playing)+"]"
             self.send_reply( (games), user, channel )
-        elif ( (command[1]) == "-v" ):
+        elif ( (command[1]) == "-v" or (command[1]) == "-vp" or (command[1]) == "-vw" or (command[1]) == "-wv" or (command[1]) == "-pv"):
             games_state1 = []
             games_state2 = []
             for game in y.values():
@@ -234,38 +234,49 @@ def games(self, user, channel):
             for mod in games_state2:
                 position = mod_state2_ready.index(mod)
                 mod_2_count[position] = mod_2_count[position] + 1
-            if ( len(games_state2) > 1 ):
-                self.send_reply( ('Playing:'), user, channel )
-                for i in range(len(mod_state2_ready)):
-                    flood_protection = flood_protection + 1
-                    if flood_protection == 7:
-                        time.sleep(5)
-                        flood_protection = 0
-                    mod = mod_state2_ready[i]
-                    count_games = str(mod_2_count[i])
-                    if count_games[-1] == '1':
-                        end = ''
-                    else:
-                        end = 's'
-                    games = '\t' + mod + ' : ' + count_games + ' game'+end
-                    self.send_reply( (games), user, channel )
-                    time.sleep(0.5)
-            if ( len(games_state1) > 1 ):
-                self.send_reply( ('Waiting:'), user, channel )
-                for i in range(len(mod_state1_ready)):
-                    flood_protection = flood_protection + 1
-                    if flood_protection == 7:
-                        time.sleep(5)
-                        flood_protection = 0
-                    mod = mod_state1_ready[i]
-                    count_games = str(mod_1_count[i])
-                    if count_games[-1] == '1':
-                        end = ''
-                    else:
-                        end = 's'
-                    games = '\t' + mod + ' : ' + count_games + ' game'+end
-                    self.send_reply( (games), user, channel )
-                    time.sleep(0.5)
+            def send_games(self, user, channel, games_state1, games_state2, mod_state1_ready, mod_state2_ready, mod_1_count, mod_2_count, flood_protection):
+                if ( len(games_state2) > 0 ):
+                    self.send_reply( ('Playing:'), user, channel )
+                    for i in range(len(mod_state2_ready)):
+                        flood_protection = flood_protection + 1
+                        if flood_protection == 7:
+                            time.sleep(5)
+                            flood_protection = 0
+                        mod = mod_state2_ready[i]
+                        count_games = str(mod_2_count[i])
+                        if count_games[-1] == '1':
+                            end = ''
+                        else:
+                            end = 's'
+                        games = '\t' + mod + ' : ' + count_games + ' game'+end
+                        self.send_reply( (games), user, channel )
+                        time.sleep(0.5)
+                elif ( games_state1 == [] and mod_state1_ready == ['0'] ):
+                    self.send_reply( ('No started games found'), user, channel )
+                if ( len(games_state1) > 0 ):
+                    self.send_reply( ('Waiting:'), user, channel )
+                    for i in range(len(mod_state1_ready)):
+                        flood_protection = flood_protection + 1
+                        if flood_protection == 7:
+                            time.sleep(5)
+                            flood_protection = 0
+                        mod = mod_state1_ready[i]
+                        count_games = str(mod_1_count[i])
+                        if count_games[-1] == '1':
+                            end = ''
+                        else:
+                            end = 's'
+                        games = '\t' + mod + ' : ' + count_games + ' game'+end
+                        self.send_reply( (games), user, channel )
+                        time.sleep(0.5)
+                elif ( games_state2 == [] and mod_state2_ready == ['0'] ):
+                    self.send_reply( ('No games waiting for players found'), user, channel )
+            if ( command[1] == '-vw' or command[1] == '-wv' ):
+                send_games(self, user, channel, games_state1, [], mod_state1_ready, ['0'], mod_1_count, mod_2_count, 0)
+            elif ( command[1] == '-vp' or command[1] == '-pv' ):
+                send_games(self, user, channel, [], games_state2, ['0'], mod_state2_ready, mod_1_count, mod_2_count, 0)
+            else:
+                send_games(self, user, channel, games_state1, games_state2, mod_state1_ready, mod_state2_ready, mod_1_count, mod_2_count, 0)
         elif ( (command[1]) == "-r" ):
             self.send_reply( ("A pattern required"), user, channel )
         else:
