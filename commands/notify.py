@@ -182,7 +182,7 @@ def notify(self, user, channel):
                     elif ( argument[0] == '-t' ):   #timeout
                         if ( timeout_defined == 0 ):
                             try:
-                                if ( (argument[1] == 'till_quit') or (argument[1] == 'all') or ( argument[1][-1] in timeouts and type(int(argument[1][0:-1])) is int ) ):
+                                if ( (argument[1] == 'forever') or (argument[1] == 'f') or (argument[1] == 'till_quit') or (argument[1] == 'all') or ( argument[1][-1] in timeouts and type(int(argument[1][0:-1])) is int ) ):
                                     timeout_defined = 1
                                     result_timeout = argument[1]
                                     sql = """SELECT user FROM notify

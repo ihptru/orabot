@@ -325,7 +325,7 @@ class IRC_Server:
                     conn.commit()
                 ### for notify
                 sql = """DELETE FROM notify
-                        WHERE user = '"""+irc_quit_nick+"""'
+                        WHERE user = '"""+irc_quit_nick+"""' AND timeout <> 'f' AND timeout <> 'forever'
                 """
                 cur.execute(sql)
                 conn.commit()
@@ -380,7 +380,7 @@ class IRC_Server:
                     conn.commit()
                 ### for notify
                 sql = """DELETE FROM notify
-                        WHERE user = '"""+irc_part_nick+"""'
+                        WHERE user = '"""+irc_part_nick+"""' AND timeout <> 'f' AND timeout <> 'forever'
                 """
                 cur.execute(sql)
                 conn.commit()

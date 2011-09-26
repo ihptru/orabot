@@ -90,6 +90,8 @@ def check_timeout_send(self, name, mod, version, players, db_timeout, db_date, d
         self.send_reply( (notify_message), db_user, db_user )
     elif ( db_timeout.lower() == 'till_quit' ):
         self.send_reply( (notify_message), db_user, db_user )
+    elif ( db_timeout.lower() == 'f' or db_timeout.lower() == 'forever' ):
+        self.send_reply( (notify_message), db_user, db_user )
     else:
         date_of_adding = int(db_date.replace('-',''))
         ###
