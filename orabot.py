@@ -21,6 +21,7 @@ import sqlite3
 import urllib.request
 import imp
 import inspect
+import signal
 
 import db_process
 import notifications
@@ -623,7 +624,21 @@ class IRC_Server:
         command_function=getattr(eval(commandname), commandname, None)
         if command_function != None:
             if inspect.isfunction(command_function):
-                command_function(self, user, channel)
+
+                class TimedOut(Exception): # Raised if timed out.
+                        pass
+
+                def signal_handler(signum, frame):
+                    raise TimedOut("Timed out!")
+
+                signal.signal(signal.SIGALRM, signal_handler)
+                
+                signal.alarm(10)    #Limit command execution time
+                try:
+                    command_function(self, user, channel)
+                    signal.alarm(0)
+                except TimedOut as msg:
+                    self.send_reply( ("Timed out!"), user, channel)
 
     def process_command(self, user, channel):
         command = (self.command)
