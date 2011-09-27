@@ -40,10 +40,12 @@ def calc(self, user, channel):
         signal.alarm(10)    #Limit command execution time
         try:
             result = calc(expr)
+            signal.alarm(0)
             self.send_reply( (result), user, channel )
         except TimedOut as msg:
             self.send_reply( ("Timed out!"), user, channel)
         except:
+            signal.alarm(0)
             self.send_reply( ("Error encountered!"), user, channel )
     else:
         functions = 'pow, fsum, cosh, ldexp, hypot, acosh, tan, asin, isnan, log, fabs, floor, atanh, modf, sqrt, frexp, degrees, pi, log10, asinh, exp, atan, factorial, copysign, ceil, isinf, sinh, trunc, cos, e, tanh, radians, sin, atan2, fmod, acos, log1p'
