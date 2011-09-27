@@ -14,10 +14,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import math
+import signal
 
 def calc(self, user, channel):
     command = (self.command)
     command = command.split()
+
+    def signal_handler(signum, frame):
+        raise Exception("Timed out!")
+
+    signal.signal(signal.SIGALRM, signal_handler)
+
     if ( len(command) > 1 ):
         expr = " ".join(command[1:])
         expr = expr.replace('^','**')
@@ -26,10 +33,13 @@ def calc(self, user, channel):
         
         def calc(expr):
             return safe_eval(expr, vars(math))
-    
+
+        signal.alarm(10)    #Limit command execution time
         try:
             result = calc(expr)
             self.send_reply( (result), user, channel )
+        except Exception as msg:
+            self.send_reply( ("Timed out!"), user, channel)
         except:
             self.send_reply( ("Error encountered!"), user, channel )
     else:
