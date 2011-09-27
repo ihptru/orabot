@@ -16,12 +16,15 @@
 import math
 import signal
 
+class TimedOut(Exception): # Raised if timed out.
+    pass
+
 def calc(self, user, channel):
     command = (self.command)
     command = command.split()
 
     def signal_handler(signum, frame):
-        raise Exception("Timed out!")
+        raise TimedOut("Timed out!")
 
     signal.signal(signal.SIGALRM, signal_handler)
 
@@ -38,7 +41,7 @@ def calc(self, user, channel):
         try:
             result = calc(expr)
             self.send_reply( (result), user, channel )
-        except Exception as msg:
+        except TimedOut as msg:
             self.send_reply( ("Timed out!"), user, channel)
         except:
             self.send_reply( ("Error encountered!"), user, channel )
