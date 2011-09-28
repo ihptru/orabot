@@ -39,6 +39,7 @@ nickserv_password = ''
 #commands start with:
 command_prefix = ']'
 
+command_timeout = 20
 
 #####################
 ### Notifications ###

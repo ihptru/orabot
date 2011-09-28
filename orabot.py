@@ -162,10 +162,10 @@ class IRC_Server:
                     if ( str(irc_user_message[0]) == config.command_prefix ):
                         self.command = str(irc_user_message[1:])
                         self.process_command(irc_user_nick, ( chan ))
-### parse links and bug reports numbers
+                ### parse links and bug reports numbers
                 self.parse_link(chan, str(irc_user_message))
                 self.parse_bug_num(chan, str(irc_user_message))
-###
+                ###
 
             if str(recv).find ( " JOIN " ) != -1:
                 conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
@@ -624,16 +624,16 @@ class IRC_Server:
         command_function=getattr(eval(commandname), commandname, None)
         if command_function != None:
             if inspect.isfunction(command_function):
-
+                
                 class TimedOut(Exception): # Raised if timed out.
-                        pass
+                    pass
 
                 def signal_handler(signum, frame):
                     raise TimedOut("Timed out!")
 
                 signal.signal(signal.SIGALRM, signal_handler)
-                
-                signal.alarm(10)    #Limit command execution time
+
+                signal.alarm(config.command_timeout)    #Limit command execution time
                 try:
                     command_function(self, user, channel)
                     signal.alarm(0)
