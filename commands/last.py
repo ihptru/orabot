@@ -19,7 +19,15 @@ import re
 import time
 import datetime
 
-def seen( last_time, current ):
+def last(self, user, channel):
+    command = (self.command)
+    command = command.split()
+    if ( len(command) == 3 ):
+        if ( command[1].lower() == 'seen' ):
+            seen(self, user, channel, command[2])
+        
+
+def seen_time( last_time, current ):
     last_time = time.mktime(time.strptime( last_time, '%Y-%m-%d-%H-%M-%S'))
     current = time.mktime(time.strptime( current, '%Y-%m-%d-%H-%M-%S'))
     difference = current - last_time
@@ -47,49 +55,42 @@ def seen( last_time, current ):
             result_string = result_string + ' ' + str(int(timest[i])) + ' ' + st
     return result_string
 
-def last(self, user, channel):
-    command = (self.command)
-    command = command.split()
+def seen(self, user, channel, request_user):
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
     cur=conn.cursor()
-    if ( len(command) == 2 ):
-        if re.search("^#", channel):
-            user_nicks = self.parse_names(self.get_names(channel))
-            if command[1] in user_nicks:  #reciever is on the channel right now
-                self.send_message_to_channel( ("User is online!"), channel)
-                cur.close()
-                return
-            else:
-                sql = """SELECT * FROM users
-                        WHERE user = '"""+command[1]+"'"+"""
-                """
-                cur.execute(sql)
-                conn.commit()
-                row = []
-                for row in cur:
-                    pass
-                if command[1] not in row:   #user not found
-                    self.send_message_to_channel( ("Error! No such user in my database"), channel)
-                else:
-                    last_time = row[2]
-                    state = row[3]
-                    if state == True:
-                        self.send_message_to_channel( ("User is somewhere online on IRC Network!"), channel)
-                        return
-                    if ( last_time == None or last_time == '' ):
-                        self.send_message_to_channel( ("Sorry, I don't have any record of when user left"), channel)
-                    else:
-                        current = time.strftime('%Y-%m-%d-%H-%M-%S')
-                        seen_result = seen( last_time, current )
-                        if ( seen_result == '' ):
-                            result = ' just now'
-                        else:
-                            result = seen_result + ' ago'
-                        self.send_message_to_channel( (command[1]+" was last seen"+result), channel)
+    if re.search("^#", channel):
+        user_nicks = self.parse_names(self.get_names(channel))
+        if request_user in user_nicks:  #reciever is on the channel right now
+            self.send_message_to_channel( ("User is online!"), channel)
+            cur.close()
+            return
         else:
-            self.send_message_to_channel( ("You can use ]last only on a channel"), user)
-    elif ( len(command) == 1 ):
-        self.send_reply( ("Usage: ]last nick"), user, channel )
+            sql = """SELECT * FROM users
+                    WHERE user = '"""+request_user+"'"+"""
+            """
+            cur.execute(sql)
+            conn.commit()
+            row = []
+            for row in cur:
+                pass
+            if request_user not in row:   #user not found
+                self.send_message_to_channel( ("Error! No such user in my database"), channel)
+            else:
+                last_time = row[2]
+                state = row[3]
+                if state == True:
+                    self.send_message_to_channel( ("User is somewhere online on IRC Network!"), channel)
+                    return
+                if ( last_time == None or last_time == '' ):
+                    self.send_message_to_channel( ("Sorry, I don't have any record of when user left"), channel)
+                else:
+                    current = time.strftime('%Y-%m-%d-%H-%M-%S')
+                    seen_result = seen_time( last_time, current )
+                    if ( seen_result == '' ):
+                        result = ' just now'
+                    else:
+                        result = seen_result + ' ago'
+                    self.send_message_to_channel( (request_user + " was last seen" + result), channel)
     else:
-        self.send_reply( ("Error, wrong request"), user, channel )
+        self.send_message_to_channel( ("You can use `]last seen` only on a channel"), user)
     cur.close()
