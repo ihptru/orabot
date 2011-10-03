@@ -389,13 +389,13 @@ class IRC_Server:
 
             if str(recv).find ( " NICK " ) != -1:
                 original_nick = str(recv).split(':')[1].split('!')[0]
-                new_nick = str(recv).split()[2].replace(':','')[0:-5]
+                new_nick = str(recv).split()[2].replace(':','').replace('\r\n','')
                 for chan in config.log_channels.split(','):
                     self.logs(original_nick, chan, 'nick', new_nick, '')
                 conn = sqlite3.connect('../db/openra.sqlite')
                 cur = conn.cursor()
                 sql = """UPDATE users
-                        SET state = 0
+                        SET state = 0, date = strftime('%Y-%m-%d-%H-%M-%S')
                         WHERE user = '"""+original_nick+"""'
                 """
                 cur.execute(sql)
