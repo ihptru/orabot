@@ -481,7 +481,7 @@ class IRC_Server:
             try:
                 self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (channel, data[:256])).encode() )
             except socket.error as e:
-                print("Socket Error: " + e)
+                print("Socket Error: ", e)
                 continue
             break
         ### logs
