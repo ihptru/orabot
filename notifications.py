@@ -84,14 +84,22 @@ def get_commits(url):   #this functions must get url of Branch
         titles.append(commit_title)
     return titles
 
-def check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user):
+def check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn):
     notify_message = "New game: "+name+" - mod: "+mod+version+" - Already "+players+" players in"
     if ( db_timeout.lower() == 'all' ):
         self.send_reply( (notify_message), db_user, db_user )
     elif ( db_timeout.lower() == 'till_quit' ):
         self.send_reply( (notify_message), db_user, db_user )
     elif ( db_timeout.lower() == 'f' or db_timeout.lower() == 'forever' ):
-        self.send_reply( (notify_message), db_user, db_user )
+        sql = """SELECT state FROM users
+                WHERE user = '"""+db_user+"""'
+        """
+        cur.execute(sql)
+        records = cur.fetchall()
+        conn.commit()
+        if ( len(records) != 0 ):
+            if ( str(records[0][0]) == '1' ):
+                self.send_reply( (notify_message), db_user, db_user )
     else:
         date_of_adding = int(db_date.replace('-',''))
         ###
@@ -386,8 +394,9 @@ def start(self):
                                             except:
                                                 check_num_players = False
                                             if ( check_num_players == True ):
-                                                check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user)
+                                                check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn)
                                 flood_protection = 0
+                            cur.close()
                 else:   #ip is not in a list
                     if ( state == 'State: 1' ):
                         notify_ip_list.append(ip)
@@ -427,8 +436,9 @@ def start(self):
                                             except:
                                                 check_num_players = True
                                             if ( check_num_players == True ):
-                                                check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user)
+                                                check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn)
                                 flood_protection = 0
+                            cur.close()
             length = len(notify_ip_list)
             indexes = []
             for i in range(int(length)):
