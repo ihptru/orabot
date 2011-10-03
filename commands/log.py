@@ -35,7 +35,7 @@ def log(self, user, channel):
         actual = []
         for row in cur:
             logs.append(row)
-        for i in range(int(len(logs))):
+        for i in range(len(logs)):
             actual.append(logs[i][1])
             actual.append(logs[i][2])
             actual.append(logs[i][3])

@@ -92,7 +92,7 @@ class IRC_Server:
             else:
                 print("### Identification failed! ###")
 
-        for i in range(int(len(self.irc_channel))):
+        for i in range(len(self.irc_channel)):
             str_buff = ( "JOIN %s \r\n" ) % (self.irc_channel[i])
             self.irc_sock.send (str_buff.encode())
             print ("Joining channel " + self.irc_channel[i] )

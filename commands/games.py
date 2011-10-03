@@ -28,6 +28,7 @@ def get_map_info( cur, sha ):
         return (records[0][0], '/' + str(records[0][1]))
     else:
         return ('unknown', '')
+
 def modinfo( mod ):
     mod_split = mod.split('@')
     if ( len(mod_split) == 1 ):
@@ -175,7 +176,7 @@ def games(self, user, channel):
             split_games_state2 = games_state2.split('||')
             if ( len(split_games_state2) > 1 ):
                 self.send_reply( ('Playing:'), user, channel )
-                for i in range(int(len(split_games_state2) - 1)):
+                for i in range(len(split_games_state2) - 1):
                     flood_protection = flood_protection + 1
                     if flood_protection == 7:
                         time.sleep(5)
@@ -184,7 +185,7 @@ def games(self, user, channel):
                     time.sleep(0.5)
             if ( len(split_games_state1) > 1 ):
                 self.send_reply( ('Waiting:'), user, channel )
-                for i in range(int(len(split_games_state1) - 1)):
+                for i in range(len(split_games_state1) - 1):
                     flood_protection = flood_protection + 1
                     if flood_protection == 7:
                         time.sleep(5)
@@ -290,7 +291,7 @@ def games(self, user, channel):
             y = yaml.load(content.replace('\t','    '))
             chars=['*','.','$','^','@','{','}','+','?'] # chars to ignore
             request_pattern = " ".join(command[2:])
-            for i in range(int(len(chars))):
+            for i in range(len(chars)):
                 if chars[i] in request_pattern:
                     check = 'tru'
                     break
