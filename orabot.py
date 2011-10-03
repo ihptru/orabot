@@ -390,10 +390,27 @@ class IRC_Server:
             if str(recv).find ( " NICK " ) != -1:
                 original_nick = str(recv).split(':')[1].split('!')[0]
                 new_nick = str(recv).split()[2].replace(':','').replace('\r\n','')
-                for chan in config.log_channels.split(','):
-                    self.logs(original_nick, chan, 'nick', new_nick, '')
                 conn = sqlite3.connect('../db/openra.sqlite')
                 cur = conn.cursor()
+                ### for logs
+                sql = """SELECT channels FROM users
+                        WHERE user = '"""+original_nick+"""'
+                """
+                cur.execute(sql)
+                records = cur.fetchall()
+                conn.commit()
+                if ( len(records) == 0 ):   #user not found in table users
+                    for chan in config.log_channels.split(','):
+                        self.logs(original_nick, chan, 'nick', new_nick, '')
+                else:   #user found
+                    if ( records[0][0] == '' ) or ( str(records[0][0]) == 'None' ):  #no channels found; reason(probably bot was offline when user joined or user was added manually)
+                        for chan in config.log_channels.split(','):
+                            self.logs(original_nick, chan, 'nick', new_nick, '')
+                    else:   #there are channels
+                        db_channels = records[0][0].split(',')
+                        for chan in db_channels:
+                            self.logs(original_nick, chan, 'nick', new_nick, '')
+                ###
                 sql = """UPDATE users
                         SET state = 0, date = strftime('%Y-%m-%d-%H-%M-%S')
                         WHERE user = '"""+original_nick+"""'
@@ -427,7 +444,7 @@ class IRC_Server:
 
             if str(recv).find ( " TOPIC " ) != -1:
                 nick = str(recv).split(':')[1].split('!')[0]
-                topic = " ".join(str(recv).split()[3:]).replace(':','')[0:-5]
+                topic = " ".join(str(recv).split()[3:]).replace(':','').replace('\r\n','')
                 chan = str(recv).split()[2]
                 self.logs(nick, chan, 'topic', topic, '')
 
@@ -435,7 +452,7 @@ class IRC_Server:
                 by = str(recv).split(':')[1].split('!')[0]
                 whom = str(recv).split()[3]
                 chan = str(recv).split()[2]
-                reason = " ".join(str(recv).split()[4:]).replace(':','')[0:-5]
+                reason = " ".join(str(recv).split()[4:]).replace(':','').replace('\r\n','')
                 self.logs(whom, chan, 'kick', by, reason)
 
         if self.should_reconnect:
