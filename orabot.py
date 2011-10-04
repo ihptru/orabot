@@ -564,7 +564,7 @@ class IRC_Server:
     def title_from_url(self, url):
         # todo: security: can force the bot to output anything we like into
         #                 the channel.
-        data = urllib.request.urlopen(url).read(2048)
+        data = urllib.request.urlopen(url).read(4096)
         try:
             encoding = str(data).lower().split('charset=')[1].split('"')[0]
             data = data.decode(encoding)
