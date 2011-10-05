@@ -523,8 +523,15 @@ class IRC_Server:
             self.irc_sock.send ( str_buff.encode() )
             # This needs to modify the list of active channels
     def topic(self, channel, topic):
-        str_buff = ("PRIVMSG ChanServ :TOPIC %s %s\r\n") % (channel, topic)
+        str_buff = ("TOPIC %s :%s\r\n") % (channel, topic)
         self.irc_sock.send ( str_buff.encode() )
+
+        channel_names = self.get_names(channel)
+        if channel_names.find ( " 353 "+config.bot_nick ) != -1:
+            user_nicks = channel_names.split(':')[2].rstrip()
+            user_nicks = user_nicks.split(' ')
+            if ( '@' + config.bot_nick not in user_nicks ):
+                self.send_message_to_channel( ("I tried to change the topic of this channel but do not have rights for it"), channel)
 
     def logs(self, irc_user, channel, logs_of, some_data, some_more_data):
         if config.write_logs == True:

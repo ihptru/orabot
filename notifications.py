@@ -48,7 +48,7 @@ def change_topic(self):
     if ( (release + '\n' not in lines) or (playtest + '\n' not in lines) ):
         topic = "open-source RTS | latest: "+release+" | testing: "+playtest+" | http://open-ra.org | bugs: http://bugs.open-ra.org"
         self.topic(config.change_topic_channel, topic)
-        print("## DEBUG: attempt to change topic")
+        print("### DEBUG: made an attempt to change the TOPIC of " + config.change_topic_channel + " ###")
         write_version(release, playtest)
 
 def branch_list(repo):
@@ -216,7 +216,7 @@ def start(self):
         commit_var = commit_var + 1
         topic_var = topic_var + 1
         ###change topic
-        if ( topic_var == 500 ):
+        if ( topic_var == 30 ):
             topic_var = 0
             change_topic(self)
         ### commits
