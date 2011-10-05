@@ -270,7 +270,7 @@ def start(self):
                                 # commit title is not in list of commits, related to current branch, but this can be merge
                                 # so we should not spam and notify of commit which was already seen in different branch
                                 sql = """SELECT title FROM commits
-                                        WHERE title = '"""+titles[i]+"""'
+                                        WHERE title = '"""+titles[i].replace("'","''")+"""'
                                 """
                                 cur.execute(sql)
                                 records = cur.fetchall()
