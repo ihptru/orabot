@@ -29,7 +29,7 @@ def calc(self, user, channel):
 
         try:
             result = calc(expr)
-            self.send_reply( (result), user, channel )
+            self.send_reply( (str(result)), user, channel )
         except (ArithmeticError, NameError, TypeError, SyntaxError):
             self.send_reply( ("Error encountered!"), user, channel )
     else:
