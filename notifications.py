@@ -267,7 +267,16 @@ def start(self):
                             existing_commits.append(records[i][0])
                         for i in range(len(titles)):
                             if titles[i] not in existing_commits:
-                                commits_to_show.append(titles[i])
+                                # commit title is not in list of commits, related to current branch, but this can be merge
+                                # so we should not spam and notify of commit which was already seen in different branch
+                                sql = """SELECT title FROM commits
+                                        WHERE title = '"""+titles[i]+"""'
+                                """
+                                cur.execute(sql)
+                                records = cur.fetchall()
+                                conn.commit()
+                                if ( len(records) == 0 ):   # no same commit's name found in 'commits' table
+                                    commits_to_show.append(titles[i])
                         commits_to_show.reverse()
                         for i in range(len(commits_to_show)):
                             flood_protection = flood_protection + 1
