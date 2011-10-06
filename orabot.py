@@ -579,8 +579,12 @@ class IRC_Server:
             data = data.decode(encoding)
         except: #no encoding found
             data = data.decode('utf-8')
-        title = data.split('<title>')[1].split('</title>')[0].strip()
-        return title
+        rx_title = re.compile(r'<title>(.*?)</title>')
+        titles = rx_title.findall(data)
+        if ( titles != [] ):
+            return titles[0]
+        else:
+            raise Exception("Exception: " + url + " does not contain title")
 
     def parse_link(self, channel, message):
         if re.search('.*http.*://.*', message):
@@ -598,17 +602,17 @@ class IRC_Server:
                     if re.search('http.*youtube.com/watch.*', link):
                         link = link.split('&')[0]
                         try:
-                            title = self.title_from_url(link).split('- YouTube')[0].rstrip().replace('&amp;','&').replace('&#39;', '\'')
+                            title = self.title_from_url(link).split('- YouTube')[0].strip().replace('\n','').replace('&amp;','&').replace('&#39;', '\'')
                             if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
-                                self.send_message_to_channel( ("Youtube: "+str(title)), channel )
+                                self.send_message_to_channel( ("Youtube: " + title), channel )
                         except Exception as e:
-                            print(e)    #probably socket error or http 404 error in title_from_url()
+                            print(e)    #probably socket error or http 404 error in title_from_url() or title not found
                     else:
                         try:
-                            title = self.title_from_url(link).replace('\n','').replace('&amp;','&').replace('&#39;', '\'')
-                            self.send_message_to_channel( ("Title: "+title), channel )
+                            title = self.title_from_url(link).strip().replace('\n','').replace('&amp;','&').replace('&#39;', '\'')
+                            self.send_message_to_channel( ("Title: " + title), channel )
                         except Exception as e:
-                            print(e)    #probably socket error or http 404 error in title_from_url()
+                            print(e)    #probably socket error or http 404 error in title_from_url() or title not found
             flood_protection = 0
 
     def parse_bug_num(self, channel, message):
