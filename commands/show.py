@@ -17,10 +17,12 @@ import config
 import re
 import time
 
-show_possible=['games', 'help', 'version', 'hi', 'randomteam', 'tr', 'lang', 'last', 'online', 'weather', 'lastgame', 'who', 'promote', 'maps', 'say','mapinfo','calc','faq']
+show_possible=['games', 'help', 'version', 'hi', 'randomteam', 'lang', 'last', 'weather', 'lastgame', 'who', 'promote', 'maps', 'say','mapinfo','calc','faq']
+
+for item in show_possible:
+    exec("from commands import " + item)
 
 def show(self, user, channel):
-    return  #command is broken
     if not self.OpVoice(user, channel):
         return
     command = (self.command)
