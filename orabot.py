@@ -571,7 +571,9 @@ class IRC_Server:
     def title_from_url(self, url):
         # todo: security: can force the bot to output anything we like into
         #                 the channel.
-        data = urllib.request.urlopen(url).read(4096)
+        opener = urllib.request.build_opener()
+        opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+        data = opener.open(url).read(4096)
         try:
             encoding = str(data).lower().split('charset=')[1].split('"')[0]
             data = data.decode(encoding)
@@ -599,14 +601,14 @@ class IRC_Server:
                             title = self.title_from_url(link).split('- YouTube')[0].rstrip().replace('&amp;','&').replace('&#39;', '\'')
                             if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
                                 self.send_message_to_channel( ("Youtube: "+str(title)), channel )
-                        except:
-                            pass    #probably socket error in title_from_url() or remote page has charset bot can not decode
+                        except Exception as e:
+                            print(e)    #probably socket error or http 404 error in title_from_url()
                     else:
                         try:
                             title = self.title_from_url(link).replace('\n','').replace('&amp;','&').replace('&#39;', '\'')
                             self.send_message_to_channel( ("Title: "+title), channel )
-                        except:
-                            pass    #probably socket error in title_from_url() or remote page has charset bot can not decode
+                        except Exception as e:
+                            print(e)    #probably socket error or http 404 error in title_from_url()
             flood_protection = 0
 
     def parse_bug_num(self, channel, message):
