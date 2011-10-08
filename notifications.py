@@ -220,7 +220,7 @@ def start(self):
             topic_var = 0
             change_topic(self)
         ### commits
-        if ( commit_var == 50 ):
+        if ( commit_var == 30 ):
             commit_var = 0
             def commits(self):
                 flood_protection = 0

@@ -16,6 +16,7 @@
 import sqlite3
 from datetime import date
 import time
+import datetime
 
 def start(self, user, channel):
     string_command = (self.command)
@@ -31,35 +32,18 @@ def start(self, user, channel):
     for row in cur:
         pass
     check_ignore = '0'
-    if user in row:
-        ignore_count = row[3]
-        ignore_minutes = str(ignore_count)+'0'
-        ignore_date = "".join(str(row[2]).split('-'))
-        a = date.today()
-        a = str(a)
-        a = a.split('-')
-        year = a[0]
-        month = a[1]
-        day = a[2]
-        b = time.localtime()
-        b = str(b)
-        hours = b.split('tm_hour=')[1].split(',')[0]
-        minutes = b.split('tm_min=')[1].split(',')[0]
-        if len(hours) == 1:
-            hours = '0'+hours
-        else:
-            hours = hours
-        if len(minutes) == 1:
-            minutes = '0'+minutes
-        else:
-            minutes = minutes
-        localtime = year+month+day+hours+minutes
-        difference = int(localtime) - int(ignore_date)  #how many minutes after last ignore
-        if int(difference) < int(ignore_minutes):
+    if ( user in row ):
+        ignore_minutes = str(row[3]) + '0'
+        ignore_seconds = int(ignore_minutes) * 60
+        ignore_date = time.mktime(time.strptime( row[2], '%Y-%m-%d-%H-%M-%S'))  #in seconds
+        current = time.strftime('%Y-%m-%d-%H-%M-%S')
+        current_date = time.mktime(time.strptime( current, '%Y-%m-%d-%H-%M-%S'))    #in seconds
+        difference = current_date - ignore_date  #how many seconds after last ignore
+        if ( difference < ignore_seconds ):
             check_ignore = '1'  #lock, start ignore
             cur.close()
             return False
-        else:   #no need to ignore, ignore_minutes < difference
+        else:   #no need to ignore, ignore_seconds < difference
             check_ignore = '0'
     if check_ignore == '0':
         sql = """SELECT uid FROM commands
@@ -91,12 +75,12 @@ def start(self, user, channel):
         """
         cur.execute(sql)
 
-        var=[]
+        var = []
         for row in cur:
             var.append(row)
         var.reverse()
-        actual=[]
-        user_data=[]
+        actual = []
+        user_data = []
         for i in range(30):
             if user in str(var[i][1]):
                 actual.append(str(var[i][1]))   #name
@@ -107,11 +91,13 @@ def start(self, user, channel):
         if user_data_length > 10:
             #get player's (last - 10) record
             user_data_len10 = user_data_length - 10
-            actual=user_data[user_data_len10]
-            first_date="".join(actual[1].split('-'))    #date and time of last - 10 record
-            last_date="".join(user_data[user_data_length-1][1].split('-'))  #current date/time
-            seconds_range=int(last_date)-int(first_date)  #how many seconds between player's commands
-            if seconds_range < 30:  #player made more then 10 commands in range of 30 seconds. It is too quick, spam!
+            actual = user_data[user_data_len10]
+            first_date = actual[1]    #date and time of last - 10 record
+            first_date = time.mktime(time.strptime( first_date, '%Y-%m-%d-%H-%M-%S'))
+            last_date = user_data[user_data_length-1][1]  #current date/time (of last command by that user)
+            last_date = time.mktime(time.strptime( last_date, '%Y-%m-%d-%H-%M-%S'))
+            seconds_range = last_date - first_date  #how many seconds between player's commands
+            if seconds_range < 60:  #more than 10 commands per minute. It is too quick, spam!
                 sql = """SELECT * FROM black_list
                         WHERE user = '"""+user+"'"+"""
                 """
@@ -126,16 +112,16 @@ def start(self, user, channel):
                         (user,date_time,count)
                         VALUES
                         (
-                        '"""+user+"',strftime('%Y-%m-%d-%H-%M'),"+str(1)+"""
+                        '"""+user+"',strftime('%Y-%m-%d-%H-%M-%S'),"+str(6)+"""
                         )                   
                     """
                     cur.execute(sql)
                     conn.commit()
                 else:   #in row : exists in 'black_table'
                     count_ignore = row[3]
-                    count_ignore = count_ignore + 1
+                    count_ignore = count_ignore + 6
                     sql = """UPDATE black_list
-                            SET count = """+str(count_ignore)+", "+"""date_time = strftime('%Y-%m-%d-%H-%M')
+                            SET count = """+str(count_ignore)+", "+"""date_time = strftime('%Y-%m-%d-%H-%M-%S')
                             WHERE user = '"""+user+"'"+""" 
                     """
                     cur.execute(sql)
@@ -151,8 +137,7 @@ def start(self, user, channel):
                     pass
                 if user in row:
                     ignore_count = row[3]
-                    ignore_minutes = str(ignore_count)+'0'
-                    check_ignore = '1'  #lock, start ignore        
+                    ignore_minutes = str(ignore_count) + '0'
                     self.send_reply( (user+", your actions are counted as spam, I'll ignore you for "+str(ignore_minutes)+" minutes"), user, channel )
                     cur.close()
                     return False
