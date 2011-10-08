@@ -22,6 +22,7 @@ import urllib.request
 import imp
 import inspect
 import signal
+import html.parser
 
 import db_process
 import notifications
@@ -582,7 +583,9 @@ class IRC_Server:
         rx_title = re.compile(r'<title>(.*?)</title>', re.IGNORECASE)
         titles = rx_title.findall(data)
         if ( titles != [] ):
-            return titles[0]
+            h = html.parser.HTMLParser()
+            title = h.unescape(titles[0])
+            return title
         else:
             raise Exception("Exception: " + url + " does not contain title")
 
@@ -602,14 +605,14 @@ class IRC_Server:
                     if re.search('http.*youtube.com/watch.*', link):
                         link = link.split('&')[0]
                         try:
-                            title = self.title_from_url(link).split('- YouTube')[0].strip().replace('\n','').replace('&amp;','&').replace('&#39;', '\'')
+                            title = self.title_from_url(link).split('- YouTube')[0].strip().replace('\n','')
                             if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
                                 self.send_message_to_channel( ("Youtube: " + title), channel )
                         except Exception as e:
                             print(e)    #probably socket error or http 404 error in title_from_url() or title not found
                     else:
                         try:
-                            title = self.title_from_url(link).strip().replace('\n','').replace('&amp;','&').replace('&#39;', '\'')
+                            title = self.title_from_url(link).strip().replace('\n','')
                             self.send_message_to_channel( ("Title: " + title), channel )
                         except Exception as e:
                             print(e)    #probably socket error or http 404 error in title_from_url() or title not found
