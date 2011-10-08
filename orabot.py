@@ -581,11 +581,11 @@ class IRC_Server:
         except: #no encoding found
             data = data.decode('utf-8')
         rx_title = re.compile(r'<title>(.*?)</title>', re.IGNORECASE)
-        titles = rx_title.findall(data)
+        titles = rx_title.findall(data.replace('\n',' '))
         if ( titles != [] ):
             h = html.parser.HTMLParser()
             title = h.unescape(titles[0])
-            return title
+            return title.strip()
         else:
             raise Exception("Exception: " + url + " does not contain title")
 
@@ -605,14 +605,14 @@ class IRC_Server:
                     if re.search('http.*youtube.com/watch.*', link):
                         link = link.split('&')[0]
                         try:
-                            title = self.title_from_url(link).split('- YouTube')[0].strip().replace('\n','')
+                            title = self.title_from_url(link).split('- YouTube')[0]
                             if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
                                 self.send_message_to_channel( ("Youtube: " + title), channel )
                         except Exception as e:
                             print(e)    #probably socket error or http 404 error in title_from_url() or title not found
                     else:
                         try:
-                            title = self.title_from_url(link).strip().replace('\n','')
+                            title = self.title_from_url(link)
                             self.send_message_to_channel( ("Title: " + title), channel )
                         except Exception as e:
                             print(e)    #probably socket error or http 404 error in title_from_url() or title not found
@@ -633,8 +633,8 @@ class IRC_Server:
                     try:
                         fetched = self.title_from_url(url).split('OpenRA - ')[1].split(' - open-ra')[0]
                         self.send_message_to_channel( (fetched+" | "+url), channel )
-                    except:
-                        pass
+                    except Exception as e:
+                        print(e)
                 flood_protection = 0
 
     # This function is for pickup matches code
