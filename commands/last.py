@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Last Command Module: seen, activity, message, game
+"""
+
 import config
 import sqlite3
 import re
@@ -56,6 +60,11 @@ def seen_time( last_time, current ):
     return result_string
 
 def seen(self, user, channel, request_user):
+    
+    """
+    Shows when user was last seen on the channel
+    """
+    
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     if re.search("^#", channel):

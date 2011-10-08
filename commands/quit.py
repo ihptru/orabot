@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Use this to make bot leave the server
+"""
+
 def quit(self, user, channel):
     if not self.OpVoice(user, channel):
         return

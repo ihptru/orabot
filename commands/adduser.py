@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Command is used to add a particular irc user to bot's database if he does not exist there
+"""
+
 import sqlite3
 
 def adduser(self, user, channel):

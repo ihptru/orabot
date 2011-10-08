@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Removes a user performing a command from any game he is added to... (user can specify an optional argument - mode)
+"""
+
 import sqlite3
 import re
 

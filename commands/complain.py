@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Complain if user is not shown for a pickup game (after 'some' amount of complaints, user is not allowed to add again)
+"""
+
 import sqlite3
 
 def complain(self, user, channel):

@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Shows last release and playtest versions of OpenRA
+"""
+
 import urllib.request
 
 def version(self, user, channel):

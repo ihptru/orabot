@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Command is used to check if irc user exists in bot's database (to make sure ]later will work)
+"""
+
 import sqlite3
 
 def ifuser(self, user, channel):

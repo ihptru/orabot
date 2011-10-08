@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Removes a user specified in command as a argument from any game he is added to
+"""
+
 import sqlite3
 
 def pickup_remove(self, user, channel):

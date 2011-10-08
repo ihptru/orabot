@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Command is used to show 10 last commands sent to bot
+"""
+
 import sqlite3
 import time
 import re

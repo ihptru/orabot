@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Single elimination tournament brackets generator
+"""
+
 import pyrand
 
 def randomteam(self, user, channel):

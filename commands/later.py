@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Command is used to send an offline message to irc user
+"""
+
 import config
 import re
 import sqlite3

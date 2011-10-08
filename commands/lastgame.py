@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Shows information of the last game generated
+"""
+
 import sqlite3
 
 def lastgame(self, user, channel):

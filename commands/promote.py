@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Shows a message to promote a game with amount of players needed
+"""
+
 import sqlite3
 
 def promote(self, user, channel):

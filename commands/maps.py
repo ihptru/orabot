@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Map list for Pickup Games
+"""
+
 def maps(self, user, channel):
     command = (self.command)
     command = command.split()

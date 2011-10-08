@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Shows the full openra map's information
+"""
+
 import sqlite3
 
 def mapinfo(self, user, channel):
