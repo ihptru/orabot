@@ -63,16 +63,13 @@ def start(self, user, channel):
             check_ignore = '0'
     if check_ignore == '0':
         sql = """SELECT uid FROM commands
-                ORDER BY uid DESC LIMIT 1
+                ORDER BY uid LIMIT 1010
         """
         cur.execute(sql)
+        records = cur.fetchall()
         conn.commit()
-        row = []
-        for row in cur:
-            pass
-        uid_commands = row[0]
         #clear 'commands' table after each 1 000 record
-        if int(uid_commands) >= 1000:
+        if ( len(records) >= 1000 ):
             sql = """DELETE FROM commands WHERE uid > 30"""
             cur.execute(sql)
             conn.commit()
