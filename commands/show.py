@@ -17,7 +17,7 @@ import config
 import re
 import time
 
-show_possible=['games', 'help', 'version', 'hi', 'randomteam', 'lang', 'last', 'weather', 'lastgame', 'who', 'promote', 'maps', 'say','mapinfo','calc','faq']
+show_possible=['games', 'version', 'hi', 'randomteam', 'lang', 'last', 'weather', 'lastgame', 'who', 'promote', 'maps', 'say','mapinfo','calc','faq']
 
 for item in show_possible:
     exec("from commands import " + item)

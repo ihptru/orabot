@@ -579,7 +579,7 @@ class IRC_Server:
             data = data.decode(encoding)
         except: #no encoding found
             data = data.decode('utf-8')
-        rx_title = re.compile(r'<title>(.*?)</title>')
+        rx_title = re.compile(r'<title>(.*?)</title>', re.IGNORECASE)
         titles = rx_title.findall(data)
         if ( titles != [] ):
             return titles[0]
@@ -657,7 +657,7 @@ class IRC_Server:
         except:
             return  #no such command
         imp.reload(eval(commandname))
-        command_function=getattr(eval(commandname), commandname, None)
+        command_function = getattr(eval(commandname), commandname, None)
         if command_function != None:
             if inspect.isfunction(command_function):
                 
