@@ -128,7 +128,9 @@ def activity(self, user, channel, command_request):
             username = command_request[1]
             if ( command_request[0].startswith('-') ):
                 amount_records = command_request[0][1:]
-                if ( str(type(amount_records)) != "<type 'int'>" ):
+                try:
+                    trash = int(amount_records)
+                except:
                     self.send_reply( (usage), user, channel )
                     cur.close()
                     return
@@ -146,6 +148,7 @@ def activity(self, user, channel, command_request):
             return
         sql = """SELECT act,date_time FROM activity
                 WHERE user = '""" + username + """'
+                ORDER BY uid DESC
                 LIMIT """ + amount_records + """
         """
         cur.execute(sql)
@@ -168,7 +171,11 @@ def activity(self, user, channel, command_request):
                 last_time = records[i][1]
                 current = time.strftime('%Y-%m-%d-%H-%M-%S')
                 seen_result = seen_time( last_time, current )
-                message = event + ":" + seen_result + " ago"
+                if ( seen_result == '' ):
+                    result = ' just now'
+                else:
+                    result = seen_result + ' ago'
+                message = event + ":" + result
                 flood_protection = flood_protection + 1
                 if flood_protection == 5:
                     time.sleep(5)
