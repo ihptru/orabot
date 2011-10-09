@@ -36,6 +36,7 @@ def start():
     commits()
     activity()
     messages()
+    games()
     print("Creating databases completed.")
     
 def black_list():
@@ -408,6 +409,21 @@ def messages():
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "user" VARCHAR NOT NULL,
         "message" VARCHAR NOT NULL,
+        "date_time" date NOT NULL
+    )
+    """
+    cur.execute(sql)
+    conn.commit()
+    cur.close()
+
+def games():
+    print("...")
+    conn = sqlite3.connect('db/openra.sqlite')
+    cur = conn.cursor()
+    sql = """CREATE TABLE games (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "game" VARCHAR NOT NULL,
+        "players" VARCHAR NOT NULL,
         "date_time" date NOT NULL
     )
     """

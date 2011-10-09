@@ -36,7 +36,7 @@ def parse_event(self, recv):
             (user,message,date_time)
             VALUES
             (
-            '"""+irc_user_nick+"""','"""+irc_user_message+"""',strftime('%Y-%m-%d-%H-%M-%S')
+            '"""+irc_user_nick+"""','"""+irc_user_message.replace("'","''")+"""',strftime('%Y-%m-%d-%H-%M-%S')
             )
     """
     cur.execute(sql)

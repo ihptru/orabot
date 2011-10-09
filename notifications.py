@@ -340,6 +340,18 @@ def start(self):
                         ip_index = ip_current_games.index(ip)
                         del ip_current_games[ip_index]
                         del players_current_games[ip_index]
+                        conn = sqlite3.connect('../db/openra.sqlite')
+                        cur = conn.cursor()
+                        sql = """INSERT INTO games
+                                (game,players,date_time)
+                                VALUES
+                                (
+                                '"""+name.replace("'","''")+"""','"""+players+"""',strftime('%Y-%m-%d-%H-%M-%S')
+                                )
+                        """
+                        cur.execute(sql)
+                        conn.commit()
+                        cur.close()
                     elif ( state == 'State: 1' ):   #needed to check if amount of player is increased to number, users are subscribed for
                         ip_index_previous = notify_ip_list.index(ip)
                         ip_index_current = ip_current_games.index(ip)

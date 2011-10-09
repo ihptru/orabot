@@ -27,17 +27,33 @@ import config
 def last(self, user, channel):
     command = (self.command)
     command = command.split()
-    if ( len(command) >= 3 ):
-        if ( command[1].lower() == 'seen' ):
+    usage = "Usage: " + config.command_prefix + "last {seen|activity|message|game} args"
+    if ( command[1].lower() == 'seen' ):
+        if ( len(command) == 3):
             seen(self, user, channel, command[2])
-        elif ( command[1].lower() == 'activity' ):
-            activity(self, user, channel, command[2:])
-        elif ( command[1].lower() == 'message' ):
-            message(self, user, channel, command[2:])
-        elif ( command[1].lower() == 'game' ):
-            pass
         else:
-            self.send_reply( ("Usage: " + config.command_prefix + "last {seen|activity|message|game} args"), user, channel )
+            self.send_reply( ("Usage: " + config.command_prefix + "last seen <username>"), user, channel )
+    elif ( command[1].lower() == 'activity' ):
+        if ( len(command) >= 3 or len(command) <= 4 ):
+            activity(self, user, channel, command[2:])
+        else:
+            self.send_reply( ("Usage: " + config.command_prefix + "last activity [-<amount of records>] username"), user, channel )
+    elif ( command[1].lower() == 'message' ):
+        if ( len(command) >= 3 or len(command) <= 4 ):
+            message(self, user, channel, command[2:])
+        else:
+            self.send_reply( ("Usage: " + config.command_prefix + "last message [-<amount of records>] username"), user, channel )
+    elif ( command[1].lower() == 'game' ):
+        if ( len(command) >= 2 or len(command) <= 3 ):
+            if ( len(command) == 2 ):
+                arg = ''
+            else:
+                arg = command[2]
+            game(self, user, channel, arg)
+        else:
+            self.send_reply( ("Usage: " + config.command_prefix + "last game [-<amount of records>]"), user, channel )
+    else:
+        self.send_reply( (usage), user, channel )
 
 def seen_time( last_time, current ):
     last_time = time.mktime(time.strptime( last_time, '%Y-%m-%d-%H-%M-%S'))
@@ -142,10 +158,6 @@ def activity(self, user, channel, command_request):
             self.send_reply( (usage), user, channel )
             cur.close()
             return
-    else:
-        self.send_reply( (usage), user, channel )
-        cur.close()
-        return
     if ( "'" in username ):
         self.send_notice("User is not found", user)
         cur.close()
@@ -215,10 +227,6 @@ def message(self, user, channel, command_request):
             self.send_reply( (usage), user, channel )
             cur.close()
             return
-    else:
-        self.send_reply( (usage), user, channel )
-        cur.close()
-        return
     if ( "'" in username ):
         self.send_notice("User is not found", user)
         cur.close()
@@ -245,6 +253,60 @@ def message(self, user, channel, command_request):
             else:
                 result = seen_result + ' ago'
             message = username + result + " : " + records[i][0]
+            flood_protection = flood_protection + 1
+            if flood_protection == 5:
+                time.sleep(5)
+                flood_protection = 0
+            self.send_notice(message, user)
+        flood_protection = 0
+    cur.close()
+
+def game(self, user, channel, command_request):
+    
+    """
+    Shows last started games
+    """
+    
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
+    flood_protection = 0
+    usage = "Usage: " + config.command_prefix + "last game [-<amount of records>]"
+    if ( command_request == '' ):
+        amount_records = '10'
+    else:
+        if ( command_request.startswith('-') ):
+            amount_records = command_request[1:]
+            try:
+                trash = int(amount_records)
+            except:
+                self.send_reply( (usage), user, channel )
+                cur.close()
+                return
+        else:
+            self.send_reply( (usage), user, channel )
+            cur.close()
+            return
+    sql = """SELECT game,players,date_time FROM games
+            ORDER BY uid DESC
+            LIMIT """ + amount_records + """
+    """
+    cur.execute(sql)
+    records = cur.fetchall()
+    conn.commit()
+    if ( len(records) == 0 ):
+        self.send_notice("No records of started games", user)
+        cur.close()
+        return
+    else:
+        for i in range(len(records)):
+            last_time = records[i][2]
+            current = time.strftime('%Y-%m-%d-%H-%M-%S')
+            seen_result = seen_time( last_time, current )
+            if ( seen_result == '' ):
+                result = ' just now'
+            else:
+                result = seen_result + ' ago'
+            message = records[i][1] + " players |" + result + " | Name: " + records[i][0]
             flood_protection = flood_protection + 1
             if flood_protection == 5:
                 time.sleep(5)
