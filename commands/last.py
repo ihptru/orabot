@@ -118,8 +118,9 @@ def activity(self, user, channel, command_request):
     
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
     cur=conn.cursor()
+    flood_protection = 0
     if re.search("^#", channel):
-        usage = "Usage: " + config.command_prefix + "last activity [-c<amount of records>] username"
+        usage = "Usage: " + config.command_prefix + "last activity [-<amount of records>] username"
         if ( len(command_request) == 1 ):
             username = command_request[0]
             amount_records = '10'
@@ -127,6 +128,10 @@ def activity(self, user, channel, command_request):
             username = command_request[1]
             if ( command_request[0].startswith('-') ):
                 amount_records = command_request[0][1:]
+                if ( str(type(amount_records)) != "<type 'int'>" ):
+                    self.send_reply( (usage), user, channel )
+                    cur.close()
+                    return
             else:
                 self.send_reply( (usage), user, channel )
                 cur.close()
@@ -163,7 +168,13 @@ def activity(self, user, channel, command_request):
                 last_time = records[i][1]
                 current = time.strftime('%Y-%m-%d-%H-%M-%S')
                 seen_result = seen_time( last_time, current )
-                print(seen_result)
+                message = event + ":" + seen_result + " ago"
+                flood_protection = flood_protection + 1
+                if flood_protection == 5:
+                    time.sleep(5)
+                    flood_protection = 0
+                self.send_notice(message, user)
+            flood_protection = 0
     else:
         self.send_message_to_channel( ("You can use `" + config.command_prefix + "last activity` only on a channel"), user)
     cur.close()
