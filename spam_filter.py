@@ -22,124 +22,112 @@ def start(self, user, channel):
     string_command = (self.command)
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
     cur=conn.cursor()
-    sql = """SELECT * FROM black_list
+    sql = """SELECT date_time,count FROM black_list
         WHERE user = '"""+user+"'"+"""
     """
     cur.execute(sql)
+    records = cur.fetchall()
     conn.commit()
-    
-    row = []
-    for row in cur:
-        pass
-    check_ignore = '0'
-    if ( user in row ):
-        ignore_minutes = str(row[3]) + '0'
+    if ( len(records) != 0 ):
+        ignore_minutes = str(records[0][1]) + '0'
         ignore_seconds = int(ignore_minutes) * 60
-        ignore_date = time.mktime(time.strptime( row[2], '%Y-%m-%d-%H-%M-%S'))  #in seconds
+        ignore_date = time.mktime(time.strptime( records[0][0], '%Y-%m-%d-%H-%M-%S'))  #in seconds
         current = time.strftime('%Y-%m-%d-%H-%M-%S')
         current_date = time.mktime(time.strptime( current, '%Y-%m-%d-%H-%M-%S'))    #in seconds
         difference = current_date - ignore_date  #how many seconds after last ignore
         if ( difference < ignore_seconds ):
-            check_ignore = '1'  #lock, start ignore
             cur.close()
+            # Ignore
             return False
-        else:   #no need to ignore, ignore_seconds < difference
-            check_ignore = '0'
-    if check_ignore == '0':
-        sql = """SELECT uid FROM commands
-                ORDER BY uid LIMIT 1010
-        """
+    sql = """SELECT uid FROM commands
+            ORDER BY uid LIMIT 1010
+    """
+    cur.execute(sql)
+    records = cur.fetchall()
+    conn.commit()
+    #clear 'commands' table after each 1 000 record
+    if ( len(records) >= 1000 ):
+        sql = """DELETE FROM commands WHERE uid > 30"""
         cur.execute(sql)
-        records = cur.fetchall()
         conn.commit()
-        #clear 'commands' table after each 1 000 record
-        if ( len(records) >= 1000 ):
-            sql = """DELETE FROM commands WHERE uid > 30"""
+
+    #write each command into 'commands' table
+    sql = """INSERT INTO commands
+            (user,command,date_time)
+            VALUES
+            (
+            '"""+user+"','"+string_command.replace("'","''")+"',"+"strftime('%Y-%m-%d-%H-%M-%S')"+""" 
+            )
+    """
+    cur.execute(sql)
+    conn.commit()
+
+    #extract last 30 records
+    sql = """SELECT * FROM commands
+        ORDER BY uid DESC LIMIT 30
+    """
+    cur.execute(sql)
+
+    var = []
+    for row in cur:
+        var.append(row)
+    var.reverse()
+    actual = []
+    user_data = []
+    for i in range(30):
+        if user in str(var[i][1]):
+            actual.append(str(var[i][1]))   #name
+            actual.append(str(var[i][3]))   #date and time
+            user_data.append(actual)
+            actual=[]
+    user_data_length = len(user_data)
+    if user_data_length > 10:
+        #get player's (last - 10) record
+        user_data_len10 = user_data_length - 10
+        actual = user_data[user_data_len10]
+        first_date = actual[1]    #date and time of last - 10 record
+        first_date = time.mktime(time.strptime( first_date, '%Y-%m-%d-%H-%M-%S'))
+        last_date = user_data[user_data_length-1][1]  #current date/time (of last command by that user)
+        last_date = time.mktime(time.strptime( last_date, '%Y-%m-%d-%H-%M-%S'))
+        seconds_range = last_date - first_date  #how many seconds between player's commands
+        if seconds_range < 60:  #more than 10 commands per minute. It is too quick, spam!
+            sql = """SELECT user FROM black_list
+                    WHERE user = '"""+user+"'"+"""
+            """
             cur.execute(sql)
+            records = cur.fetchall()
             conn.commit()
 
-        #write each command into 'commands' table 
-        sql = """INSERT INTO commands
-                (user,command,date_time)
-                VALUES
-                (
-                '"""+str(user)+"','"+string_command.replace("'","''")+"',"+"strftime('%Y-%m-%d-%H-%M-%S')"+""" 
-                )        
-        """
-        cur.execute(sql)
-        conn.commit()
-    
-        #extract last 30 records
-        sql = """SELECT * FROM commands
-            ORDER BY uid DESC LIMIT 30
-        """
-        cur.execute(sql)
-
-        var = []
-        for row in cur:
-            var.append(row)
-        var.reverse()
-        actual = []
-        user_data = []
-        for i in range(30):
-            if user in str(var[i][1]):
-                actual.append(str(var[i][1]))   #name
-                actual.append(str(var[i][3]))   #date and time
-                user_data.append(actual)
-                actual=[]
-        user_data_length = len(user_data)
-        if user_data_length > 10:
-            #get player's (last - 10) record
-            user_data_len10 = user_data_length - 10
-            actual = user_data[user_data_len10]
-            first_date = actual[1]    #date and time of last - 10 record
-            first_date = time.mktime(time.strptime( first_date, '%Y-%m-%d-%H-%M-%S'))
-            last_date = user_data[user_data_length-1][1]  #current date/time (of last command by that user)
-            last_date = time.mktime(time.strptime( last_date, '%Y-%m-%d-%H-%M-%S'))
-            seconds_range = last_date - first_date  #how many seconds between player's commands
-            if seconds_range < 60:  #more than 10 commands per minute. It is too quick, spam!
-                sql = """SELECT * FROM black_list
-                        WHERE user = '"""+user+"'"+"""
+            if ( len(records) == 0 ):   #user does not exist in 'black_list' table yet
+                sql = """INSERT INTO black_list
+                    (user,date_time,count)
+                    VALUES
+                    (
+                    '"""+user+"',strftime('%Y-%m-%d-%H-%M-%S'),"+str(6)+"""
+                    )                   
                 """
                 cur.execute(sql)
                 conn.commit()
-
-                row = []
-                for row in cur:
-                    pass
-                if user not in row:   #user does not exist in 'black_list' table yet
-                    sql = """INSERT INTO black_list
-                        (user,date_time,count)
-                        VALUES
-                        (
-                        '"""+user+"',strftime('%Y-%m-%d-%H-%M-%S'),"+str(6)+"""
-                        )                   
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                else:   #in row : exists in 'black_table'
-                    count_ignore = row[3]
-                    count_ignore = count_ignore + 6
-                    sql = """UPDATE black_list
-                            SET count = """+str(count_ignore)+", "+"""date_time = strftime('%Y-%m-%d-%H-%M-%S')
-                            WHERE user = '"""+user+"'"+""" 
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                sql = """SELECT * FROM black_list
-                    WHERE user = '"""+user+"'"+"""
+            else:   #in row : exists in 'black_table'
+                count_ignore = row[3]
+                count_ignore = count_ignore + 6
+                sql = """UPDATE black_list
+                        SET count = """+str(count_ignore)+", "+"""date_time = strftime('%Y-%m-%d-%H-%M-%S')
+                        WHERE user = '"""+user+"'"+""" 
                 """
                 cur.execute(sql)
                 conn.commit()
-
-                row = []
-                for row in cur:
-                    pass
-                if user in row:
-                    ignore_count = row[3]
-                    ignore_minutes = str(ignore_count) + '0'
-                    self.send_reply( (user+", your actions are counted as spam, I'll ignore you for "+str(ignore_minutes)+" minutes"), user, channel )
-                    cur.close()
-                    return False
+            sql = """SELECT count FROM black_list
+                WHERE user = '"""+user+"'"+"""
+            """
+            cur.execute(sql)
+            records = cur.fetchall()
+            conn.commit()
+            if ( len(records) != 0 ):
+                ignore_count = records[0][0]
+                ignore_minutes = str(ignore_count) + '0'
+                self.send_reply( (user+", your actions are counted as spam, I'll ignore you for "+str(ignore_minutes)+" minutes"), user, channel )
+                cur.close()
+                return False
     cur.close()
     return True
