@@ -35,6 +35,7 @@ def start():
     pingme()
     commits()
     activity()
+    messages()
     print("Creating databases completed.")
     
 def black_list():

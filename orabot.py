@@ -148,24 +148,31 @@ class IRC_Server:
                 self.irc_sock.send ( ("PONG "+ recv.split() [ 1 ] + "\r\n").encode() )
 
             if str(recv).find ( " PRIVMSG " ) != -1:
+                imp.reload(privmsg)
                 privmsg.parse_event(self, str(recv))
 
             if str(recv).find ( " JOIN " ) != -1:
+                imp.reload(join)
                 join.parse_event(self, str(recv))
 
             if str(recv).find ( " QUIT " ) != -1:
+                imp.reload(quit)
                 quit.parse_event(self, str(recv))
 
             if str(recv).find ( " PART " ) != -1:
+                imp.reload(part)
                 part.parse_event(self, str(recv))
 
             if str(recv).find ( " NICK " ) != -1:
+                imp.reload(nick)
                 nick.parse_event(self, str(recv))
 
             if str(recv).find ( " TOPIC " ) != -1:
+                imp.reload(topic)
                 topic.parse_event(self, str(recv))
 
             if str(recv).find ( " KICK " ) != -1:
+                imp.reload(kick)
                 kick.parse_event(self, str(recv))
 
         if self.should_reconnect:
