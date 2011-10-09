@@ -398,3 +398,18 @@ def activity():
     cur.execute(sql)
     conn.commit()
     cur.close()
+
+def messages():
+    print("...")
+    conn = sqlite3.connect('db/openra.sqlite')
+    cur = conn.cursor()
+    sql = """CREATE TABLE messages (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "user" VARCHAR NOT NULL,
+        "message" VARCHAR NOT NULL,
+        "date_time" date NOT NULL
+    )
+    """
+    cur.execute(sql)
+    conn.commit()
+    cur.close()

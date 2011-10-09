@@ -15,6 +15,7 @@
 
 import config
 import re
+import sqlite3
 
 def parse_event(self, recv):
     irc_user_nick = recv.split ( '!' ) [ 0 ] . split ( ":")[1]
@@ -28,6 +29,20 @@ def parse_event(self, recv):
     else:
         self.logs(irc_user_nick, chan, 'privmsg', irc_user_message, '')
     ### logs end
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
+    ### for last message
+    sql = """INSERT INTO messages
+            (user,message,date_time)
+            VALUES
+            (
+            '"""+irc_user_nick+"""','"""+irc_user_message+"""',strftime('%Y-%m-%d-%H-%M-%S')
+            )
+    """
+    cur.execute(sql)
+    conn.commit()
+    ###
+    cur.close()
 
     print ( irc_user_nick + ": " + irc_user_message)
     # Message starts with command prefix?

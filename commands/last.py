@@ -32,7 +32,12 @@ def last(self, user, channel):
             seen(self, user, channel, command[2])
         elif ( command[1].lower() == 'activity' ):
             activity(self, user, channel, command[2:])
-        
+        elif ( command[1].lower() == 'message' ):
+            message(self, user, channel, command[2:])
+        elif ( command[1].lower() == 'game' ):
+            pass
+        else:
+            self.send_reply( ("Usage: " + config.command_prefix + "last {seen|activity|message|game} args"), user, channel )
 
 def seen_time( last_time, current ):
     last_time = time.mktime(time.strptime( last_time, '%Y-%m-%d-%H-%M-%S'))
@@ -119,22 +124,17 @@ def activity(self, user, channel, command_request):
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     flood_protection = 0
-    if re.search("^#", channel):
-        usage = "Usage: " + config.command_prefix + "last activity [-<amount of records>] username"
-        if ( len(command_request) == 1 ):
-            username = command_request[0]
-            amount_records = '10'
-        elif ( len(command_request) == 2 ):
-            username = command_request[1]
-            if ( command_request[0].startswith('-') ):
-                amount_records = command_request[0][1:]
-                try:
-                    trash = int(amount_records)
-                except:
-                    self.send_reply( (usage), user, channel )
-                    cur.close()
-                    return
-            else:
+    usage = "Usage: " + config.command_prefix + "last activity [-<amount of records>] username"
+    if ( len(command_request) == 1 ):
+        username = command_request[0]
+        amount_records = '10'
+    elif ( len(command_request) == 2 ):
+        username = command_request[1]
+        if ( command_request[0].startswith('-') ):
+            amount_records = command_request[0][1:]
+            try:
+                trash = int(amount_records)
+            except:
                 self.send_reply( (usage), user, channel )
                 cur.close()
                 return
@@ -142,46 +142,113 @@ def activity(self, user, channel, command_request):
             self.send_reply( (usage), user, channel )
             cur.close()
             return
-        if ( "'" in username ):
-            self.send_notice("User is not found", user)
-            cur.close()
-            return
-        sql = """SELECT act,date_time FROM activity
-                WHERE user = '""" + username + """'
-                ORDER BY uid DESC
-                LIMIT """ + amount_records + """
-        """
-        cur.execute(sql)
-        records = cur.fetchall()
-        conn.commit()
-        if ( len(records) == 0 ):
-            self.send_notice("No records of user's activity", user)
-            cur.close()
-            return
-        else:
-            for i in range(len(records)):
-                if ( records[i][0] == 'join' ):
-                    event = "Join"
-                elif ( records[i][0] == 'part' ):
-                    event = "Part"
-                elif ( records[i][0] == 'quit' ):
-                    event = "Quit"
-                elif ( records[i][0] == 'nick' ):
-                    event = "Change nick"
-                last_time = records[i][1]
-                current = time.strftime('%Y-%m-%d-%H-%M-%S')
-                seen_result = seen_time( last_time, current )
-                if ( seen_result == '' ):
-                    result = ' just now'
-                else:
-                    result = seen_result + ' ago'
-                message = event + ":" + result
-                flood_protection = flood_protection + 1
-                if flood_protection == 5:
-                    time.sleep(5)
-                    flood_protection = 0
-                self.send_notice(message, user)
-            flood_protection = 0
     else:
-        self.send_message_to_channel( ("You can use `" + config.command_prefix + "last activity` only on a channel"), user)
+        self.send_reply( (usage), user, channel )
+        cur.close()
+        return
+    if ( "'" in username ):
+        self.send_notice("User is not found", user)
+        cur.close()
+        return
+    sql = """SELECT act,date_time FROM activity
+            WHERE user = '""" + username + """'
+            ORDER BY uid DESC
+            LIMIT """ + amount_records + """
+    """
+    cur.execute(sql)
+    records = cur.fetchall()
+    conn.commit()
+    if ( len(records) == 0 ):
+        self.send_notice("No records of user's activity", user)
+        cur.close()
+        return
+    else:
+        for i in range(len(records)):
+            if ( records[i][0] == 'join' ):
+                event = "Join"
+            elif ( records[i][0] == 'part' ):
+                event = "Part"
+            elif ( records[i][0] == 'quit' ):
+                event = "Quit"
+            elif ( records[i][0] == 'nick' ):
+                event = "Change nick"
+            last_time = records[i][1]
+            current = time.strftime('%Y-%m-%d-%H-%M-%S')
+            seen_result = seen_time( last_time, current )
+            if ( seen_result == '' ):
+                result = ' just now'
+            else:
+                result = seen_result + ' ago'
+            message = event + ":" + result
+            flood_protection = flood_protection + 1
+            if flood_protection == 5:
+                time.sleep(5)
+                flood_protection = 0
+            self.send_notice(message, user)
+        flood_protection = 0
+    cur.close()
+
+def message(self, user, channel, command_request):
+    
+    """
+    Shows last user's messages
+    """
+    
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
+    flood_protection = 0
+    usage = "Usage: " + config.command_prefix + "last message [-<amount of records>] username"
+    if ( len(command_request) == 1 ):
+        username = command_request[0]
+        amount_records = '10'
+    elif ( len(command_request) == 2 ):
+        username = command_request[1]
+        if ( command_request[0].startswith('-') ):
+            amount_records = command_request[0][1:]
+            try:
+                trash = int(amount_records)
+            except:
+                self.send_reply( (usage), user, channel )
+                cur.close()
+                return
+        else:
+            self.send_reply( (usage), user, channel )
+            cur.close()
+            return
+    else:
+        self.send_reply( (usage), user, channel )
+        cur.close()
+        return
+    if ( "'" in username ):
+        self.send_notice("User is not found", user)
+        cur.close()
+        return
+    sql = """SELECT message,date_time FROM messages
+            WHERE user = '""" + username + """'
+            ORDER BY uid DESC
+            LIMIT """ + amount_records + """
+    """
+    cur.execute(sql)
+    records = cur.fetchall()
+    conn.commit()
+    if ( len(records) == 0 ):
+        self.send_notice("No records of user's messages", user)
+        cur.close()
+        return
+    else:
+        for i in range(len(records)):
+            last_time = records[i][1]
+            current = time.strftime('%Y-%m-%d-%H-%M-%S')
+            seen_result = seen_time( last_time, current )
+            if ( seen_result == '' ):
+                result = ' just now'
+            else:
+                result = seen_result + ' ago'
+            message = username + result + " : " + records[i][0]
+            flood_protection = flood_protection + 1
+            if flood_protection == 5:
+                time.sleep(5)
+                flood_protection = 0
+            self.send_notice(message, user)
+        flood_protection = 0
     cur.close()
