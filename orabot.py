@@ -28,7 +28,10 @@ import db_process
 import notifications
 import config
 import spam_filter
+### commands are in 'commands' directory
 from commands import *
+### irc events in 'irc' directory
+from irc import *
 
 ###
 if not os.path.exists('db/openra.sqlite'):
@@ -145,316 +148,25 @@ class IRC_Server:
                 self.irc_sock.send ( ("PONG "+ recv.split() [ 1 ] + "\r\n").encode() )
 
             if str(recv).find ( " PRIVMSG " ) != -1:
-                irc_user_nick = str(recv).split ( '!' ) [ 0 ] . split ( ":")[1]
-                irc_user_host = str(recv).split ( '@' ) [ 1 ] . split ( ' ' ) [ 0 ]
-                irc_user_message = self.data_to_message(str(recv))
-                chan = (str(recv)).split()[2]  #channel
-                ###logs
-                if re.search('^.*01ACTION', irc_user_message) and re.search('01$', irc_user_message):
-                    irc_user_message_me = irc_user_message.split('01ACTION ')[1][0:-4]
-                    self.logs(irc_user_nick, chan, 'action', str(irc_user_message_me), '')
-                else:
-                    self.logs(irc_user_nick, chan, 'privmsg', str(irc_user_message), '')
-                ### logs end
-
-                print ( irc_user_nick + ": " + irc_user_message)
-                # Message starts with command prefix?
-                if ( str(irc_user_message) != '' ):
-                    if ( str(irc_user_message[0]) == config.command_prefix ):
-                        self.command = str(irc_user_message[1:])
-                        self.process_command(irc_user_nick, ( chan ))
-                ### parse links and bug reports numbers
-                self.parse_link(chan, str(irc_user_message))
-                self.parse_bug_num(chan, str(irc_user_message))
-                ###
+                privmsg.parse_event(self, str(recv))
 
             if str(recv).find ( " JOIN " ) != -1:
-                conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
-                cur=conn.cursor()
-                irc_join_nick = str(recv).split( '!' ) [ 0 ].split( ':' ) [ 1 ]
-                if ( len(irc_join_nick.split()) == 1 ):
-                    supy_host = str(recv).split()[0].split('!')[1]
-                    chan = str(recv).split()[2].strip()
-                    ###logs
-                    self.logs(irc_join_nick, chan, 'join', str(supy_host), '')
-                    ###
-
-                    ### for pingme
-                    sql = """SELECT who,users_back FROM pingme
-                    """
-                    cur.execute(sql)
-                    records = cur.fetchall()
-                    conn.commit()
-                    if ( len(records) != 0 ):
-                        for i in range(len(records)):
-                            who = records[i][0]
-                            users_back = records[i][1].split(',')
-                            if ( irc_join_nick in users_back ):
-                                self.send_reply( (irc_join_nick +' has joined IRC!'), who, who )
-                                records_index = users_back.index(irc_join_nick)
-                                del users_back[records_index]
-                                users_back = ",".join(users_back)
-                                if ( len(users_back) == 0 ):
-                                    sql = """DELETE FROM pingme
-                                            WHERE who = '"""+who+"""'
-                                    """
-                                    cur.execute(sql)
-                                    conn.commit()
-                                else:
-                                    sql = """UPDATE pingme
-                                            SET users_back = '"""+users_back+"""'
-                                            WHERE who = '"""+who+"""'
-                                    """
-                                    cur.execute(sql)
-                                    conn.commit()
-                    ###
-                    sql = """SELECT * FROM users
-                            WHERE user = '"""+irc_join_nick+"'"+"""
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                    row = []
-                    for row in cur:
-                        pass
-                    if irc_join_nick not in row:     #user NOT found, add him (if user is not in db, he could not have ]later message)
-                        sql = """INSERT INTO users
-                                (user,state,channels)
-                                VALUES
-                                (
-                                '"""+str(irc_join_nick)+"""',1,'"""+chan+"""'
-                                )
-                        """
-                        cur.execute(sql)
-                        conn.commit()
-                    else:   #user is in `users` table; he can have ]later messages
-                        #for ]last and for logs (add channel in list)
-                        sql = """SELECT channels FROM users
-                                WHERE user = '"""+irc_join_nick+"""'
-                        """
-                        cur.execute(sql)
-                        records = cur.fetchall()
-                        conn.commit()
-                        if ( records[0][0] == '' ) or ( str(records[0][0]) == 'None' ):
-                            channel_to_db = chan
-                        else:
-                            channel_to_db = records[0][0]+','+chan
-                        sql = """UPDATE users
-                                SET state = 1, channels = '"""+channel_to_db+"""'
-                                WHERE user = '"""+str(irc_join_nick)+"""'
-                        """
-                        cur.execute(sql)
-                        conn.commit()
-                        sql = """SELECT reciever FROM later
-                                WHERE reciever = '"""+irc_join_nick+"'"+"""
-                        """
-                        cur.execute(sql)
-                        conn.commit()
-
-                        row = []
-                        for row in cur:
-                            pass
-                        if irc_join_nick in row:    #he has messages in database, read it
-                            sql = """SELECT * FROM later
-                                    WHERE reciever = '"""+irc_join_nick+"'"+"""
-                            """
-                            cur.execute(sql)
-                            conn.commit()
-                            row = []
-                            msgs = []
-                            for row in cur:
-                                msgs.append(row)
-                            msgs_length = len(msgs) #number of messages for player
-                            self.send_message_to_channel( ("You have "+str(msgs_length)+" offline messages:"), irc_join_nick )
-                            for i in range(int(msgs_length)):
-                                who_sent = msgs[i][1]
-                                on_channel = msgs[i][3]
-                                message_date = msgs[i][4]
-                                offline_message = msgs[i][5]
-                                self.send_message_to_channel( ("### From: "+who_sent+";  channel: "+on_channel+";  date: "+message_date), irc_join_nick )
-                                self.send_message_to_channel( (offline_message), irc_join_nick )
-                            time.sleep(0.1)
-                            sql = """DELETE FROM later
-                                    WHERE reciever = '"""+irc_join_nick+"'"+"""
-
-                            """
-                            cur.execute(sql)
-                            conn.commit()
-                cur.close()
+                join.parse_event(self, str(recv))
 
             if str(recv).find ( " QUIT " ) != -1:
-                conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
-                cur=conn.cursor()
-                irc_quit_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
-                supy_host = str(recv).split()[0].split('!')[1]
-                ### for ]last and logs
-                sql = """SELECT channels FROM users
-                        WHERE user = '"""+irc_quit_nick+"""'
-                """
-                cur.execute(sql)
-                records = cur.fetchall()
-                conn.commit()
-                if ( len(records) == 0 ):   #user not found in table users
-                    for chan in config.log_channels.split(','):
-                        self.logs(irc_quit_nick, chan, 'quit', str(supy_host), '')
-                else:   #user found
-                    if ( records[0][0] == '' ) or ( str(records[0][0]) == 'None' ):  #no channels found; reason(probably bot was offline when user joined or user was added manually)
-                        for chan in config.log_channels.split(','):
-                            self.logs(irc_quit_nick, chan, 'quit', str(supy_host), '')
-                    else:   #there are channels
-                        db_channels = records[0][0].split(',')
-                        for chan in db_channels:
-                            self.logs(irc_quit_nick, chan, 'quit', str(supy_host), '')
-                sql = """UPDATE users
-                        SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0, channels = ''
-                        WHERE user = '"""+str(irc_quit_nick)+"'"+"""
-                """
-                cur.execute(sql)
-                conn.commit()
-                ### for ping me
-                sql = """DELETE FROM pingme
-                        WHERE who = '"""+irc_quit_nick+"""'
-                """
-                cur.execute(sql)
-                conn.commit()
-                ### for ]pick
-                modes = ['1v1','2v2','3v3','4v4','5v5']
-                diff_mode = ''
-                for diff_mode in modes:
-                    sql = """DELETE FROM pickup_"""+diff_mode+"""
-                            WHERE name = '"""+irc_quit_nick+"""'
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                ### for notify
-                sql = """DELETE FROM notify
-                        WHERE user = '"""+irc_quit_nick+"""' AND timeout <> 'f' AND timeout <> 'forever'
-                """
-                cur.execute(sql)
-                conn.commit()
-                cur.close()
+                quit.parse_event(self, str(recv))
 
             if str(recv).find ( " PART " ) != -1:
-                conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
-                cur=conn.cursor()
-                irc_part_nick = str(recv).split( "!" )[ 0 ].split( ":" ) [ 1 ]
-                supy_host = str(recv).split()[0].split('!')[1]
-                chan = str(recv).split()[2].strip()
-                ###logs
-                self.logs(irc_part_nick, chan, 'part', str(supy_host), '')
-                ###
-                ### for ]last  and logs
-                sql = """SELECT channels FROM users
-                        WHERE user = '"""+irc_part_nick+"""'
-                """
-                cur.execute(sql)
-                records = cur.fetchall()
-                conn.commit()
-                channel_from_db = ''
-                if ( len(records) != 0 ):
-                    if not (( records[0][0] == '' ) or ( str(records[0][0]) == 'None' )):
-                        db_channels = records[0][0].split(',')
-                        if chan in db_channels:
-                            chan_index = db_channels.index(chan)
-                            del db_channels[chan_index]
-                            channel_from_db = ",".join(db_channels)
-                        else:
-                            channel_from_db = ",".join(db_channels)
-                sql = """UPDATE users
-                        SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0, channels = '"""+channel_from_db+"""'
-                        WHERE user = '"""+str(irc_part_nick)+"'"+"""
-                """
-                cur.execute(sql)
-                conn.commit()
-                ### for ping me
-                sql = """DELETE FROM pingme
-                        WHERE who = '"""+irc_part_nick+"""'
-                """
-                cur.execute(sql)
-                conn.commit()
-                ### for ]pick
-                modes = ['1v1','2v2','3v3','4v4','5v5']
-                diff_mode = ''
-                for diff_mode in modes:
-                    sql = """DELETE FROM pickup_"""+diff_mode+"""
-                            WHERE name = '"""+irc_part_nick+"""'
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                ### for notify
-                sql = """DELETE FROM notify
-                        WHERE user = '"""+irc_part_nick+"""' AND timeout <> 'f' AND timeout <> 'forever'
-                """
-                cur.execute(sql)
-                conn.commit()
-                cur.close()
+                part.parse_event(self, str(recv))
 
             if str(recv).find ( " NICK " ) != -1:
-                original_nick = str(recv).split(':')[1].split('!')[0]
-                new_nick = str(recv).split()[2].replace(':','').replace('\r\n','')
-                conn = sqlite3.connect('../db/openra.sqlite')
-                cur = conn.cursor()
-                ### for logs
-                sql = """SELECT channels FROM users
-                        WHERE user = '"""+original_nick+"""'
-                """
-                cur.execute(sql)
-                records = cur.fetchall()
-                conn.commit()
-                if ( len(records) == 0 ):   #user not found in table users
-                    for chan in config.log_channels.split(','):
-                        self.logs(original_nick, chan, 'nick', new_nick, '')
-                else:   #user found
-                    if ( records[0][0] == '' ) or ( str(records[0][0]) == 'None' ):  #no channels found; reason(probably bot was offline when user joined or user was added manually)
-                        for chan in config.log_channels.split(','):
-                            self.logs(original_nick, chan, 'nick', new_nick, '')
-                    else:   #there are channels
-                        db_channels = records[0][0].split(',')
-                        for chan in db_channels:
-                            self.logs(original_nick, chan, 'nick', new_nick, '')
-                ###
-                sql = """UPDATE users
-                        SET state = 0, date = strftime('%Y-%m-%d-%H-%M-%S')
-                        WHERE user = '"""+original_nick+"""'
-                """
-                cur.execute(sql)
-                conn.commit()
-                sql = """SELECT user FROM users
-                        WHERE user = '"""+new_nick+"""'
-                """
-                cur.execute(sql)
-                records = cur.fetchall()
-                conn.commit()
-                if ( len(records) == 0 ):
-                    sql = """INSERT INTO users
-                            (user,state,channels)
-                            VALUES
-                            (
-                            '"""+new_nick+"""',1,'"""+chan+"""'
-                            )
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                else:
-                    sql = """UPDATE users
-                            SET state = 1
-                            WHERE user = '"""+new_nick+"""'
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                cur.close()
+                nick.parse_event(self, str(recv))
 
             if str(recv).find ( " TOPIC " ) != -1:
-                nick = str(recv).split(':')[1].split('!')[0]
-                topic = " ".join(str(recv).split()[3:]).replace(':','').replace('\r\n','')
-                chan = str(recv).split()[2]
-                self.logs(nick, chan, 'topic', topic, '')
+                topic.parse_event(self, str(recv))
 
             if str(recv).find ( " KICK " ) != -1:
-                by = str(recv).split(':')[1].split('!')[0]
-                whom = str(recv).split()[3]
-                chan = str(recv).split()[2]
-                reason = " ".join(str(recv).split()[4:]).replace(':','').replace('\r\n','')
-                self.logs(whom, chan, 'kick', by, reason)
+                kick.parse_event(self, str(recv))
 
         if self.should_reconnect:
             self.connect()

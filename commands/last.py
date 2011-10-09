@@ -26,9 +26,11 @@ import datetime
 def last(self, user, channel):
     command = (self.command)
     command = command.split()
-    if ( len(command) == 3 ):
+    if ( len(command) >= 3 ):
         if ( command[1].lower() == 'seen' ):
             seen(self, user, channel, command[2])
+        elif ( command[1].lower() == 'activity' ):
+            activity(self, user, channel, command[2:])
         
 
 def seen_time( last_time, current ):
@@ -102,4 +104,18 @@ def seen(self, user, channel, request_user):
                     self.send_message_to_channel( (request_user + " was last seen" + result), channel)
     else:
         self.send_message_to_channel( ("You can use `]last seen` only on a channel"), user)
+    cur.close()
+
+def activity(self, user, channel):
+    
+    """
+    Shows last user's activity (joins, quits, etc)
+    """
+    
+    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    cur=conn.cursor()
+    if re.search("^#", channel):
+        pass
+    else:
+        self.send_message_to_channel( ("You can use `]last activity` only on a channel"), user)
     cur.close()

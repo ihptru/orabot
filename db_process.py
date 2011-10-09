@@ -31,6 +31,10 @@ def start():
     pickup()
     notify()
     maps()
+    faq()
+    pingme()
+    commits()
+    activity()
     print("Creating databases completed.")
     
 def black_list():
@@ -374,6 +378,21 @@ def commits():
         "title" VARCHAR NOT NULL,
         "repo" VARCHAR NOT NULL,
         "branch" VARCHAR NOT NULL
+    )
+    """
+    cur.execute(sql)
+    conn.commit()
+    cur.close()
+
+def activity():
+    print("...")
+    conn = sqlite3.connect('db/openra.sqlite')
+    cur = conn.cursor()
+    sql = """CREATE TABLE "activity" (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "user" VARCHAR NOT NULL,
+        "act" VARCHAR NOT NULL,
+        "date_time" date NOT NULL
     )
     """
     cur.execute(sql)
