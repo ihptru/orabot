@@ -14,9 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sqlite3
-from datetime import date
 import time
-import datetime
 
 def start(self, user, channel):
     string_command = (self.command)

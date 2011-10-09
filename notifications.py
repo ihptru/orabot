@@ -17,7 +17,6 @@ import time
 import sqlite3
 import urllib.request
 import re
-from datetime import date
 import config
 
 def change_topic(self):
@@ -101,42 +100,18 @@ def check_timeout_send(self, name, mod, version, players, db_timeout, db_date, d
             if ( str(records[0][0]) == '1' ):
                 self.send_reply( (notify_message), db_user, db_user )
     else:
-        date_of_adding = int(db_date.replace('-',''))
-        ###
-        a = date.today()
-        a = str(a)
-        a = a.split('-')
-        year = a[0]
-        month = a[1]
-        day = a[2]
-        b = time.localtime()
-        b = str(b)
-        hours = b.split('tm_hour=')[1].split(',')[0]
-        minutes = b.split('tm_min=')[1].split(',')[0]
-        seconds = b.split('tm_sec=')[1].split(',')[0]
-        if len(hours) == 1:
-            hours = '0'+hours
-        else:
-            hours = hours
-        if len(minutes) == 1:
-            minutes = '0'+minutes
-        else:
-            minutes = minutes
-        if len(seconds) == 1:
-            seconds = '0'+seconds
-        else:
-            seconds = seconds
-        localtime = year+month+day+hours+minutes+seconds
-        localtime = int(localtime)
-        difference = localtime - date_of_adding     #in result - must be less then timeout
+        date_of_adding_seconds = time.mktime(time.strptime( db_date, '%Y-%m-%d-%H-%M-%S'))
+        localtime = time.strftime('%Y-%m-%d-%H-%M-%S')
+        localtime = time.mktime(time.strptime( localtime, '%Y-%m-%d-%H-%M-%S'))
+        difference = localtime - date_of_adding_seconds     #in result - must be less then timeout
         if ( db_timeout[-1] == 's' ):
             timeout = db_timeout[0:-1]
         elif ( db_timeout[-1] == 'm' ):
-            timeout = int(db_timeout[0:-1]+'00')
+            timeout = int(db_timeout[0:-1]) * 60
         elif ( db_timeout[-1] == 'h' ):
-            timeout = int(db_timeout[0:-1]+'0000')
+            timeout = int(db_timeout[0:-1]) * 3600
         elif ( db_timeout[-1] == 'd' ):
-            timeout = int(db_timeout[0:-1]+'000000')
+            timeout = int(db_timeout[0:-1]) * 86400
         if ( difference < timeout ):
             self.send_reply( (notify_message), db_user, db_user )
         else:   # timeout is over
