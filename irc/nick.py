@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sqlite3
+import config
 
 def parse_event(self, recv):
     original_nick = recv.split(':')[1].split('!')[0]
@@ -38,6 +39,17 @@ def parse_event(self, recv):
             db_channels = records[0][0].split(',')
             for chan in db_channels:
                 self.logs(original_nick, chan, 'nick', new_nick, '')
+    ###
+    ### last activity
+    sql = """INSERT INTO activity
+            (user,act,date_time)
+            VALUES
+            (
+            '"""+original_nick+"""','nick',strftime('%Y-%m-%d-%H-%M-%S')
+            )
+    """
+    cur.execute(sql)
+    conn.commit()
     ###
     sql = """UPDATE users
             SET state = 0, date = strftime('%Y-%m-%d-%H-%M-%S')

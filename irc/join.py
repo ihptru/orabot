@@ -25,7 +25,19 @@ def parse_event(self, recv):
         ###logs
         self.logs(irc_join_nick, chan, 'join', supy_host, '')
         ###
-
+        
+        ### last activity
+        sql = """INSERT INTO activity
+                (user,act,date_time)
+                VALUES
+                (
+                '"""+irc_join_nick+"""','join',strftime('%Y-%m-%d-%H-%M-%S')
+                )
+        """
+        cur.execute(sql)
+        conn.commit()
+        ###
+        
         ### for pingme
         sql = """SELECT who,users_back FROM pingme
         """
@@ -81,7 +93,7 @@ def parse_event(self, recv):
             cur.execute(sql)
             records = cur.fetchall()
             conn.commit()
-            if ( records[0][0] == '' ) or ( str(records[0][0]) == 'None' ):
+            if ( records[0][0] == '' ) or ( records[0][0] == None ):
                 channel_to_db = chan
             else:
                 channel_to_db = records[0][0]+','+chan

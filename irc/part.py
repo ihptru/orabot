@@ -47,6 +47,17 @@ def parse_event(self, recv):
     """
     cur.execute(sql)
     conn.commit()
+    ### last activity
+    sql = """INSERT INTO activity
+            (user,act,date_time)
+            VALUES
+            (
+            '"""+irc_part_nick+"""','part',strftime('%Y-%m-%d-%H-%M-%S')
+            )
+    """
+    cur.execute(sql)
+    conn.commit()
+    ###
     ### for ping me
     sql = """DELETE FROM pingme
             WHERE who = '"""+irc_part_nick+"""'

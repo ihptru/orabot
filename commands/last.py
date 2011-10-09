@@ -22,6 +22,7 @@ import sqlite3
 import re
 import time
 import datetime
+import config
 
 def last(self, user, channel):
     command = (self.command)
@@ -66,7 +67,9 @@ def seen(self, user, channel, request_user):
     """
     Shows when user was last seen on the channel
     """
-    
+    if ( "'" in request_user ):
+        self.send_message_to_channel( ("Error! No such user in my database"), channel)
+        return
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     if re.search("^#", channel):
@@ -91,6 +94,7 @@ def seen(self, user, channel, request_user):
                 state = row[3]
                 if state == True:
                     self.send_message_to_channel( ("User is somewhere online on IRC Network!"), channel)
+                    cur.close()
                     return
                 if ( last_time == None or last_time == '' ):
                     self.send_message_to_channel( ("Sorry, I don't have any record of when user left"), channel)
@@ -106,7 +110,7 @@ def seen(self, user, channel, request_user):
         self.send_message_to_channel( ("You can use `]last seen` only on a channel"), user)
     cur.close()
 
-def activity(self, user, channel):
+def activity(self, user, channel, command_request):
     
     """
     Shows last user's activity (joins, quits, etc)
@@ -115,7 +119,51 @@ def activity(self, user, channel):
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     if re.search("^#", channel):
-        pass
+        usage = "Usage: " + config.command_prefix + "last activity [-c<amount of records>] username"
+        if ( len(command_request) == 1 ):
+            username = command_request[0]
+            amount_records = '10'
+        elif ( len(command_request) == 2 ):
+            username = command_request[1]
+            if ( command_request[0].startswith('-') ):
+                amount_records = command_request[0][1:]
+            else:
+                self.send_reply( (usage), user, channel )
+                cur.close()
+                return
+        else:
+            self.send_reply( (usage), user, channel )
+            cur.close()
+            return
+        if ( "'" in username ):
+            self.send_notice("User is not found", user)
+            cur.close()
+            return
+        sql = """SELECT act,date_time FROM activity
+                WHERE user = '""" + username + """'
+                LIMIT """ + amount_records + """
+        """
+        cur.execute(sql)
+        records = cur.fetchall()
+        conn.commit()
+        if ( len(records) == 0 ):
+            self.send_notice("No records of user's activity", user)
+            cur.close()
+            return
+        else:
+            for i in range(len(records)):
+                if ( records[i][0] == 'join' ):
+                    event = "Join"
+                elif ( records[i][0] == 'part' ):
+                    event = "Part"
+                elif ( records[i][0] == 'quit' ):
+                    event = "Quit"
+                elif ( records[i][0] == 'nick' ):
+                    event = "Change nick"
+                last_time = records[i][1]
+                current = time.strftime('%Y-%m-%d-%H-%M-%S')
+                seen_result = seen_time( last_time, current )
+                print(seen_result)
     else:
-        self.send_message_to_channel( ("You can use `]last activity` only on a channel"), user)
+        self.send_message_to_channel( ("You can use `" + config.command_prefix + "last activity` only on a channel"), user)
     cur.close()
