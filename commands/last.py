@@ -158,6 +158,8 @@ def activity(self, user, channel, command_request):
             self.send_reply( (usage), user, channel )
             cur.close()
             return
+    if ( int(amount_records) > 30 ):
+        amount_records = '30'
     if ( "'" in username ):
         self.send_notice("User is not found", user)
         cur.close()
@@ -227,6 +229,8 @@ def message(self, user, channel, command_request):
             self.send_reply( (usage), user, channel )
             cur.close()
             return
+    if ( int(amount_records) > 30 ):
+        amount_records = '30'
     if ( "'" in username ):
         self.send_notice("User is not found", user)
         cur.close()
@@ -286,6 +290,8 @@ def game(self, user, channel, command_request):
             self.send_reply( (usage), user, channel )
             cur.close()
             return
+    if ( int(amount_records) > 30 ):
+        amount_records = '30'
     sql = """SELECT game,players,date_time FROM games
             ORDER BY uid DESC
             LIMIT """ + amount_records + """
