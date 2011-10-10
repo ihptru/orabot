@@ -149,7 +149,9 @@ class IRC_Server:
 
             if str(recv).find ( " PRIVMSG " ) != -1:
                 imp.reload(privmsg)
-                privmsg.parse_event(self, str(recv))
+                data = self.handle_privmsg(str(recv))
+                for priv in data:
+                    privmsg.parse_event(self, priv)
 
             if str(recv).find ( " JOIN " ) != -1:
                 imp.reload(join)
@@ -179,8 +181,14 @@ class IRC_Server:
             self.connect()
 
     def data_to_message(self,data):
-        data=data[data.find(" :")+2:] # Notice the space before the :
-        return data[:-2] # Without \r\n
+        data=data[data.find(" :")+2:]
+        return data
+
+    #handle as single line PRIVMSG request as multiple
+    def handle_privmsg(self, data):
+        regex = re.compile('(.*?)\n')
+        data = regex.findall(data)
+        return data
 
     # helper to remove some insanity.
     def send_reply(self,data,user,channel):
