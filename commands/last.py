@@ -34,17 +34,17 @@ def last(self, user, channel):
         else:
             self.send_reply( ("Usage: " + config.command_prefix + "last seen <username>"), user, channel )
     elif ( command[1].lower() == 'activity' ):
-        if ( len(command) >= 3 or len(command) <= 4 ):
+        if ( len(command) >= 3 and len(command) <= 4 ):
             activity(self, user, channel, command[2:])
         else:
             self.send_reply( ("Usage: " + config.command_prefix + "last activity [-<amount of records>] username"), user, channel )
     elif ( command[1].lower() == 'message' ):
-        if ( len(command) >= 3 or len(command) <= 4 ):
+        if ( len(command) >= 3 and len(command) <= 4 ):
             message(self, user, channel, command[2:])
         else:
             self.send_reply( ("Usage: " + config.command_prefix + "last message [-<amount of records>] username"), user, channel )
     elif ( command[1].lower() == 'game' ):
-        if ( len(command) >= 2 or len(command) <= 3 ):
+        if ( len(command) >= 2 and len(command) <= 3 ):
             if ( len(command) == 2 ):
                 arg = ''
             else:

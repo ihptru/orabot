@@ -18,6 +18,12 @@ import sqlite3
 import urllib.request
 import re
 import config
+import html.parser
+
+def parse_html(string):
+    h = html.parser.HTMLParser()
+    string = h.unescape(string)
+    return string
 
 def change_topic(self):
     def write_version(release, playtest):
@@ -259,7 +265,8 @@ def start(self):
                                 time.sleep(5)
                                 flood_protection = 0
                             for channel in config.write_commit_notifications_to.split(','):
-                                self.send_message_to_channel( ("News from "+repo.split('github.com/')[1]+slash+branch+": "+commits_to_show[i]), channel )
+                                commit = parse_html(commits_to_show[i])
+                                self.send_message_to_channel( ("News from "+repo.split('github.com/')[1]+slash+branch+": "+commit), channel )
                             sql = """INSERT INTO commits
                                     (title,repo,branch)
                                     VALUES
@@ -297,6 +304,7 @@ def start(self):
                     file = open(filename, 'a')
                     file.write(bug_report_title.split()[1]+"\n")
                     file.close()
+                    bug_report_title = parse_html(bug_report_title)
                     message = bug_report_title+" | "+bug_report_url
                     for channel in config.write_bug_notifications_to.split(','):
                         self.send_message_to_channel( (message), channel )
