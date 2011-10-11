@@ -394,7 +394,8 @@ def activity():
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "user" VARCHAR NOT NULL,
         "act" VARCHAR NOT NULL,
-        "date_time" date NOT NULL
+        "date_time" date NOT NULL,
+        "channel" VARCHAR
     )
     """
     cur.execute(sql)
@@ -409,7 +410,8 @@ def messages():
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "user" VARCHAR NOT NULL,
         "message" VARCHAR NOT NULL,
-        "date_time" date NOT NULL
+        "date_time" date NOT NULL,
+        "channel" VARCHAR NOT NULL
     )
     """
     cur.execute(sql)

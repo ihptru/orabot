@@ -49,10 +49,10 @@ def parse_event(self, recv):
     conn.commit()
     ### last activity
     sql = """INSERT INTO activity
-            (user,act,date_time)
+            (user,act,date_time,channel)
             VALUES
             (
-            '"""+irc_part_nick+"""','part',strftime('%Y-%m-%d-%H-%M-%S')
+            '"""+irc_part_nick+"""','part',strftime('%Y-%m-%d-%H-%M-%S'),'"""+chan+"""'
             )
     """
     cur.execute(sql)

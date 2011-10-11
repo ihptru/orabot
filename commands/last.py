@@ -164,7 +164,7 @@ def activity(self, user, channel, command_request):
         self.send_notice("User is not found", user)
         cur.close()
         return
-    sql = """SELECT act,date_time FROM activity
+    sql = """SELECT act,date_time,channel FROM activity
             WHERE user = '""" + username + """'
             ORDER BY uid DESC
             LIMIT """ + amount_records + """
@@ -180,12 +180,16 @@ def activity(self, user, channel, command_request):
         for i in range(len(records)):
             if ( records[i][0] == 'join' ):
                 event = "Join"
+                chan = ' ' + records[i][2]
             elif ( records[i][0] == 'part' ):
                 event = "Part"
+                chan = ' ' + records[i][2]
             elif ( records[i][0] == 'quit' ):
                 event = "Quit"
+                chan = ''
             elif ( records[i][0] == 'nick' ):
                 event = "Change nick"
+                chan = ''
             last_time = records[i][1]
             current = time.strftime('%Y-%m-%d-%H-%M-%S')
             seen_result = seen_time( last_time, current )
@@ -193,7 +197,7 @@ def activity(self, user, channel, command_request):
                 result = ' just now'
             else:
                 result = seen_result + ' ago'
-            message = event + ":" + result
+            message = event + chan + ":" + result
             flood_protection = flood_protection + 1
             if flood_protection == 5:
                 time.sleep(5)
@@ -235,7 +239,7 @@ def message(self, user, channel, command_request):
         self.send_notice("User is not found", user)
         cur.close()
         return
-    sql = """SELECT message,date_time FROM messages
+    sql = """SELECT message,date_time,channel FROM messages
             WHERE user = '""" + username + """'
             ORDER BY uid DESC
             LIMIT """ + amount_records + """
@@ -256,7 +260,7 @@ def message(self, user, channel, command_request):
                 result = ' just now'
             else:
                 result = seen_result + ' ago'
-            message = username + result + " : " + records[i][0]
+            message = username + result + " @ " + records[i][2] + " : " + records[i][0]
             flood_protection = flood_protection + 1
             if flood_protection == 5:
                 time.sleep(5)

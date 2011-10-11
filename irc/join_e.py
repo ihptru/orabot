@@ -28,10 +28,10 @@ def parse_event(self, recv):
     
     ### last activity
     sql = """INSERT INTO activity
-            (user,act,date_time)
+            (user,act,date_time,channel)
             VALUES
             (
-            '"""+irc_join_nick+"""','join',strftime('%Y-%m-%d-%H-%M-%S')
+            '"""+irc_join_nick+"""','join',strftime('%Y-%m-%d-%H-%M-%S'),'"""+chan+"""'
             )
     """
     cur.execute(sql)

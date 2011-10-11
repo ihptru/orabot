@@ -33,10 +33,10 @@ def parse_event(self, recv):
     cur=conn.cursor()
     ### for last message
     sql = """INSERT INTO messages
-            (user,message,date_time)
+            (user,message,date_time,channel)
             VALUES
             (
-            '"""+irc_user_nick+"""','"""+irc_user_message.replace("'","''")+"""',strftime('%Y-%m-%d-%H-%M-%S')
+            '"""+irc_user_nick+"""','"""+irc_user_message.replace("'","''")+"""',strftime('%Y-%m-%d-%H-%M-%S'),'"""+chan+"""'
             )
     """
     cur.execute(sql)
