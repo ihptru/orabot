@@ -1,1 +1,1 @@
-__all__ = ["privmsg","join","part","quit","nick","topic","kick"]
+__all__ = ["privmsg_e","join_e","part_e","quit_e","nick_e","topic_e","kick_e"]

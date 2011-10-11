@@ -148,34 +148,34 @@ class IRC_Server:
                 self.irc_sock.send ( ("PONG "+ recv.split() [ 1 ] + "\r\n").encode() )
 
             if str(recv).find ( " PRIVMSG " ) != -1:
-                imp.reload(privmsg)
+                imp.reload(privmsg_e)
                 data = self.handle_privmsg(str(recv))
                 for priv in data:
-                    privmsg.parse_event(self, priv)
+                    privmsg_e.parse_event(self, priv)
 
             if str(recv).find ( " JOIN " ) != -1:
-                imp.reload(join)
-                join.parse_event(self, str(recv))
+                imp.reload(join_e)
+                join_e.parse_event(self, str(recv))
 
             if str(recv).find ( " QUIT " ) != -1:
-                imp.reload(quit)
-                quit.parse_event(self, str(recv))
+                imp.reload(quit_e)
+                quit_e.parse_event(self, str(recv))
 
             if str(recv).find ( " PART " ) != -1:
-                imp.reload(part)
-                part.parse_event(self, str(recv))
+                imp.reload(part_e)
+                part_e.parse_event(self, str(recv))
 
             if str(recv).find ( " NICK " ) != -1:
-                imp.reload(nick)
-                nick.parse_event(self, str(recv))
+                imp.reload(nick_e)
+                nick_e.parse_event(self, str(recv))
 
             if str(recv).find ( " TOPIC " ) != -1:
-                imp.reload(topic)
-                topic.parse_event(self, str(recv))
+                imp.reload(topic_e)
+                topic_e.parse_event(self, str(recv))
 
             if str(recv).find ( " KICK " ) != -1:
-                imp.reload(kick)
-                kick.parse_event(self, str(recv))
+                imp.reload(kick_e)
+                kick_e.parse_event(self, str(recv))
 
         if self.should_reconnect:
             self.connect()
@@ -372,7 +372,7 @@ class IRC_Server:
     # Special admin commands for Op/HalfOp/Voice
     def OpVoice(self, user, channel):
         recv = self.get_names(channel)
-        print(recv)
+
         if recv.find ( " 353 "+config.bot_nick ) != -1:
             user_nicks = recv.split(':')[2].rstrip()
             if '+'+user in user_nicks.split() or '@'+user in user_nicks.split() or '%'+user in user_nicks.split():
