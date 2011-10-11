@@ -181,12 +181,12 @@ class IRC_Server:
             self.connect()
 
     def data_to_message(self,data):
-        data=data[data.find(" :")+2:]
+        data=" ".join(data.split()[3:])[1:].rstrip()
         return data
 
     #handle as single line PRIVMSG request as multiple
     def handle_privmsg(self, data):
-        regex = re.compile('(.*?)\n')
+        regex = re.compile('(.*?)\r\n')
         data = regex.findall(data)
         return data
 
@@ -346,17 +346,16 @@ class IRC_Server:
             flood_protection = 0
 
     def parse_bug_num(self, channel, message):
-        if re.search('.*\#[0-9]*.*', message):
-            flood_protection = 0
-            matches = re.findall(r"#[0-9]*", message)
+        matches = re.findall("#([0-9]*)", message)
+        if ( matches != [] and matches != [''] ):
+            flood_protection = 0    
             if re.search("^#", channel):
                 for bug_report in matches:
                     flood_protection = flood_protection + 1
                     if flood_protection == 5:
                         time.sleep(6)
                         flood_protection = 0
-                    bug_or_feature_num = bug_report.split('#')[1]
-                    url = 'http://bugs.open-ra.org/issues/'+bug_or_feature_num
+                    url = 'http://bugs.open-ra.org/issues/'+bug_report
                     try:
                         fetched = self.title_from_url(url).split('OpenRA - ')[1].split(' - open-ra')[0]
                         self.send_message_to_channel( (fetched+" | "+url), channel )
@@ -371,7 +370,7 @@ class IRC_Server:
     # Special admin commands for Op/HalfOp/Voice
     def OpVoice(self, user, channel):
         recv = self.get_names(channel)
-
+        print(recv)
         if recv.find ( " 353 "+config.bot_nick ) != -1:
             user_nicks = recv.split(':')[2].rstrip()
             if '+'+user in user_nicks.split() or '@'+user in user_nicks.split() or '%'+user in user_nicks.split():
