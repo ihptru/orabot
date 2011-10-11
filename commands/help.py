@@ -25,12 +25,15 @@ def help(self, user, channel):
     command = (self.command)
     command = command.split()
     no_desc = "No description available"
-    help_desc = "(help [<command module>] [<command>]) -- This command gives a useful description of what <command module> does. <command> is only necessary if the command module contains commands tree."
+    help_desc = "(help [<command module>] [<command>]) -- This command gives a useful description of what <command module> does. <command> is only necessary if the command module contains commands tree. (help commands) -- gives a list of commands"
     if ( len(command) == 1 ):
         self.send_reply( (help_desc), user, channel )
     elif ( len(command) == 2 ):
         if ( command[1] == "help" ):
             self.send_reply( (help_desc), user, channel )
+            return
+        if ( command[1] == 'commands' ):
+            self.send_notice( ("Commands: help " + " ".join(___all___)), user )
             return
         if ( command[1] in ___all___ ):
             desc = eval(command[1]).__doc__
