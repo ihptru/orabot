@@ -144,66 +144,66 @@ class IRC_Server:
             recv = self.irc_sock.recv( 4096 )
             recv=self.decode_stream(recv)
 
-            if str(recv).find ( "PING" ) != -1:
-                self.irc_sock.send ( ("PONG "+ recv.split() [ 1 ] + "\r\n").encode() )
+            data = self.handle_recv(str(recv))
+            for recv in data:
+                if recv.find ( "PING" ) != -1:
+                    self.irc_sock.send ( ("PONG "+ recv.split() [ 1 ] + "\r\n").encode() )
 
-            if str(recv).find ( " PRIVMSG " ) != -1:
-                imp.reload(privmsg_e)
-                data = self.handle_privmsg(str(recv))
-                for priv in data:
-                    privmsg_e.parse_event(self, priv)
+                if recv.find ( " PRIVMSG " ) != -1:
+                    imp.reload(privmsg_e)
+                    privmsg_e.parse_event(self, recv)
 
-            if str(recv).find ( " JOIN " ) != -1:
-                imp.reload(join_e)
-                join_e.parse_event(self, str(recv))
+                if recv.find ( " JOIN " ) != -1:
+                    imp.reload(join_e)
+                    join_e.parse_event(self, recv)
 
-            if str(recv).find ( " QUIT " ) != -1:
-                imp.reload(quit_e)
-                quit_e.parse_event(self, str(recv))
+                if recv.find ( " QUIT " ) != -1:
+                    imp.reload(quit_e)
+                    quit_e.parse_event(self, recv)
 
-            if str(recv).find ( " PART " ) != -1:
-                imp.reload(part_e)
-                part_e.parse_event(self, str(recv))
+                if recv.find ( " PART " ) != -1:
+                    imp.reload(part_e)
+                    part_e.parse_event(self, recv)
 
-            if str(recv).find ( " NICK " ) != -1:
-                imp.reload(nick_e)
-                nick_e.parse_event(self, str(recv))
+                if recv.find ( " NICK " ) != -1:
+                    imp.reload(nick_e)
+                    nick_e.parse_event(self, recv)
 
-            if str(recv).find ( " TOPIC " ) != -1:
-                imp.reload(topic_e)
-                topic_e.parse_event(self, str(recv))
+                if recv.find ( " TOPIC " ) != -1:
+                    imp.reload(topic_e)
+                    topic_e.parse_event(self, recv)
 
-            if str(recv).find ( " KICK " ) != -1:
-                imp.reload(kick_e)
-                kick_e.parse_event(self, str(recv))
+                if recv.find ( " KICK " ) != -1:
+                    imp.reload(kick_e)
+                    kick_e.parse_event(self, recv)
 
         if self.should_reconnect:
             self.connect()
 
-    def data_to_message(self,data):
+    def data_to_message(self, data):
         data=data[data.find(" :")+2:]
         return data
 
-    #handle as single line PRIVMSG request as multiple
-    def handle_privmsg(self, data):
+    #handle as single line request as multiple ( split recv into pieces before processing it )
+    def handle_recv(self, recv):
         regex = re.compile('(.*?)\r\n')
-        data = regex.findall(data)
-        return data
+        recv = regex.findall(recv)
+        return recv
 
     # helper to remove some insanity.
-    def send_reply(self,data,user,channel):
+    def send_reply(self, data, user, channel):
         target = channel if channel.startswith('#') else user
         self.send_message_to_channel(data,target)
 
     #another helper
-    def decode_stream(self,stream):
+    def decode_stream(self, stream):
         try:
             return stream.decode("utf8")
         except:
             return stream.decode("CP1252")
 
     # This function sends a message to a channel or user
-    def send_message_to_channel(self,data,channel):
+    def send_message_to_channel(self, data, channel):
         print ( ( "%s: %s") % (self.irc_nick, data[:256]) )
         while True:
             try:
@@ -238,14 +238,14 @@ class IRC_Server:
         return user_nicks
 
     # This function takes a channel, which must start with a #.
-    def join_channel(self,channel):
+    def join_channel(self, channel):
         if (channel[0] == "#"):
             str_buff = ( "JOIN %s \r\n" ) % (channel)
             self.irc_sock.send (str_buff.encode())
             # This needs to test if the channel is full
 
     # This function takes a channel, which must start with a #.
-    def quit_channel(self,channel):
+    def quit_channel(self, channel):
         if (channel[0] == "#"):
             str_buff = ( "PART %s \r\n" ) % (channel)
             self.irc_sock.send ( str_buff.encode() )
