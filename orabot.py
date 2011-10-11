@@ -181,7 +181,7 @@ class IRC_Server:
             self.connect()
 
     def data_to_message(self,data):
-        data=" ".join(data.split()[3:])[1:].rstrip()
+        data=data[data.find(" :")+2:]
         return data
 
     #handle as single line PRIVMSG request as multiple
@@ -347,10 +347,12 @@ class IRC_Server:
 
     def parse_bug_num(self, channel, message):
         matches = re.findall("#([0-9]*)", message)
-        if ( matches != [] and matches != [''] ):
+        if ( matches != [] ):
             flood_protection = 0    
             if re.search("^#", channel):
                 for bug_report in matches:
+                    if ( bug_report == '' ):
+                        return
                     flood_protection = flood_protection + 1
                     if flood_protection == 5:
                         time.sleep(6)
