@@ -28,6 +28,9 @@ def last(self, user, channel):
     command = (self.command)
     command = command.split()
     usage = "Usage: " + config.command_prefix + "last {seen|activity|message|game} args"
+    if ( len(command) == 1 ):
+        self.send_reply( (usage), user, channel )
+        return
     if ( command[1].lower() == 'seen' ):
         if ( len(command) == 3):
             seen(self, user, channel, command[2])
@@ -39,7 +42,7 @@ def last(self, user, channel):
         else:
             self.send_reply( ("Usage: " + config.command_prefix + "last activity [-<amount of records>] username"), user, channel )
     elif ( command[1].lower() == 'message' ):
-        if ( len(command) >= 3 and len(command) <= 4 ):
+        if ( len(command) >= 2 and len(command) <= 4 ):
             message(self, user, channel, command[2:])
         else:
             self.send_reply( ("Usage: " + config.command_prefix + "last message [-<amount of records>] username"), user, channel )
@@ -83,6 +86,15 @@ def seen_time( last_time, current ):
             result_string = result_string + ' ' + str(int(timest[i])) + ' ' + st
     return result_string
 
+def time_result(last_time):
+    current = time.strftime('%Y-%m-%d-%H-%M-%S')
+    seen_result = seen_time( last_time, current )
+    if ( seen_result == '' ):
+        result = ' just now'
+    else:
+        result = seen_result + ' ago'
+    return result
+
 def seen(self, user, channel, request_user):
     
     """
@@ -120,12 +132,7 @@ def seen(self, user, channel, request_user):
                 if ( last_time == None or last_time == '' ):
                     self.send_message_to_channel( ("Sorry, I don't have any record of when user left"), channel)
                 else:
-                    current = time.strftime('%Y-%m-%d-%H-%M-%S')
-                    seen_result = seen_time( last_time, current )
-                    if ( seen_result == '' ):
-                        result = ' just now'
-                    else:
-                        result = seen_result + ' ago'
+                    result = time_result(last_time)
                     self.send_message_to_channel( (request_user + " was last seen" + result), channel)
     else:
         self.send_message_to_channel( ("You can use `]last seen` only on a channel"), user)
@@ -190,13 +197,7 @@ def activity(self, user, channel, command_request):
             elif ( records[i][0] == 'nick' ):
                 event = "Change nick"
                 chan = ''
-            last_time = records[i][1]
-            current = time.strftime('%Y-%m-%d-%H-%M-%S')
-            seen_result = seen_time( last_time, current )
-            if ( seen_result == '' ):
-                result = ' just now'
-            else:
-                result = seen_result + ' ago'
+            result = time_result(records[i][1])
             message = event + chan + ":" + result
             flood_protection = flood_protection + 1
             if flood_protection == 5:
@@ -214,11 +215,50 @@ def message(self, user, channel, command_request):
     
     conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
     cur=conn.cursor()
+    usage = "Usage: " + config.command_prefix + "last message [-<amount of records>] [username]"
+
+    def messages_from_channel(self, user, channel, usage, cur, conn, command_request):
+        flood_protection = 0
+        amount_records = command_request[0][1:]
+        try:
+            trash = int(amount_records)
+        except:
+            self.send_reply( (usage), user, channel )
+            cur.close()
+            return
+        sql = """SELECT message,date_time,channel,user FROM messages
+                WHERE channel = '"""+channel+"""'
+                ORDER BY uid DESC
+                LIMIT """ + amount_records + """
+        """
+        cur.execute(sql)
+        records = cur.fetchall()
+        conn.commit()
+        if ( len(records) == 0 ):
+            self.send_notice("No records for " + channel, user)
+            return
+        else:
+            for i in range(len(records)):
+                result = time_result(records[i][1])
+                message = records[i][3] + result + " @ " + records[i][2] + " : " + records[i][0]
+                flood_protection = flood_protection + 1
+                if flood_protection == 5:
+                    time.sleep(5)
+                    flood_protection = 0
+                self.send_notice(message, user)
+            flood_protection = 0
+
     flood_protection = 0
-    usage = "Usage: " + config.command_prefix + "last message [-<amount of records>] username"
+    if ( len(command_request) == 0 ):
+        messages_from_channel(self, user, channel, usage, cur, conn, ['-10'])
+        return
     if ( len(command_request) == 1 ):
-        username = command_request[0]
-        amount_records = '10'
+        if ( command_request[0].startswith('-') ):
+            messages_from_channel(self, user, channel, usage, cur, conn, command_request)
+            return
+        else:
+            username = command_request[0]
+            amount_records = '10'
     elif ( len(command_request) == 2 ):
         username = command_request[1]
         if ( command_request[0].startswith('-') ):
@@ -253,13 +293,7 @@ def message(self, user, channel, command_request):
         return
     else:
         for i in range(len(records)):
-            last_time = records[i][1]
-            current = time.strftime('%Y-%m-%d-%H-%M-%S')
-            seen_result = seen_time( last_time, current )
-            if ( seen_result == '' ):
-                result = ' just now'
-            else:
-                result = seen_result + ' ago'
+            result = time_result(records[i][1])
             message = username + result + " @ " + records[i][2] + " : " + records[i][0]
             flood_protection = flood_protection + 1
             if flood_protection == 5:
@@ -309,13 +343,7 @@ def game(self, user, channel, command_request):
         return
     else:
         for i in range(len(records)):
-            last_time = records[i][2]
-            current = time.strftime('%Y-%m-%d-%H-%M-%S')
-            seen_result = seen_time( last_time, current )
-            if ( seen_result == '' ):
-                result = ' just now'
-            else:
-                result = seen_result + ' ago'
+            result = time_result(records[i][2])
             message = records[i][1] + " players |" + result + " | Name: " + records[i][0]
             flood_protection = flood_protection + 1
             if flood_protection == 5:
