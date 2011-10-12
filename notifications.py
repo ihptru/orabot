@@ -351,10 +351,10 @@ def start(self):
                         conn = sqlite3.connect('../db/openra.sqlite')
                         cur = conn.cursor()
                         sql = """INSERT INTO games
-                                (game,players,date_time)
+                                (game,players,date_time,version)
                                 VALUES
                                 (
-                                '"""+name.replace("'","''")+"""','"""+players+"""',strftime('%Y-%m-%d-%H-%M-%S')
+                                '"""+name.replace("'","''")+"""','"""+players+"""',strftime('%Y-%m-%d-%H-%M-%S'),'"""+version+"""'
                                 )
                         """
                         cur.execute(sql)

@@ -426,6 +426,7 @@ def games():
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "game" VARCHAR NOT NULL,
         "players" VARCHAR NOT NULL,
+        "version" VARCHAR NOT NULL,
         "date_time" date NOT NULL
     )
     """

@@ -330,7 +330,7 @@ def game(self, user, channel, command_request):
             return
     if ( int(amount_records) > 30 ):
         amount_records = '30'
-    sql = """SELECT game,players,date_time FROM games
+    sql = """SELECT game,players,date_time,version FROM games
             ORDER BY uid DESC
             LIMIT """ + amount_records + """
     """
@@ -344,7 +344,11 @@ def game(self, user, channel, command_request):
     else:
         for i in range(len(records)):
             result = time_result(records[i][2])
-            message = records[i][1] + " players |" + result + " | Name: " + records[i][0]
+            if ( records[i][3] == '' ):
+                ver = ' |'
+            else:
+                ver = ' | ver: ' + records[i][3][-4:] + ' |'
+            message = records[i][1] + " players" + ver + result + " | Name: " + records[i][0]
             flood_protection = flood_protection + 1
             if flood_protection == 5:
                 time.sleep(5)
