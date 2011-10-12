@@ -45,10 +45,7 @@ def faq(self, user, channel):
         elif ( command[1] == "remove" ):
             self.send_reply( ("Usage: "+config.command_prefix+"faq remove item_name"), user, channel )
         else:
-            self.send_reply( ("Usage: "+config.command_prefix+"faq print item_name"), user, channel )
-    elif ( len(command) == 3 ):
-        if ( command[1] == "print" ):
-            item = command[2]
+            item = command[1]
             sql = """SELECT desc FROM faq
                     WHERE item = '"""+item+"""'
             """
@@ -59,7 +56,8 @@ def faq(self, user, channel):
                 self.send_reply( ("Item is not set"), user, channel )
             else:
                 self.send_reply( (item+": "+records[0][0]), user, channel )
-        elif ( command[1] == "remove" ):
+    elif ( len(command) == 3 ):
+        if ( command[1] == "remove" ):
             if not self.OpVoice(user, channel):
                 return
             item = command[2]
@@ -83,9 +81,7 @@ def faq(self, user, channel):
         else:
             self.send_reply( ("Error!"), user, channel )
     elif ( len(command) >= 4 ):
-        if ( command[1] == "print" ):
-            self.send_reply( ("Usage: "+config.command_prefix+"faq print item_name"), user, channel )
-        elif ( command[1] == "remove" ):
+        if ( command[1] == "remove" ):
             self.send_reply( ("Usage: "+config.command_prefix+"faq remove item_name"), user, channel )
         elif ( command[1] == "set" ):
             if not self.OpVoice(user, channel):
