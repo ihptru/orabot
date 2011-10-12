@@ -15,6 +15,6 @@
 
 def parse_event(self, recv):
     nick = recv.split(':')[1].split('!')[0]
-    topic = " ".join(recv.split()[3:]).replace(':','').replace('\r\n','')
+    topic = recv[recv.find(" :")+2:]
     chan = recv.split()[2]
     self.logs(nick, chan, 'topic', topic, '')

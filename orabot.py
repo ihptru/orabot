@@ -181,7 +181,7 @@ class IRC_Server:
             self.connect()
 
     def data_to_message(self, data):
-        data=data[data.find(" :")+2:]
+        data = data[data.find(" :")+2:]
         return data
 
     #handle as single line request as multiple ( split recv into pieces before processing it )
