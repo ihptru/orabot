@@ -57,37 +57,25 @@ def change_topic(self):
         write_version(release, playtest)
 
 def branch_list(repo):
+    repo = 'http://github.com/api/v2/json/repos/show' + repo.split('https://github.com')[1] + 'branches'
     try:
         stream = urllib.request.urlopen(repo).read().decode('utf-8')
     except:
         return []
-    branches = stream.split('<ul class="subnav-dropdown-branches">')[1].split('</ul>')[0].split('<li>')
-    del branches[0]
-    branch_list = []
-    for i in range(len(branches)):
-        try:
-            branch = branches[i].split('</a>')[0].split('">')[1]
-        except:
-            branch = branches[i].split(' &#')[0].split('<strong>')[1]
-        branch_list.append(branch)
-    return branch_list
+    branches = re.findall('"(.*?)":".*?"',stream[12:-1])
+    return branches
         
 
 def get_commits(url):   #this functions must get url of Branch
+    url = 'http://github.com/api/v2/json/commits/list' + url.split('https://github.com')[1]
     titles = []
     try:
         stream = urllib.request.urlopen(url).read().decode('utf-8')
     except:
         return titles
-    commits = stream.split('<p class="commit-title ">')
-    if ( len(commits) == 1 ):   #must be > 1; possible reason: changed tag on github or some problems with service
-        return titles
-    del commits[0]
-    amount_commits = len(commits)
-    for i in range(amount_commits):
-        commit_title = commits[i].split('</a>')[0].split('">')[1].strip()
-        titles.append(commit_title)
+    titles = re.findall('.*?"message":"(.*?)"',stream)
     return titles
+
 
 def check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn):
     notify_message = "New game: "+name+" - mod: "+mod+version+" - Already "+players+" players in"
@@ -135,13 +123,13 @@ def start(self):
     commit_var = 0
     topic_var = 0
 
-    #conn = sqlite3.connect('../db/openra.sqlite')
-    #cur = conn.cursor()
-    #sql = """DELETE FROM commits
-    #"""
-    #cur.execute(sql)
-    #conn.commit()
-    #cur.close()
+    conn = sqlite3.connect('../db/openra.sqlite')
+    cur = conn.cursor()
+    sql = """DELETE FROM commits
+    """
+    cur.execute(sql)
+    conn.commit()
+    cur.close()
     
     def update_commits(titles, repo, branch):
         conn = sqlite3.connect('../db/openra.sqlite')
@@ -164,32 +152,33 @@ def start(self):
         cur.close()
         print("Updating commits table...")
 
-    #repos = config.git_repos.split()
-    #for repo in repos:
-    #    if ( repo[-1] == '/' ):
-    #        slash = ''
-    #    else:
-    #        slash = '/'
-    #    branches = branch_list(repo)
-    #    if ( len(branches) == 0 ):
-    #        print("Error fetching list of branches from repo: " + repo)
-    #    else:
-    #        for branch in branches:
-    #            url = repo + slash + 'commits/' + branch
-    #            titles = get_commits(url)
-    #            if ( len(titles) == 0 ):
-    #                print("### Something went wrong fetching commits info! ###")
-    #                conn = sqlite3.connect('../db/openra.sqlite')
-    #                cur = conn.cursor()
-    #                sql = """DELETE FROM commits
-    #                        WHERE repo = '"""+repo+"""' AND branch = '"""+branch+"""'
-    #                """
-    #                cur.execute(sql)
-    #                conn.commit()
-    #                cur.close()
-    #            else:
-    #                update_commits(titles, repo, branch)
-    #print("Updating commits table completed!")
+    repos = config.git_repos.split()
+    for repo in repos:
+        if ( repo[-1] == '/' ):
+            slash = ''
+        else:
+            slash = '/'
+        repo = repo + slash
+        branches = branch_list(repo)
+        if ( len(branches) == 0 ):
+            print("Error fetching list of branches from repo: " + repo)
+        else:
+            for branch in branches:
+                url = repo + branch
+                titles = get_commits(url)
+                if ( len(titles) == 0 ):
+                    print("### Something went wrong fetching commits info! ###")
+                    conn = sqlite3.connect('../db/openra.sqlite')
+                    cur = conn.cursor()
+                    sql = """DELETE FROM commits
+                            WHERE repo = '"""+repo+"""' AND branch = '"""+branch+"""'
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                    cur.close()
+                else:
+                    update_commits(titles, repo, branch)
+    print("Updating commits table completed!")
 
     while True:
         time.sleep(5)
@@ -211,12 +200,13 @@ def start(self):
                         slash = ''
                     else:
                         slash = '/'
+                    repo = repo + slash
                     branches = branch_list(repo)
                     if ( len(branches) == 0 ):
                         print("Error fetching list of branches from repo: " + repo)
                         return
                     for branch in branches:
-                        url = repo + slash + 'commits/' + branch
+                        url = repo + branch
                         conn = sqlite3.connect('../db/openra.sqlite')
                         cur = conn.cursor()
                         sql = """SELECT title FROM commits
@@ -278,7 +268,7 @@ def start(self):
                             conn.commit()
                         flood_protection = 0
                         cur.close()
-            #commits(self)
+            commits(self)
         ### bugreport part:
         if ( bugreport_var == 100 ):
             bugreport_var = 0

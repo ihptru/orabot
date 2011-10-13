@@ -177,6 +177,10 @@ class IRC_Server:
                     imp.reload(kick_e)
                     kick_e.parse_event(self, recv)
 
+                if recv.find ( " AWAY " ) != -1:
+                    print(recv)
+                print(recv)
+
         if self.should_reconnect:
             self.connect()
 
