@@ -347,7 +347,11 @@ def game(self, user, channel, command_request):
             if ( records[i][3] == '' ):
                 ver = ' |'
             else:
-                ver = ' | ver: ' + records[i][3][-4:] + ' |'
+                if ( re.search('.*{DEV_VERSION}', records[i][3]) ):
+                    ver = 'DEV'
+                else:
+                    ver = records[i][3][-4:]
+                ver = ' | ver: ' + ver + ' |'
             message = records[i][1] + " players" + ver + result + " | Name: " + records[i][0]
             flood_protection = flood_protection + 1
             if flood_protection == 5:
