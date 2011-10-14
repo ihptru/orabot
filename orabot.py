@@ -192,6 +192,9 @@ class IRC_Server:
         time.sleep(3)
         if ( len(records) != 0 ):
             user_nicks = self.parse_names(self.get_names(config.channels.split(',')[0]))
+            db_usernames = []
+            for i in range(len(records)):
+                db_usernames.append(records[i][0])
             for chan in config.channels.split(','):
                 time.sleep(2)
                 user_nicks = self.parse_names(self.get_names(chan))
@@ -231,6 +234,18 @@ class IRC_Server:
                                     """
                                     cur.execute(sql)
                                     conn.commit()
+                for username in user_nicks:
+                    if ( username not in db_usernames ):
+                        if ( username not in self.join_store ):
+                            sql = """INSERT INTO users
+                                    (user,state,channels)
+                                    VALUES
+                                    (
+                                    '"""+username+"""',1,'"""+chan+"""'
+                                    )
+                            """
+                            cur.execute(sql)
+                            conn.commit()
         cur.close()
 
     def get_names(self, channel):
