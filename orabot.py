@@ -52,6 +52,8 @@ class IRC_Server:
         self.is_connected = False
         self.should_reconnect = False
         self.command = ""
+        self.quit_store = []
+        self.join_store = []
 
     ## The destructor - Close socket.
     def __del__(self):
@@ -85,68 +87,14 @@ class IRC_Server:
         if config.nickserv == True:
             print ("Attempting to identify with NickServ...")
             data = "identify "+config.nickserv_password
-            time.sleep(3)
             self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('NickServ', data)).encode() )
-            time.sleep(3)
-            recv = self.irc_sock.recv( 8192 )
-            recv=self.decode_stream(recv)
-
-            if str(recv).find ( " NOTICE "+config.bot_nick+" :You are now identified for " ) != -1:
-                print("Identification succeeded")
-            else:
-                print("### Identification failed! ###")
 
         for i in range(len(self.irc_channel)):
             str_buff = ( "JOIN %s \r\n" ) % (self.irc_channel[i])
             self.irc_sock.send (str_buff.encode())
             print ("Joining channel " + self.irc_channel[i] )
 
-        ### change existing users status to offline if their status in DB is online but they are not on any of the channels and upside down
-        conn = sqlite3.connect('../db/openra.sqlite')
-        cur = conn.cursor()
-        sql = """SELECT user,state,channels FROM users
-        """
-        cur.execute(sql)
-        records = cur.fetchall()
-        conn.commit()
-        time.sleep(3)
-        if ( len(records) != 0 ):
-            user_nicks = self.parse_names(self.get_names(config.channels.split(',')[0]))
-            for chan in config.channels.split(','):
-                time.sleep(2)
-                user_nicks = self.parse_names(self.get_names(chan))
-                if ( len(user_nicks) != 0 ):    #no error on NAMES
-                    for i in range(len(records)):
-                        if ( records[i][0] not in user_nicks ):
-                            if ( str(records[i][1]) == '1' ):
-                                sql = """UPDATE users
-                                        SET state = 0, channels = ''
-                                        WHERE user = '"""+records[i][0]+"""'
-                                """
-                                cur.execute(sql)
-                                conn.commit()
-                        else:
-                            if ( str(records[i][1]) == '0' ):
-                                sql = """UPDATE users
-                                        SET state = 1, channels = '"""+chan+"""'
-                                        WHERE user = '"""+records[i][0]+"""'
-                                """
-                                cur.execute(sql)
-                                conn.commit()
-                            else:
-                                if ( chan not in records[i][2].split(',') ):
-                                    if ( records[i][2] == '' ) or ( records[i][2] == None ):
-                                        channel_to_db = chan
-                                    else:
-                                        channel_to_db = records[i][2]+','+chan
-                                    sql = """UPDATE users
-                                            SET channels = '"""+channel_to_db+"""'
-                                            WHERE user = '"""+records[i][0]+"""'
-                                    """
-                                    cur.execute(sql)
-                                    conn.commit()
-        cur.close()
-        ###
+        multiprocessing.Process(target=self.startup_db_check).start()
 
         self.is_connected = True
         self.listen()
@@ -163,7 +111,7 @@ class IRC_Server:
 
                 if recv.find ( " PRIVMSG " ) != -1:
                     imp.reload(privmsg_e)
-                    privmsg_e.parse_event(self, recv)
+                    multiprocessing.Process(target=privmsg_e.parse_event, args=(self,recv,)).start()
 
                 if recv.find ( " JOIN " ) != -1:
                     imp.reload(join_e)
@@ -188,10 +136,6 @@ class IRC_Server:
                 if recv.find ( " KICK " ) != -1:
                     imp.reload(kick_e)
                     kick_e.parse_event(self, recv)
-
-                if recv.find ( " AWAY " ) != -1:
-                    print(recv)
-                print(recv)
 
         if self.should_reconnect:
             self.connect()
@@ -235,6 +179,59 @@ class IRC_Server:
         print ( ( "NOTICE to %s: %s" ) % (user, data) )
         str_buff = ( "NOTICE %s :%s\r\n" ) % (user,data)
         self.irc_sock.send (str_buff.encode())
+
+    def startup_db_check(self):
+        ### change existing users status to offline if their status in DB is online but they are not on any of the channels and upside down
+        conn = sqlite3.connect('../db/openra.sqlite')
+        cur = conn.cursor()
+        sql = """SELECT user,state,channels FROM users
+        """
+        cur.execute(sql)
+        records = cur.fetchall()
+        conn.commit()
+        time.sleep(3)
+        if ( len(records) != 0 ):
+            user_nicks = self.parse_names(self.get_names(config.channels.split(',')[0]))
+            for chan in config.channels.split(','):
+                time.sleep(2)
+                user_nicks = self.parse_names(self.get_names(chan))
+                if ( len(user_nicks) != 0 ):    #no error on NAMES
+                    for i in range(len(records)):
+                        if ( records[i][0] not in user_nicks ):
+                            if ( str(records[i][1]) == '1' ):
+                                if ( records[i][0] not in self.join_store ):
+                                    sql = """UPDATE users
+                                            SET state = 0, channels = ''
+                                            WHERE user = '"""+records[i][0]+"""'
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                else:
+                                    print("DEBUG: DB CHECK!!!, but user managed to join during that check")
+                        else:
+                            if ( str(records[i][1]) == '0' ):
+                                if ( records[i][0] not in self.quit_store ):
+                                    sql = """UPDATE users
+                                            SET state = 1, channels = '"""+chan+"""'
+                                            WHERE user = '"""+records[i][0]+"""'
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+                                else:
+                                    print("DEBUG: DB CHECK!!!, but user managed to leave during that check")
+                            else:
+                                if ( chan not in records[i][2].split(',') ):
+                                    if ( records[i][2] == '' ) or ( records[i][2] == None ):
+                                        channel_to_db = chan
+                                    else:
+                                        channel_to_db = records[i][2]+','+chan
+                                    sql = """UPDATE users
+                                            SET channels = '"""+channel_to_db+"""'
+                                            WHERE user = '"""+records[i][0]+"""'
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
+        cur.close()
 
     def get_names(self, channel):
         str_buff = ( "NAMES %s \r\n" ) % (channel)

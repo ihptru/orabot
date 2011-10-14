@@ -21,6 +21,9 @@ def parse_event(self, recv):
     cur=conn.cursor()
     irc_quit_nick = recv.split( "!" )[ 0 ].split( ":" ) [ 1 ]
     supy_host = recv.split()[0].split('!')[1]
+    
+    self.quit_store.append(irc_quit_nick)
+    
     ### last activity
     sql = """INSERT INTO activity
             (user,act,date_time)

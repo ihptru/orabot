@@ -150,8 +150,8 @@ def start(self):
             cur.execute(sql)
             conn.commit()
         cur.close()
-        print("Updating commits table...")
 
+    print("Updating commits table...")
     repos = config.git_repos.split()
     for repo in repos:
         if ( repo[-1] == '/' ):

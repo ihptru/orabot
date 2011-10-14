@@ -22,6 +22,9 @@ def parse_event(self, recv):
     irc_join_nick = recv.split( '!' ) [ 0 ].split( ':' ) [ 1 ]
     supy_host = recv.split()[0].split('!')[1]
     chan = recv.split()[2].strip()
+    
+    self.join_store.append(irc_join_nick)
+    
     ###logs
     self.logs(irc_join_nick, chan, 'join', supy_host, '')
     ###
