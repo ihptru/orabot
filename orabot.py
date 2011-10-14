@@ -104,7 +104,7 @@ class IRC_Server:
         ### change existing users status to offline if their status in DB is online but they are not on any of the channels and upside down
         conn = sqlite3.connect('../db/openra.sqlite')
         cur = conn.cursor()
-        sql = """SELECT user,state FROM users
+        sql = """SELECT user,state,channels FROM users
         """
         cur.execute(sql)
         records = cur.fetchall()
@@ -120,7 +120,7 @@ class IRC_Server:
                         if ( records[i][0] not in user_nicks ):
                             if ( str(records[i][1]) == '1' ):
                                 sql = """UPDATE users
-                                        SET state = 0
+                                        SET state = 0, channels = ''
                                         WHERE user = '"""+records[i][0]+"""'
                                 """
                                 cur.execute(sql)
@@ -128,11 +128,23 @@ class IRC_Server:
                         else:
                             if ( str(records[i][1]) == '0' ):
                                 sql = """UPDATE users
-                                        SET state = 1
+                                        SET state = 1, channels = '"""+chan+"""'
                                         WHERE user = '"""+records[i][0]+"""'
                                 """
                                 cur.execute(sql)
                                 conn.commit()
+                            else:
+                                if ( chan not in records[i][2].split(',') ):
+                                    if ( records[i][2] == '' ) or ( records[i][2] == None ):
+                                        channel_to_db = chan
+                                    else:
+                                        channel_to_db = records[i][2]+','+chan
+                                    sql = """UPDATE users
+                                            SET channels = '"""+channel_to_db+"""'
+                                            WHERE user = '"""+records[i][0]+"""'
+                                    """
+                                    cur.execute(sql)
+                                    conn.commit()
         cur.close()
         ###
 
