@@ -15,6 +15,7 @@
 
 import sqlite3
 import config
+import time
 
 def parse_event(self, recv):
     original_nick = recv.split(':')[1].split('!')[0]
@@ -28,6 +29,7 @@ def parse_event(self, recv):
     cur.execute(sql)
     records = cur.fetchall()
     conn.commit()
+    channels = ''
     if ( len(records) == 0 ):   #user not found in table users
         for chan in config.log_channels.split(','):
             self.logs(original_nick, chan, 'nick', new_nick, '')
@@ -36,7 +38,8 @@ def parse_event(self, recv):
             for chan in config.log_channels.split(','):
                 self.logs(original_nick, chan, 'nick', new_nick, '')
         else:   #there are channels
-            db_channels = records[0][0].split(',')
+            channels = records[0][0]
+            db_channels = channels.split(',')
             for chan in db_channels:
                 self.logs(original_nick, chan, 'nick', new_nick, '')
     ###
@@ -52,7 +55,7 @@ def parse_event(self, recv):
     conn.commit()
     ###
     sql = """UPDATE users
-            SET state = 0, date = strftime('%Y-%m-%d-%H-%M-%S')
+            SET state = 0, date = strftime('%Y-%m-%d-%H-%M-%S'), channels = ''
             WHERE user = '"""+original_nick+"""'
     """
     cur.execute(sql)
@@ -68,15 +71,71 @@ def parse_event(self, recv):
                 (user,state,channels)
                 VALUES
                 (
-                '"""+new_nick+"""',1,'"""+chan+"""'
+                '"""+new_nick+"""',1,'"""+channels+"""'
                 )
         """
         cur.execute(sql)
         conn.commit()
     else:
         sql = """UPDATE users
-                SET state = 1
+                SET state = 1, channels = '"""+channels+"""'
                 WHERE user = '"""+new_nick+"""'
+        """
+        cur.execute(sql)
+        conn.commit()
+    ### for ping me
+    sql = """DELETE FROM pingme
+            WHERE who = '"""+original_nick+"""'
+    """
+    cur.execute(sql)
+    conn.commit()
+    ### for ]pick
+    modes = ['1v1','2v2','3v3','4v4','5v5']
+    diff_mode = ''
+    for diff_mode in modes:
+        sql = """DELETE FROM pickup_"""+diff_mode+"""
+                WHERE name = '"""+original_nick+"""'
+        """
+        cur.execute(sql)
+        conn.commit()
+    ### for notify
+    sql = """DELETE FROM notify
+            WHERE user = '"""+original_nick+"""' AND timeout <> 'f' AND timeout <> 'forever'
+    """
+    cur.execute(sql)
+    conn.commit()
+    ## later
+    sql = """SELECT reciever FROM later
+            WHERE reciever = '"""+new_nick+"'"+"""
+    """
+    cur.execute(sql)
+    conn.commit()
+
+    row = []
+    for row in cur:
+        pass
+    if new_nick in row:    #he has messages in database, read it
+        sql = """SELECT * FROM later
+                WHERE reciever = '"""+new_nick+"'"+"""
+        """
+        cur.execute(sql)
+        conn.commit()
+        row = []
+        msgs = []
+        for row in cur:
+            msgs.append(row)
+        msgs_length = len(msgs) #number of messages for player
+        self.send_message_to_channel( ("You have "+str(msgs_length)+" offline messages:"), new_nick )
+        for i in range(int(msgs_length)):
+            who_sent = msgs[i][1]
+            on_channel = msgs[i][3]
+            message_date = msgs[i][4]
+            offline_message = msgs[i][5]
+            self.send_message_to_channel( ("### From: "+who_sent+";  channel: "+on_channel+";  date: "+message_date), new_nick )
+            self.send_message_to_channel( (offline_message), new_nick )
+        time.sleep(0.1)
+        sql = """DELETE FROM later
+                WHERE reciever = '"""+new_nick+"'"+"""
         """
         cur.execute(sql)
         conn.commit()
