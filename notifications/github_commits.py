@@ -78,7 +78,7 @@ def start(self):
     print("Updating commits table completed!")
     
     while True:
-        time.sleep(120)
+        time.sleep(60)
         detect_commits(self)
 
 def detect_commits(self):
