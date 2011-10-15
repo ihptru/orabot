@@ -32,6 +32,11 @@ import spam_filter
 from commands import *
 ### irc events in 'irc' directory
 from irc import *
+### notifications package
+from notifications import openra_topic
+from notifications import openra_bugs
+from notifications import github_commits
+from notifications import openra_game
 
 ###
 if not os.path.exists('db/openra.sqlite'):
@@ -58,6 +63,19 @@ class IRC_Server:
     ## The destructor - Close socket.
     def __del__(self):
         self.irc_sock.close()
+
+    def ircbot(self):
+        if ( config.notifications == True ):
+            # run notifications
+            print("Notifications support...                        OK")
+            self.notifications()
+        self.connect()
+
+    def notifications(self):
+        multiprocessing.Process(target=openra_topic.start, args=(self,)).start()
+        multiprocessing.Process(target=openra_bugs.start, args=(self,)).start()
+        multiprocessing.Process(target=github_commits.start, args=(self,)).start()
+        multiprocessing.Process(target=openra_game.start, args=(self,)).start()
 
     # This is the bit that controls connection to a server & channel.
     def connect(self):
@@ -265,6 +283,11 @@ class IRC_Server:
             user_nicks = user_nicks.split(' ')
         return user_nicks
 
+    def parse_html(self, string):
+        h = html.parser.HTMLParser()
+        string = h.unescape(string)
+        return string.strip()
+
     # This function takes a channel, which must start with a #.
     def join_channel(self, channel):
         if (channel[0] == "#"):
@@ -338,9 +361,8 @@ class IRC_Server:
         rx_title = re.compile(r'<title>(.*?)</title>', re.IGNORECASE)
         titles = rx_title.findall(data.replace('\n',' '))
         if ( titles != [] ):
-            h = html.parser.HTMLParser()
-            title = h.unescape(titles[0])
-            return title.strip()
+            title = self.parse_html(titles[0])
+            return title
         else:
             raise Exception("Exception: " + url + " does not contain title")
 
@@ -457,13 +479,8 @@ class BotCrashed(Exception): # Raised if the bot has crashed.
 def main():
     # Here begins the main programs flow:
     connect_class = IRC_Server(config.server, config.port, config.bot_nick, config.channels.split(','))
-    run_connect_class = multiprocessing.Process(None,connect_class.connect,name="IRC Server" )
+    run_connect_class = multiprocessing.Process(None,connect_class.ircbot,name="IRC Server" )
     run_connect_class.start()
-    ### run notification process
-    if ( config.notifications == True ):
-        print("Run 'notifications' process...")
-        run_notify = multiprocessing.Process(None,notifications.start(connect_class))
-        run_notify.start()
     try:
         while(connect_class.should_reconnect):
             time.sleep(5)
