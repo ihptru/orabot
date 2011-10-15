@@ -25,7 +25,7 @@ def start(self):
 def bugreport(self):
     url = 'http://bugs.open-ra.org/projects/openra/issues.atom'
     try:
-        stream = urllib.request.urlopen(url).read()
+        stream = self.data_from_url(url, None)
     except:
         return
     bug_report_title = str(stream).split('<entry>')[1].split('<title>')[1].split('</title>')[0]

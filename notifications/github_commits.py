@@ -56,13 +56,13 @@ def start(self):
         else:
             slash = '/'
         repo = repo + slash
-        branches = branch_list(repo)
+        branches = branch_list(self, repo)
         if ( len(branches) == 0 ):
             print("Error fetching list of branches from repo: " + repo)
         else:
             for branch in branches:
                 url = repo + branch
-                titles = get_commits(url)
+                titles = get_commits(self, url)
                 if ( len(titles) == 0 ):
                     print("### Something went wrong fetching commits info! ###")
                     conn = sqlite3.connect('../db/openra.sqlite')
@@ -90,7 +90,7 @@ def detect_commits(self):
         else:
             slash = '/'
         repo = repo + slash
-        branches = branch_list(repo)
+        branches = branch_list(self, repo)
         if ( len(branches) == 0 ):
             print("Error fetching list of branches from repo: " + repo)
             return
@@ -104,7 +104,7 @@ def detect_commits(self):
             cur.execute(sql)
             records = cur.fetchall()
             conn.commit()
-            titles = get_commits(url)
+            titles = get_commits(self, url)
             if ( len(titles) == 0 ):
                 print("### Something went wrong fetching commits info! ###")
                 return
@@ -158,20 +158,21 @@ def detect_commits(self):
             flood_protection = 0
             cur.close()
 
-def branch_list(repo):
+def branch_list(self, repo):
     repo = 'http://github.com/api/v2/json/repos/show' + repo.split('https://github.com')[1] + 'branches'
     try:
-        stream = urllib.request.urlopen(repo).read().decode('utf-8')
-    except:
+        stream = self.data_from_url(repo, None)
+    except Exception as e:
+        print(e)
         return []
     branches = re.findall('"(.*?)":".*?"',stream[12:-1])
     return branches
 
-def get_commits(url):   #this functions must get url of Branch
+def get_commits(self, url):   #this functions must get url of Branch
     url = 'http://github.com/api/v2/json/commits/list' + url.split('https://github.com')[1]
     titles = []
     try:
-        stream = urllib.request.urlopen(url).read().decode('utf-8')
+        stream = self.data_from_url(url, None)
     except:
         return titles
     titles = re.findall('.*?"message":"(.*?)"',stream)

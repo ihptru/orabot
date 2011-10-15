@@ -72,10 +72,15 @@ class IRC_Server:
         self.connect()
 
     def notifications(self):
-        multiprocessing.Process(target=openra_topic.start, args=(self,)).start()
-        multiprocessing.Process(target=openra_bugs.start, args=(self,)).start()
-        multiprocessing.Process(target=github_commits.start, args=(self,)).start()
-        multiprocessing.Process(target=openra_game.start, args=(self,)).start()
+        ora_topic = multiprocessing.Process(target=openra_topic.start, args=(self,))
+        ora_bugs = multiprocessing.Process(target=openra_bugs.start, args=(self,))
+        git_commits = multiprocessing.Process(target=github_commits.start, args=(self,))
+        ora_game = multiprocessing.Process(target=openra_game.start, args=(self,))
+        
+        ora_topic.start()
+        ora_bugs.start()
+        git_commits.start()
+        ora_game.start()
 
     # This is the bit that controls connection to a server & channel.
     def connect(self):
@@ -112,7 +117,12 @@ class IRC_Server:
             self.irc_sock.send (str_buff.encode())
             print ("Joining channel " + self.irc_channel[i] )
 
-        multiprocessing.Process(target=self.startup_db_check).start()
+        start_up_db = multiprocessing.Process(target=self.startup_db_check)
+        try:
+            pass
+            #start_up_db.start()
+        except KeyboardInterrupt:
+            start_up_db.terminate()
 
         self.is_connected = True
         self.listen()
@@ -129,7 +139,11 @@ class IRC_Server:
 
                 if recv.find ( " PRIVMSG " ) != -1:
                     imp.reload(privmsg_e)
-                    multiprocessing.Process(target=privmsg_e.parse_event, args=(self,recv,)).start()
+                    privmsg_event = multiprocessing.Process(target=privmsg_e.parse_event, args=(self,recv,))
+                    try:
+                        privmsg_event.start()
+                    except KeyboardInterrupt:
+                        privmsg_event.terminate()
 
                 if recv.find ( " JOIN " ) != -1:
                     imp.reload(join_e)
@@ -183,13 +197,7 @@ class IRC_Server:
     # This function sends a message to a channel or user
     def send_message_to_channel(self, data, channel):
         print ( ( "%s: %s") % (self.irc_nick, data[:256]) )
-        while True:
-            try:
-                self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (channel, data[:256])).encode() )
-            except socket.error as e:
-                print("Socket Error: ", e)
-                continue
-            break
+        self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (channel, data[:256])).encode() )
         ### logs
         self.logs(self.irc_nick, channel, 'privmsg', str(data), '')
 
@@ -264,14 +272,14 @@ class IRC_Server:
                             """
                             cur.execute(sql)
                             conn.commit()
+                print("DB iterations finished")
         cur.close()
 
     def get_names(self, channel):
         str_buff = ( "NAMES %s \r\n" ) % (channel)
         self.irc_sock.send (str_buff.encode())
         #recover all nicks on channel
-        time.sleep(2)
-        recv = self.irc_sock.recv( 4096 )
+        recv = self.irc_sock.recv( 1024 )
         recv = self.decode_stream( recv )
         return recv
 
@@ -347,17 +355,21 @@ class IRC_Server:
                 except:
                     print('####### ERROR !!! ###### Probably no write permissions to logs directory!')
 
-    def title_from_url(self, url):
-        # todo: security: can force the bot to output anything we like into
-        #                 the channel.
+    def data_from_url(self, url, bytes):
         opener = urllib.request.build_opener()
         opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-        data = opener.open(url).read(4096)
+        data = opener.open(url).read(bytes)
         try:
             encoding = str(data).lower().split('charset=')[1].split('"')[0]
             data = data.decode(encoding)
         except: #no encoding found
             data = data.decode('utf-8')
+        return data
+
+    def title_from_url(self, url):
+        # todo: security: can force the bot to output anything we like into
+        #                 the channel.
+        data = self.data_from_url(url, 8192)
         rx_title = re.compile(r'<title>(.*?)</title>', re.IGNORECASE)
         titles = rx_title.findall(data.replace('\n',' '))
         if ( titles != [] ):
@@ -422,7 +434,6 @@ class IRC_Server:
     # Special admin commands for Op/HalfOp/Voice
     def OpVoice(self, user, channel):
         recv = self.get_names(channel)
-
         if recv.find ( " 353 "+config.bot_nick ) != -1:
             user_nicks = recv.split(':')[2].rstrip()
             if '+'+user in user_nicks.split() or '@'+user in user_nicks.split() or '%'+user in user_nicks.split():

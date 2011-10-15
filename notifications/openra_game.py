@@ -33,26 +33,26 @@ def parse_list(self, notify_ip_list, notify_players_list):
     flood_protection = 0
     url = 'http://master.open-ra.org/list.php'
     try:
-        stream = urllib.request.urlopen(url).read()
+        stream = self.data_from_url(url, None)
     except:
         return
-    if ( stream != b'' ):
-        split_games = str(stream).split('\\nGame')
+    if ( stream != '' ):
+        split_games = str(stream).split('\nGame')
         length_games = len(split_games)
         for i in range(int(length_games)):
-            ip = split_games[i].split('\\n\\t')[3].split()[1].split(':')[0]
+            ip = split_games[i].split('\n\t')[3].split()[1].split(':')[0]
 
             ip_current_games.append(ip)
 
-            state = split_games[i].split('\\n\\t')[4]
-            players = split_games[i].split('\\n\\t')[5].split()[1]
+            state = split_games[i].split('\n\t')[4]
+            players = split_games[i].split('\n\t')[5].split()[1]
 
             players_current_games.append(players)
 
-            name = " ".join(split_games[i].split('\\n\\t')[2].split()[1:])
-            mod = split_games[i].split('\\n\\t')[7].split()[1].split('@')[0]
+            name = " ".join(split_games[i].split('\n\t')[2].split()[1:])
+            mod = split_games[i].split('\n\t')[7].split()[1].split('@')[0]
             try:
-                version = " - version: " + split_games[i].split('\\n\\t')[7].split()[1].split('@')[1]
+                version = " - version: " + split_games[i].split('\n\t')[7].split()[1].split('@')[1]
             except:
                 version = ''    #no version in output
             down = name.split('[down]')

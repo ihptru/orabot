@@ -31,7 +31,7 @@ def change_topic(self):
 
     url = 'http://openra.res0l.net/download/linux/deb/index.php'
     try:
-        stream = urllib.request.urlopen(url).read().decode('utf-8')
+        stream = self.data_from_url(url, None)
     except:
         pass    #can not reach page in 90% cases
     release = stream.split('<ul')[1].split('<li>')[1].split('>')[1].split('</a')[0]
