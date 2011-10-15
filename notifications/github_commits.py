@@ -173,7 +173,8 @@ def get_commits(self, url):   #this functions must get url of Branch
     titles = []
     try:
         stream = self.data_from_url(url, None)
-    except:
+    except Exception as e:
+        print(e)
         return titles
     titles = re.findall('.*?"message":"(.*?)"',stream)
     return titles

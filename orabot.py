@@ -59,6 +59,7 @@ class IRC_Server:
         self.command = ""
         self.quit_store = []
         self.join_store = []
+        self.current_names = ''
 
     ## The destructor - Close socket.
     def __del__(self):
@@ -72,15 +73,10 @@ class IRC_Server:
         self.connect()
 
     def notifications(self):
-        ora_topic = multiprocessing.Process(target=openra_topic.start, args=(self,))
-        ora_bugs = multiprocessing.Process(target=openra_bugs.start, args=(self,))
-        git_commits = multiprocessing.Process(target=github_commits.start, args=(self,))
-        ora_game = multiprocessing.Process(target=openra_game.start, args=(self,))
-        
-        ora_topic.start()
-        ora_bugs.start()
-        git_commits.start()
-        ora_game.start()
+        multiprocessing.Process(target=openra_topic.start, args=(self,)).start()
+        multiprocessing.Process(target=openra_bugs.start, args=(self,)).start()
+        multiprocessing.Process(target=github_commits.start, args=(self,)).start()
+        multiprocessing.Process(target=openra_game.start, args=(self,)).start()
 
     # This is the bit that controls connection to a server & channel.
     def connect(self):
@@ -117,12 +113,7 @@ class IRC_Server:
             self.irc_sock.send (str_buff.encode())
             print ("Joining channel " + self.irc_channel[i] )
 
-        start_up_db = multiprocessing.Process(target=self.startup_db_check)
-        try:
-            pass
-            #start_up_db.start()
-        except KeyboardInterrupt:
-            start_up_db.terminate()
+        multiprocessing.Process(target=self.startup_db_check).start()
 
         self.is_connected = True
         self.listen()
@@ -139,11 +130,7 @@ class IRC_Server:
 
                 if recv.find ( " PRIVMSG " ) != -1:
                     imp.reload(privmsg_e)
-                    privmsg_event = multiprocessing.Process(target=privmsg_e.parse_event, args=(self,recv,))
-                    try:
-                        privmsg_event.start()
-                    except KeyboardInterrupt:
-                        privmsg_event.terminate()
+                    multiprocessing.Process(target=privmsg_e.parse_event, args=(self,recv,)).start()
 
                 if recv.find ( " JOIN " ) != -1:
                     imp.reload(join_e)
@@ -168,6 +155,9 @@ class IRC_Server:
                 if recv.find ( " KICK " ) != -1:
                     imp.reload(kick_e)
                     kick_e.parse_event(self, recv)
+
+                if recv.find (" 353 "+config.bot_nick ) != -1:
+                    self.current_names = recv
 
         if self.should_reconnect:
             self.connect()
@@ -215,15 +205,14 @@ class IRC_Server:
         cur.execute(sql)
         records = cur.fetchall()
         conn.commit()
-        time.sleep(3)
         if ( len(records) != 0 ):
-            user_nicks = self.parse_names(self.get_names(config.channels.split(',')[0]))
             db_usernames = []
             for i in range(len(records)):
                 db_usernames.append(records[i][0])
+            time.sleep(20)
             for chan in config.channels.split(','):
-                time.sleep(2)
                 user_nicks = self.parse_names(self.get_names(chan))
+                print("Debug: "+chan+" : " + str(user_nicks))
                 if ( len(user_nicks) != 0 ):    #no error on NAMES
                     for i in range(len(records)):
                         if ( records[i][0] not in user_nicks ):
@@ -278,17 +267,11 @@ class IRC_Server:
     def get_names(self, channel):
         str_buff = ( "NAMES %s \r\n" ) % (channel)
         self.irc_sock.send (str_buff.encode())
-        #recover all nicks on channel
-        recv = self.irc_sock.recv( 1024 )
-        recv = self.decode_stream( recv )
-        return recv
+        return self.current_names
 
     def parse_names(self, recv):
-        user_nicks = []
-        if recv.find ( " 353 "+config.bot_nick ) != -1:
-            user_nicks = recv.split(':')[2].rstrip()
-            user_nicks = user_nicks.replace('+','').replace('@','').replace('%','')
-            user_nicks = user_nicks.split(' ')
+        user_nicks = recv.split(':')[2].rstrip()
+        user_nicks = user_nicks.replace('+','').replace('@','').replace('%','').split(' ')
         return user_nicks
 
     def parse_html(self, string):
@@ -434,13 +417,12 @@ class IRC_Server:
     # Special admin commands for Op/HalfOp/Voice
     def OpVoice(self, user, channel):
         recv = self.get_names(channel)
-        if recv.find ( " 353 "+config.bot_nick ) != -1:
-            user_nicks = recv.split(':')[2].rstrip()
-            if '+'+user in user_nicks.split() or '@'+user in user_nicks.split() or '%'+user in user_nicks.split():
-                return True
-            else:
-                self.send_reply( ("No rights!"), user, channel )
-                return False
+        user_nicks = recv.split(':')[2].rstrip()
+        if '+'+user in user_nicks.split() or '@'+user in user_nicks.split() or '%'+user in user_nicks.split():
+            return True
+        else:
+            self.send_reply( ("No rights!"), user, channel )
+            return False
 
     # Execute command
     def evalCommand(self, commandname, user, channel):
