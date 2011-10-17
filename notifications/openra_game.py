@@ -23,7 +23,7 @@ def start(self):
     notify_ip_list = []
     notify_players_list = []
     while True:
-        time.sleep(5)
+        time.sleep(10)
         parse_list(self, notify_ip_list, notify_players_list)
         
 def parse_list(self, notify_ip_list, notify_players_list):

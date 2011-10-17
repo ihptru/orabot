@@ -38,7 +38,16 @@ def modinfo( mod ):
     if ( len(mod_split) == 1 ):
         return (mod_split[0].upper()).ljust(20)
     else:
-        return (mod_split[0].upper() + '@' + "@".join(mod_split[1:])).ljust(20)
+        version = "@".join(mod_split[1:])
+        version_split = version.split('-')
+        if ( len(version_split) == 1 ):
+            result_version = version
+        else:
+            if ( version_split[0] in ['release','playtest'] ):
+                result_version = version_split[0] + '-' + version_split[1][4:]
+            else:
+                result_version = version
+        return (mod_split[0].upper() + '@' + result_version).ljust(16)
 
 def games(self, user, channel):
     command = (self.command)

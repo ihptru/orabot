@@ -157,6 +157,7 @@ class IRC_Server:
                     kick_e.parse_event(self, recv)
 
                 if recv.find (" 353 "+config.bot_nick ) != -1:
+                    print("recv: "+recv)
                     self.current_names = recv
 
         if self.should_reconnect:
@@ -209,9 +210,10 @@ class IRC_Server:
             db_usernames = []
             for i in range(len(records)):
                 db_usernames.append(records[i][0])
-            time.sleep(20)
+            time.sleep(5)
             for chan in config.channels.split(','):
-                user_nicks = self.parse_names(self.get_names(chan))
+                self.send_names(chan)
+                user_nicks = self.parse_names()
                 print("Debug: "+chan+" : " + str(user_nicks))
                 if ( len(user_nicks) != 0 ):    #no error on NAMES
                     for i in range(len(records)):
@@ -261,15 +263,18 @@ class IRC_Server:
                             """
                             cur.execute(sql)
                             conn.commit()
-                print("DB iterations finished")
+                print("DB iteration finished")
         cur.close()
 
-    def get_names(self, channel):
+    def send_names(self, channel):
         str_buff = ( "NAMES %s \r\n" ) % (channel)
         self.irc_sock.send (str_buff.encode())
+        
+    def get_names(self):
         return self.current_names
 
-    def parse_names(self, recv):
+    def parse_names(self):
+        recv = self.get_names()
         user_nicks = recv.split(':')[2].rstrip()
         user_nicks = user_nicks.replace('+','').replace('@','').replace('%','').split(' ')
         return user_nicks
@@ -416,7 +421,8 @@ class IRC_Server:
 
     # Special admin commands for Op/HalfOp/Voice
     def OpVoice(self, user, channel):
-        recv = self.get_names(channel)
+        self.send_names(channel)
+        recv = self.get_names()
         user_nicks = recv.split(':')[2].rstrip()
         if '+'+user in user_nicks.split() or '@'+user in user_nicks.split() or '%'+user in user_nicks.split():
             return True
