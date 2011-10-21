@@ -57,6 +57,7 @@ class IRC_Server:
         self.is_connected = False
         self.should_reconnect = False
         self.command = ""
+        self.start_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
         self.quit_store = []
         self.join_store = []
         self.current_names = ''

@@ -16,7 +16,7 @@
 import math
 import inspect
 
-___all___ = ["games","add","adduser","calc","faq","hi","ifuser","lang","last","lastgame","later","mapinfo","maps","notify","promote","randomserver","randomteam","remove","unnotify","version","weather","who","complain","join","log","part","pickup_remove","quit","say","show","subscribed","unsubscribe","pingme"]
+___all___ = ["games","add","adduser","calc","faq","hi","ifuser","lang","last","lastgame","later","mapinfo","maps","notify","promote","randomserver","randomteam","remove","unnotify","version","weather","who","complain","join","log","part","pickup_remove","quit","say","show","subscribed","unsubscribe","pingme","uptime"]
 
 for item in ___all___:
     exec("from commands import " + item)

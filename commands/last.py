@@ -74,7 +74,7 @@ def seen_time( last_time, current ):
     result_string = days
     for i in range(len(timest)-1):
         if int(timest[i]) != 0:
-            if ( ( timest[i][-1] == '1' ) and ( timest[i][-2:] != '11' ) ):
+            if ( timest[i] == '1' ):
                 end = ''
             else:
                 end = 's'

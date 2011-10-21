@@ -25,7 +25,7 @@
 """
 Fetches weather reports from Google Weather
 """
-import urllib.request, string
+import urllib.request
 from xml.dom import minidom
 
 GOOGLE_WEATHER_URL = 'http://www.google.com/ig/api?weather=%s&hl=%s'
