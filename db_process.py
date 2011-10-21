@@ -37,10 +37,9 @@ def start():
     activity()
     messages()
     games()
-    print("Creating databases completed.")
+    print("Creating databases completed.\t\tOK")
     
 def black_list():
-    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE black_list (
@@ -55,7 +54,6 @@ def black_list():
     cur.close()
 
 def commands():
-    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE commands (
@@ -80,7 +78,6 @@ def commands():
     cur.close()
     
 def users():
-    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE users (
@@ -96,7 +93,6 @@ def users():
     cur.close()
 
 def later():
-    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE later (
@@ -113,7 +109,6 @@ def later():
     cur.close()
 
 def pickup():
-    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE "pickup_1v1" (
@@ -244,7 +239,6 @@ def pickup():
     cur.close()
 
 def notify():
-    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE "notify" (
@@ -262,7 +256,6 @@ def notify():
     cur.close()
 
 def maps():
-    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE "maps" (
@@ -343,7 +336,6 @@ def maps():
     cur.close()
 
 def faq():
-    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE "faq" (
@@ -358,7 +350,6 @@ def faq():
     cur.close()
 
 def pingme():
-    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE "pingme" (
@@ -372,7 +363,6 @@ def pingme():
     cur.close()
 
 def commits():
-    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE "commits" (
@@ -387,7 +377,6 @@ def commits():
     cur.close()
 
 def activity():
-    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE "activity" (
@@ -403,7 +392,6 @@ def activity():
     cur.close()
 
 def messages():
-    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE messages (
@@ -419,7 +407,6 @@ def messages():
     cur.close()
 
 def games():
-    print("...")
     conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """CREATE TABLE games (
