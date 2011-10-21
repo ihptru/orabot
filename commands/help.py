@@ -15,10 +15,28 @@
 
 import math
 import inspect
+import os
+import re
 
-___all___ = ["games","add","adduser","calc","faq","hi","ifuser","lang","last","lastgame","later","mapinfo","maps","notify","promote","randomserver","randomteam","remove","unnotify","version","weather","who","complain","join","log","part","pickup_remove","quit","say","show","subscribed","unsubscribe","pingme","uptime"]
+_commands = os.listdir('../commands')
+___all___ = []
 
-for item in ___all___:
+def module_check(item):
+    if re.search('^\.', item):
+        return False
+    if re.search('pyc$', item):
+        return False
+    if re.search('__init__.py', item):
+        return False
+    if re.search('help\..*', item):
+        return False
+    return True
+
+for item in _commands:
+    if not module_check(item):
+        continue
+    item = item.split('.py')[0]
+    ___all___.append(item)
     exec("from commands import " + item)
 
 def help(self, user, channel):

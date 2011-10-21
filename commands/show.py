@@ -20,10 +20,29 @@ Redirect of specified command's output to specified user
 import config
 import re
 import time
+import os
 
-show_possible=['games', 'version', 'hi', 'randomteam', 'lang', 'last', 'weather', 'lastgame', 'who', 'promote', 'maps', 'say','mapinfo','calc','faq']
+_commands = os.listdir('../commands')
+___all___ = []
 
-for item in show_possible:
+def module_check(item):
+    if re.search('^\.', item):
+        return False
+    if re.search('pyc$', item):
+        return False
+    if re.search('__init__.py', item):
+        return False
+    if re.search('help\..*', item):
+        return False
+    if re.search('show\..*', item):
+        return False
+    return True
+
+for item in _commands:
+    if not module_check(item):
+        continue
+    item = item.split('.py')[0]
+    ___all___.append(item)
     exec("from commands import " + item)
 
 def show(self, user, channel):
@@ -45,7 +64,7 @@ def show(self, user, channel):
             show_command = " ".join(show_command)
             show_command = show_command.replace(']','')
             show_command = show_command.split()
-            if ( show_command[0] in show_possible ):
+            if ( show_command[0] in ___all___ ):
                 self.command = " ".join(show_command)
                 eval (show_command[0]+'.'+show_command[0])(self, to_user, to_user)
             else:

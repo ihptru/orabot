@@ -20,16 +20,13 @@ from datetime import date
 import sqlite3
 import urllib.request
 import imp
-import inspect
-import signal
 import html.parser
 
 import db_process
 import notifications
 import config
 import spam_filter
-### commands are in 'commands' directory
-from commands import *
+import process_commands
 ### irc events in 'irc' directory
 from irc import *
 ### notifications package
@@ -431,32 +428,6 @@ class IRC_Server:
             self.send_reply( ("No rights!"), user, channel )
             return False
 
-    # Execute command
-    def evalCommand(self, commandname, user, channel):
-        try:
-            imp.find_module('commands/'+commandname)
-        except:
-            return  #no such command
-        imp.reload(eval(commandname))
-        command_function = getattr(eval(commandname), commandname, None)
-        if command_function != None:
-            if inspect.isfunction(command_function):
-                
-                class TimedOut(Exception): # Raised if timed out.
-                    pass
-
-                def signal_handler(signum, frame):
-                    raise TimedOut("Timed out!")
-
-                signal.signal(signal.SIGALRM, signal_handler)
-
-                signal.alarm(config.command_timeout)    #Limit command execution time
-                try:
-                    command_function(self, user, channel)
-                    signal.alarm(0)
-                except TimedOut as msg:
-                    self.send_reply( ("Timed out!"), user, channel)
-
     def process_command(self, user, channel):
         command = (self.command)
         # Break the command into pieces, so we can interpret it with arguments
@@ -471,7 +442,8 @@ class IRC_Server:
                 error = "Usage: "+config.command_prefix+"command [arguments]"
                 self.send_reply( (error), user, channel )
                 return
-            self.evalCommand(command[0].lower(), user, channel)
+            imp.reload(process_commands)
+            multiprocessing.Process(target=process_commands.evalCommand, args=(self, command[0].lower(), user, channel)).start()
 #####
 class BotCrashed(Exception): # Raised if the bot has crashed.
     pass

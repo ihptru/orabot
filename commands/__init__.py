@@ -1,1 +1,1 @@
-__all__ = ["games","add","adduser","calc","faq","help","hi","ifuser","lang","last","lastgame","later","mapinfo","maps","notify","promote","randomserver","randomteam","remove","unnotify","version","weather","who","complain","join","log","part","pickup_remove","quit","say","show","subscribed","unsubscribe","pingme","uptime"]
+
