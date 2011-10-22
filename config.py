@@ -49,13 +49,13 @@ command_timeout = 20
 notifications = False
 
 ### write bug reports to (comma as delimiter)
-write_bug_notifications_to = '#openra'
+write_bug_notifications_to = '#change_channel1'
 
 ### write new commit notifications to (comma as delimiter)
-write_commit_notifications_to = '#openra-dev'
+write_commit_notifications_to = '#change_channel1'
 
 ### GitHub repositories from where fetch new commit data (space as delimiter); Ex: https://github.com/OpenRA/OpenRA
-git_repos = 'https://github.com/chrisforbes/OpenRA https://github.com/hamb/OpenRA'
+git_repos = ''
 
 ### Change topic of next channe in notifications process:
-change_topic_channel = '#openra'
+change_topic_channel = '#change_channel1'

@@ -24,7 +24,7 @@ def start(self):
 
 def change_topic(self):
     def write_version(release, playtest):
-        filename = 'version.txt'
+        filename = 'var/version.txt'
         file = open(filename, 'w')
         file.write(release + "\n" + playtest + "\n")
         file.close()
@@ -37,7 +37,7 @@ def change_topic(self):
         return
     release = stream.split('<ul')[1].split('<li>')[1].split('>')[1].split('</a')[0]
     playtest = stream.split('<ul')[2].split('<li>')[1].split('>')[1].split('</a')[0]
-    filename = 'version.txt'
+    filename = 'var/version.txt'
     lines = []
     try:
         file = open(filename, 'r')

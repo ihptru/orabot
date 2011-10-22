@@ -20,7 +20,7 @@ import time
 def parse_event(self, recv):
     original_nick = recv.split(':')[1].split('!')[0]
     new_nick = recv.split()[2].replace(':','').replace('\r\n','')
-    conn = sqlite3.connect('../db/openra.sqlite')
+    conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     ### for logs
     sql = """SELECT channels FROM users

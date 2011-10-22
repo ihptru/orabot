@@ -20,7 +20,7 @@ import signal
 import inspect
 import config
 
-_commands = os.listdir('../commands')
+_commands = os.listdir('commands')
 
 def module_check(item):
     if re.search('^\.', item):

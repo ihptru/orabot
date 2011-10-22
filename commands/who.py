@@ -22,7 +22,7 @@ import sqlite3
 def who(self, user, channel):
     command = (self.command)
     command = command.split()
-    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     if ( len(command) >= 1 ) and ( len(command) < 3 ):
         modes = ['1v1','2v2','3v3','4v4','5v5']

@@ -37,7 +37,7 @@ def start():
     activity()
     messages()
     games()
-    print("Creating databases completed.\t\tOK")
+    print("Creating databases completed.\tOK")
     
 def black_list():
     conn = sqlite3.connect('db/openra.sqlite')

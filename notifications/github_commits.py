@@ -20,7 +20,7 @@ import sqlite3
 import urllib.request
 
 def start(self):
-    conn = sqlite3.connect('../db/openra.sqlite')
+    conn = sqlite3.connect('db/openra.sqlite')
     cur = conn.cursor()
     sql = """DELETE FROM commits
     """
@@ -29,7 +29,7 @@ def start(self):
     cur.close()
     
     def update_commits(titles, repo, branch):
-        conn = sqlite3.connect('../db/openra.sqlite')
+        conn = sqlite3.connect('db/openra.sqlite')
         cur = conn.cursor()
         sql = """DELETE FROM commits
                 WHERE repo = '"""+repo+"""' AND branch = '"""+branch+"""'
@@ -65,7 +65,7 @@ def start(self):
                 titles = get_commits(self, url)
                 if ( len(titles) == 0 ):
                     print("### Something went wrong fetching commits info! ###")
-                    conn = sqlite3.connect('../db/openra.sqlite')
+                    conn = sqlite3.connect('db/openra.sqlite')
                     cur = conn.cursor()
                     sql = """DELETE FROM commits
                             WHERE repo = '"""+repo+"""' AND branch = '"""+branch+"""'
@@ -96,7 +96,7 @@ def detect_commits(self):
             return
         for branch in branches:
             url = repo + branch
-            conn = sqlite3.connect('../db/openra.sqlite')
+            conn = sqlite3.connect('db/openra.sqlite')
             cur = conn.cursor()
             sql = """SELECT title FROM commits
                     WHERE repo = '"""+repo+"""' AND branch = '"""+branch+"""'

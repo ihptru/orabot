@@ -29,7 +29,7 @@ def parse_event(self, recv):
     else:
         self.logs(irc_user_nick, chan, 'privmsg', irc_user_message, '')
     ### logs end
-    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     ### for last message
     sql = """INSERT INTO messages

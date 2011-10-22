@@ -22,7 +22,7 @@ import re
 import time
 import os
 
-_commands = os.listdir('../commands')
+_commands = os.listdir('commands')
 ___all___ = []
 
 def module_check(item):

@@ -103,7 +103,7 @@ def seen(self, user, channel, request_user):
     if ( "'" in request_user ):
         self.send_message_to_channel( ("Error! No such user in my database"), channel)
         return
-    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     if re.search("^#", channel):
         user_nicks = self.parse_names(self.get_names(channel))
@@ -144,7 +144,7 @@ def activity(self, user, channel, command_request):
     Shows last user's activity (joins, quits, etc)
     """
     
-    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     flood_protection = 0
     usage = "Usage: " + config.command_prefix + "last activity [-<amount of records>] username"
@@ -213,7 +213,7 @@ def message(self, user, channel, command_request):
     Shows last user's messages
     """
     
-    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     usage = "Usage: " + config.command_prefix + "last message [-<amount of records>] [username]"
 
@@ -309,7 +309,7 @@ def game(self, user, channel, command_request):
     Shows last started games
     """
     
-    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     flood_protection = 0
     usage = "Usage: " + config.command_prefix + "last game [-<amount of records>]"

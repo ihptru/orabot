@@ -18,7 +18,7 @@ import time
 
 def start(self, user, channel):
     string_command = (self.command)
-    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     sql = """SELECT date_time,count FROM black_list
         WHERE user = '"""+user+"'"+"""

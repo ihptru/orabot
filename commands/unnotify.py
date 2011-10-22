@@ -27,7 +27,7 @@ def unnotify(self, user, channel):
         return
     command = (self.command)
     command = command.split()
-    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     if ( len(command) == 1 ):
         sql = """SELECT user FROM notify

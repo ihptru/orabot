@@ -16,7 +16,7 @@
 import sqlite3
 
 def parse_event(self, recv):
-    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     irc_part_nick = recv.split( "!" )[ 0 ].split( ":" ) [ 1 ]
     supy_host = recv.split()[0].split('!')[1]

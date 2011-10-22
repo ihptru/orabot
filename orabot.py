@@ -35,10 +35,9 @@ from notifications import openra_bugs
 from notifications import github_commits
 from notifications import openra_game
 
-###
+# Create database at first run
 if not os.path.exists('db/openra.sqlite'):
     db_process.start()
-###
 
 # Defining a class to run the server. One per connection. This class will do most of our work.
 class IRC_Server:
@@ -197,7 +196,7 @@ class IRC_Server:
 
     def startup_db_check(self):
         ### change existing users status to offline if their status in DB is online but they are not on any of the channels and upside down
-        conn = sqlite3.connect('../db/openra.sqlite')
+        conn = sqlite3.connect('db/openra.sqlite')
         cur = conn.cursor()
         sql = """SELECT user,state,channels FROM users
         """
@@ -210,8 +209,7 @@ class IRC_Server:
                 db_usernames.append(records[i][0])
             time.sleep(5)
             for chan in config.channels.split(','):
-                self.send_names(chan)
-                user_nicks = self.parse_names()
+                user_nicks = self.get_names_list(self.send_names(chan))
                 print("Debug: "+chan+" : " + str(user_nicks))
                 if ( len(user_nicks) != 0 ):    #no error on NAMES
                     for i in range(len(records)):
@@ -267,15 +265,15 @@ class IRC_Server:
     def send_names(self, channel):
         str_buff = ( "NAMES %s \r\n" ) % (channel)
         self.irc_sock.send (str_buff.encode())
-        
-    def get_names(self):
-        return self.current_names
+        time.sleep(1)
+        return self.current_names.split(':')[2].rstrip()
 
-    def parse_names(self):
-        recv = self.get_names()
-        user_nicks = recv.split(':')[2].rstrip()
-        user_nicks = user_nicks.replace('+','').replace('@','').replace('%','').split(' ')
+    def get_names_list(self, nicks):
+        user_nicks = nicks.replace('+','').replace('@','').replace('%','').split(' ')
         return user_nicks
+
+    def get_names_full(self, nicks):
+        return nicks.split()
 
     def parse_html(self, string):
         h = html.parser.HTMLParser()
@@ -419,10 +417,8 @@ class IRC_Server:
 
     # Special admin commands for Op/HalfOp/Voice
     def OpVoice(self, user, channel):
-        self.send_names(channel)
-        recv = self.get_names()
-        user_nicks = recv.split(':')[2].rstrip()
-        if '+'+user in user_nicks.split() or '@'+user in user_nicks.split() or '%'+user in user_nicks.split():
+        user_nicks = self.get_names_full(self.send_names(channel))
+        if '+'+user in user_nicks or '@'+user in user_nicks or '%'+user in user_nicks:
             return True
         else:
             self.send_reply( ("No rights!"), user, channel )
@@ -450,19 +446,19 @@ class BotCrashed(Exception): # Raised if the bot has crashed.
 
 def main():
     # Here begins the main programs flow:
-    connect_class = IRC_Server(config.server, config.port, config.bot_nick, config.channels.split(','))
-    run_connect_class = multiprocessing.Process(None,connect_class.ircbot,name="IRC Server" )
-    run_connect_class.start()
+    ircserver = IRC_Server(config.server, config.port, config.bot_nick, config.channels.split(','))
+    ircserver_process = multiprocessing.Process(None,ircserver.ircbot,name="IRC Server" )
+    ircserver_process.start()
     try:
-        while(connect_class.should_reconnect):
+        while(ircserver.should_reconnect):
             time.sleep(5)
-        run_connect_class.join()
+        ircserver_process.join()
     except KeyboardInterrupt: # Ctrl + C pressed
         pass # We're ignoring that Exception, so the user does not see that this Exception was raised.
-    if run_connect_class.is_alive:
-        run_connect_class.terminate()
-        run_connect_class.join() # Wait for terminate
-    if run_connect_class.exitcode == 0 or run_connect_class.exitcode < 0:
+    if ircserver_process.is_alive:
+        ircserver_process.terminate()
+        ircserver_process.join() # Wait for terminate
+    if ircserver_process.exitcode == 0 or ircserver_process.exitcode < 0:
         print("Bot exited.")
     else:
         raise BotCrashed("The bot has crashed")

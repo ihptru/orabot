@@ -18,7 +18,7 @@ import inspect
 import os
 import re
 
-_commands = os.listdir('../commands')
+_commands = os.listdir('commands')
 ___all___ = []
 
 def module_check(item):

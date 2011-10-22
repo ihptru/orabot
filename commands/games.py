@@ -53,7 +53,7 @@ def games(self, user, channel):
     command = (self.command)
     command = command.split()
     url = 'http://master.open-ra.org/list.php'
-    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     flood_protection = 0
     if ( len(command) == 1 ):

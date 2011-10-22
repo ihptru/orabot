@@ -24,7 +24,7 @@ def adduser(self, user, channel):
         return
     command = (self.command)
     command = command.split()
-    conn = sqlite3.connect('../db/openra.sqlite')   # connect to database
+    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
     cur=conn.cursor()
     if ( len(command) == 2 ):
         nick = command[1]

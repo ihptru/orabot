@@ -31,7 +31,7 @@ def bugreport(self):
     bug_report_title = str(stream).split('<entry>')[1].split('<title>')[1].split('</title>')[0]
     bug_report_issue = str(stream).split('<entry>')[1].split('<link href="')[1].split('" rel=')[0].split('/')[-1]
     bug_report_url = 'http://bugs.open-ra.org/issues/'+bug_report_issue
-    filename = 'bug_report.txt'
+    filename = 'var/bug_report.txt'
     line = []
     try:
         file = open(filename, 'r')
@@ -40,7 +40,7 @@ def bugreport(self):
     except:
         pass
     if ( bug_report_title.split()[1]+'\n' not in line ):
-        filename = 'bug_report.txt'
+        filename = 'var/bug_report.txt'
         file = open(filename, 'a')
         file.write(bug_report_title.split()[1]+"\n")
         file.close()

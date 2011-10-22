@@ -24,16 +24,14 @@ import os
 import orabot
 
 try:
-    os.mkdir("run")
+    os.mkdir("var")
 except OSError as e:
     if e.args[0]==17:   #Run already exists
         pass    #Ignore
     else:
         raise e #Raise exception again
 
-os.chdir("run")
-
-logfile="botlog.txt"
+logfile="var/botlog.txt"
 log=io.open(logfile,"a")
 
 # a class which works like the shell command "tee"
