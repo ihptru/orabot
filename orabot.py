@@ -153,7 +153,7 @@ class IRC_Server:
 
                 if recv.find (" 353 "+config.bot_nick ) != -1:
                     print("recv: "+recv)
-                    self.current_names = recv
+                    self.current_names = Names(recv)
 
         if self.should_reconnect:
             self.connect()
@@ -262,8 +262,7 @@ class IRC_Server:
     def send_names(self, channel):
         str_buff = ( "NAMES %s \r\n" ) % (channel)
         self.irc_sock.send (str_buff.encode())
-        time.sleep(5)
-        return self.current_names.split(':')[2].rstrip()
+        return self.current_names.names.split(':')[2].rstrip()
 
     def get_names_list(self, nicks):
         user_nicks = nicks.replace('+','').replace('@','').replace('%','').split(' ')
@@ -446,6 +445,10 @@ class IRC_Server:
 class BotCrashed(Exception): # Raised if the bot has crashed.
     pass
 
+class Names:
+    def __init__(self, names):
+        self.names = names
+        
 def main():
     # Here begins the main programs flow:
     ircserver = IRC_Server(config.server, config.port, config.bot_nick, config.channels.split(','))
