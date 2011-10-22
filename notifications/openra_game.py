@@ -65,8 +65,7 @@ def parse_list(self, notify_ip_list, notify_players_list):
                     ip_index = ip_current_games.index(ip)
                     del ip_current_games[ip_index]
                     del players_current_games[ip_index]
-                    conn = sqlite3.connect('db/openra.sqlite')
-                    cur = conn.cursor()
+                    conn, cur = self.db_data()
                     sql = """INSERT INTO games
                             (game,players,date_time,version)
                             VALUES
@@ -81,8 +80,7 @@ def parse_list(self, notify_ip_list, notify_players_list):
                     ip_index_previous = notify_ip_list.index(ip)
                     ip_index_current = ip_current_games.index(ip)
                     if ( len(down) == 1 ):  #game is not [down]
-                        conn = sqlite3.connect('db/openra.sqlite')
-                        cur = conn.cursor()
+                        conn, cur = self.db_data()
                         sql = """SELECT user,date,mod,version,timeout,num_players FROM notify
                         """
                         cur.execute(sql)
@@ -123,8 +121,7 @@ def parse_list(self, notify_ip_list, notify_players_list):
                     notify_ip_list.append(ip)
                     notify_players_list.append(players)
                     if ( len(down) == 1 ):  #game is not [down]
-                        conn = sqlite3.connect('db/openra.sqlite')
-                        cur = conn.cursor()
+                        conn, cur = self.db_data()
                         sql = """SELECT user,date,mod,version,timeout,num_players FROM notify
                         """
                         cur.execute(sql)

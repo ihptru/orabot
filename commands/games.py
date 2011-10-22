@@ -53,8 +53,7 @@ def games(self, user, channel):
     command = (self.command)
     command = command.split()
     url = 'http://master.open-ra.org/list.php'
-    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
-    cur=conn.cursor()
+    conn, cur = self.db_data()
     flood_protection = 0
     if ( len(command) == 1 ):
         content = urllib.request.urlopen(url).read().decode('utf-8').replace('[','-..-').replace(']','.--.')
@@ -69,7 +68,7 @@ def games(self, user, channel):
                 state = '(W)'
                 ### for location
                 ip = " ".join(game['Address'].split(':')[0:-1])    # ip address
-                gi = pygeoip.GeoIP('../GeoIP.dat')
+                gi = pygeoip.GeoIP('GeoIP.dat')
                 country = gi.country_name_by_addr(ip).upper()   #got country name
                 ###
                 sname = game['Name'].replace('-..-','[').replace('.--.',']')
@@ -101,7 +100,7 @@ def games(self, user, channel):
                     state = '(W)'
                     ### for location
                     ip = " ".join(game['Address'].split(':')[0:-1])    # ip address
-                    gi = pygeoip.GeoIP('../GeoIP.dat')
+                    gi = pygeoip.GeoIP('GeoIP.dat')
                     country = gi.country_name_by_addr(ip).upper()   #got country name
                     ###
                     sname = game['Name'].replace('-..-','[').replace('.--.',']')
@@ -127,7 +126,7 @@ def games(self, user, channel):
                     state = '(P)'
                     ### for location
                     ip = " ".join(game['Address'].split(':')[0:-1])    # ip address
-                    gi = pygeoip.GeoIP('../GeoIP.dat')
+                    gi = pygeoip.GeoIP('GeoIP.dat')
                     country = gi.country_name_by_addr(ip).upper()   #got country name
                     ###
                     sname = game['Name'].replace('-..-','[').replace('.--.',']')
@@ -153,7 +152,7 @@ def games(self, user, channel):
                     state = '(P)'
                 ### for location
                 ip = " ".join(game['Address'].split(':')[0:-1])    # ip address
-                gi = pygeoip.GeoIP('../GeoIP.dat')
+                gi = pygeoip.GeoIP('GeoIP.dat')
                 country = gi.country_name_by_addr(ip).upper()   #got country name
                 ###
                 sname = game['Name'].replace('-..-','[').replace('.--.',']')
@@ -323,7 +322,7 @@ def games(self, user, channel):
                             state = '(P)'
                         ### for location
                         ip = " ".join(game['Address'].split(':')[0:-1])    # ip address
-                        gi = pygeoip.GeoIP('../GeoIP.dat')
+                        gi = pygeoip.GeoIP('GeoIP.dat')
                         country = gi.country_name_by_addr(ip).upper()   #got country name
                         ###
                         if ( len(sname) == 0 ):

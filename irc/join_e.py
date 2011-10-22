@@ -17,8 +17,7 @@ import sqlite3
 import time
 
 def parse_event(self, recv):
-    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
-    cur=conn.cursor()
+    conn, cur = self.db_data()
     irc_join_nick = recv.split( '!' ) [ 0 ].split( ':' ) [ 1 ]
     supy_host = recv.split()[0].split('!')[1]
     chan = recv.split()[2].strip()

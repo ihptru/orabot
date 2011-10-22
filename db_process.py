@@ -16,32 +16,34 @@
 import sqlite3
 import os
 
-def start():
+def start(self):
     try:
         os.mkdir("db")
         os.chmod("db", 0o700)
     except:
         print("Error! Can not create a directory, check permissions and try again")
         return
+    conn, cur = self.db_data()
     print("Creating databases")
-    black_list()
-    commands()
-    users()
-    later()
-    pickup()
-    notify()
-    maps()
-    faq()
-    pingme()
-    commits()
-    activity()
-    messages()
-    games()
+    
+    black_list(conn, cur)
+    commands(conn, cur)
+    users(conn, cur)
+    later(conn, cur)
+    pickup(conn, cur)
+    notify(conn, cur)
+    maps(conn, cur)
+    faq(conn, cur)
+    pingme(conn, cur)
+    commits(conn, cur)
+    activity(conn, cur)
+    messages(conn, cur)
+    games(conn, cur)
+    
+    cur.close()
     print("Creating databases completed.\tOK")
     
-def black_list():
-    conn = sqlite3.connect('db/openra.sqlite')
-    cur = conn.cursor()
+def black_list(conn, cur):
     sql = """CREATE TABLE black_list (
         uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
         user varchar(30) NOT NULL,
@@ -51,11 +53,8 @@ def black_list():
     """
     cur.execute(sql)
     conn.commit()
-    cur.close()
 
-def commands():
-    conn = sqlite3.connect('db/openra.sqlite')
-    cur = conn.cursor()
+def commands(conn, cur):
     sql = """CREATE TABLE commands (
                 uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
                 user varchar(30) NOT NULL,
@@ -75,11 +74,8 @@ def commands():
         """
         cur.execute(sql)
         conn.commit()
-    cur.close()
     
-def users():
-    conn = sqlite3.connect('db/openra.sqlite')
-    cur = conn.cursor()
+def users(conn, cur):
     sql = """CREATE TABLE users (
         uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
         user varchar(30) NOT NULL,
@@ -90,11 +86,8 @@ def users():
     """
     cur.execute(sql)
     conn.commit()
-    cur.close()
 
-def later():
-    conn = sqlite3.connect('db/openra.sqlite')
-    cur = conn.cursor()
+def later(conn, cur):
     sql = """CREATE TABLE later (
             uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
             sender varchar(30) NOT NULL,
@@ -106,11 +99,8 @@ def later():
     """
     cur.execute(sql)
     conn.commit()
-    cur.close()
 
-def pickup():
-    conn = sqlite3.connect('db/openra.sqlite')
-    cur = conn.cursor()
+def pickup(conn, cur):
     sql = """CREATE TABLE "pickup_1v1" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "name" VARCHAR NOT NULL ,
@@ -236,11 +226,8 @@ def pickup():
     """
     cur.execute(sql)
     conn.commit()
-    cur.close()
 
-def notify():
-    conn = sqlite3.connect('db/openra.sqlite')
-    cur = conn.cursor()
+def notify(conn, cur):
     sql = """CREATE TABLE "notify" (
         uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
         user VARCHAR NOT NULL,
@@ -253,11 +240,8 @@ def notify():
     """
     cur.execute(sql)
     conn.commit()
-    cur.close()
 
-def maps():
-    conn = sqlite3.connect('db/openra.sqlite')
-    cur = conn.cursor()
+def maps(conn, cur):
     sql = """CREATE TABLE "maps" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "mod" VARCHAR NOT NULL ,
@@ -333,11 +317,8 @@ def maps():
     """
     cur.executescript(sql)
     conn.commit()
-    cur.close()
 
-def faq():
-    conn = sqlite3.connect('db/openra.sqlite')
-    cur = conn.cursor()
+def faq(conn, cur):
     sql = """CREATE TABLE "faq" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "item" VARCHAR NOT NULL ,
@@ -347,11 +328,8 @@ def faq():
     """
     cur.execute(sql)
     conn.commit()
-    cur.close()
 
-def pingme():
-    conn = sqlite3.connect('db/openra.sqlite')
-    cur = conn.cursor()
+def pingme(conn, cur):
     sql = """CREATE TABLE "pingme" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "who" VARCHAR NOT NULL ,
@@ -360,11 +338,8 @@ def pingme():
     """
     cur.execute(sql)
     conn.commit()
-    cur.close()
 
-def commits():
-    conn = sqlite3.connect('db/openra.sqlite')
-    cur = conn.cursor()
+def commits(conn, cur):
     sql = """CREATE TABLE "commits" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "title" VARCHAR NOT NULL,
@@ -374,11 +349,8 @@ def commits():
     """
     cur.execute(sql)
     conn.commit()
-    cur.close()
 
-def activity():
-    conn = sqlite3.connect('db/openra.sqlite')
-    cur = conn.cursor()
+def activity(conn, cur):
     sql = """CREATE TABLE "activity" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "user" VARCHAR NOT NULL,
@@ -389,11 +361,8 @@ def activity():
     """
     cur.execute(sql)
     conn.commit()
-    cur.close()
 
-def messages():
-    conn = sqlite3.connect('db/openra.sqlite')
-    cur = conn.cursor()
+def messages(conn, cur):
     sql = """CREATE TABLE messages (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "user" VARCHAR NOT NULL,
@@ -404,11 +373,8 @@ def messages():
     """
     cur.execute(sql)
     conn.commit()
-    cur.close()
 
-def games():
-    conn = sqlite3.connect('db/openra.sqlite')
-    cur = conn.cursor()
+def games(conn, cur):
     sql = """CREATE TABLE games (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "game" VARCHAR NOT NULL,
@@ -419,4 +385,3 @@ def games():
     """
     cur.execute(sql)
     conn.commit()
-    cur.close()

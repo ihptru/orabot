@@ -35,10 +35,6 @@ from notifications import openra_bugs
 from notifications import github_commits
 from notifications import openra_game
 
-# Create database at first run
-if not os.path.exists('db/openra.sqlite'):
-    db_process.start()
-
 # Defining a class to run the server. One per connection. This class will do most of our work.
 class IRC_Server:
 
@@ -63,6 +59,9 @@ class IRC_Server:
         self.irc_sock.close()
 
     def ircbot(self):
+        # Create database at first run
+        if not os.path.exists('db/openra.sqlite'):
+            db_process.start(self)
         if ( config.notifications == True ):
             # run notifications
             print("Notifications support...                        OK")
@@ -196,8 +195,7 @@ class IRC_Server:
 
     def startup_db_check(self):
         ### change existing users status to offline if their status in DB is online but they are not on any of the channels and upside down
-        conn = sqlite3.connect('db/openra.sqlite')
-        cur = conn.cursor()
+        conn, cur = self.db_data()
         sql = """SELECT user,state,channels FROM users
         """
         cur.execute(sql)
@@ -265,7 +263,7 @@ class IRC_Server:
     def send_names(self, channel):
         str_buff = ( "NAMES %s \r\n" ) % (channel)
         self.irc_sock.send (str_buff.encode())
-        time.sleep(1)
+        time.sleep(5)
         return self.current_names.split(':')[2].rstrip()
 
     def get_names_list(self, nicks):
@@ -274,6 +272,11 @@ class IRC_Server:
 
     def get_names_full(self, nicks):
         return nicks.split()
+
+    def db_data(self):
+        conn = sqlite3.connect('db/openra.sqlite')   # connect to database
+        cur=conn.cursor()
+        return (conn, cur)
 
     def parse_html(self, string):
         h = html.parser.HTMLParser()
