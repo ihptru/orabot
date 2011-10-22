@@ -441,7 +441,7 @@ class IRC_Server:
                 self.send_reply( (error), user, channel )
                 return
             imp.reload(process_commands)
-            multiprocessing.Process(target=process_commands.evalCommand, args=(self, command[0].lower(), user, channel)).start()
+            process_commands.evalCommand(self, command[0].lower(), user, channel)
 #####
 class BotCrashed(Exception): # Raised if the bot has crashed.
     pass
