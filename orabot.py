@@ -23,7 +23,6 @@ import imp
 import html.parser
 
 import db_process
-import notifications
 import config
 import spam_filter
 import process_commands

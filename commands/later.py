@@ -24,8 +24,7 @@ import sqlite3
 def later(self, user, channel):
     command = (self.command)
     command = command.split()
-    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
-    cur=conn.cursor()
+    conn, cur = self.db_data()
     if ( len(command) >= 3 ):
         if re.search("^#", channel):
             user_nick = command[1].replace("'", "''") #reciever

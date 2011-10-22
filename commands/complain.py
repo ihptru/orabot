@@ -24,8 +24,7 @@ def complain(self, user, channel):
         return
     command = (self.command)
     command = command.split()
-    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
-    cur=conn.cursor()
+    conn, cur = self.db_data()
     if ( len(command) == 2 ):
         name = command[1]
         sql = """SELECT name,complaints FROM pickup_stats

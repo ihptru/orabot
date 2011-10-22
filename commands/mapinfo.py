@@ -22,8 +22,7 @@ import sqlite3
 def mapinfo(self, user, channel):
     command = (self.command)
     command = command.split()
-    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
-    cur=conn.cursor()
+    conn, cur = self.db_data()
     if ( len(command) == 1 ):
         self.send_reply( ("Part of map's name required!"), user, channel )
     else:

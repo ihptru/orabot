@@ -22,8 +22,7 @@ import sqlite3
 def ifuser(self, user, channel):
     command = (self.command)
     command = command.split()
-    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
-    cur=conn.cursor()
+    conn, cur = self.db_data()
     if ( len(command) == 2 ):
         nick = command[1].replace("'","''")
         sql = """SELECT * FROM users

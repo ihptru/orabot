@@ -31,8 +31,7 @@ def pingme(self, user, channel):
         message = "Command can be used only on a channel"
         self.send_notice( message, user )
         return
-    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
-    cur=conn.cursor()
+    conn, cur = self.db_data()
     if ( len(command) == 4 ):
         if ( command[1].lower() != 'when' ):
             usage(self, user, channel)

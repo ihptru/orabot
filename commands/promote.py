@@ -22,8 +22,7 @@ import sqlite3
 def promote(self, user, channel):
     command = (self.command)
     command = command.split()
-    conn = sqlite3.connect('db/openra.sqlite')   # connect to database
-    cur=conn.cursor()
+    conn, cur = self.db_data()
     if ( len(command) == 2 ):
         modes = ['1v1','2v2','3v3','4v4','5v5']
         mode = command[1]

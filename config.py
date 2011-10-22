@@ -15,7 +15,7 @@ channels = '#channel1,#channel2'
 write_logs = False
 
 #log directory
-log_dir = '../logs/'
+log_dir = 'logs/'
 
 #channel to write logs of (comma as delimiter)
 log_channels = '#channel1,#channel2'
