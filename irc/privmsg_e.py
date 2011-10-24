@@ -50,6 +50,6 @@ def parse_event(self, recv):
             self.command = irc_user_message[1:]
             self.process_command(irc_user_nick, ( chan ))
     ### parse links and bug reports numbers
-    self.parse_link(chan, irc_user_message)
+    self.parse_link(chan, irc_user_nick, irc_user_message)
     self.parse_bug_num(chan, irc_user_message)
     ###

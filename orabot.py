@@ -361,8 +361,20 @@ class IRC_Server:
         else:
             raise Exception("Exception: " + url + " does not contain title")
 
-    def parse_link(self, channel, message):
+    def parse_link(self, channel, user, message):
         if re.search('.*http.*://.*', message):
+            
+            def check_localnetwork(self, url):
+                if re.search('127.*', url):
+                    return True
+                if re.search('192.168.*', url):
+                    return True
+                if url == 'localhost':
+                    return True
+                if re.search('10\..*', url):
+                    return True
+                return False
+            
             flood_protection = 0
             matches = re.findall(r"http.?://[^\s]*", message)
             for http_link in matches:
@@ -371,6 +383,9 @@ class IRC_Server:
                     time.sleep(6)
                     flood_protection = 0
                 link = http_link.split('://')[1]
+                if check_localnetwork(self, link):
+                    self.send_notice("Can't check local network", user)
+                    return
                 pre = http_link.split('http')[1].split('//')[0]
                 link = 'http'+pre+'//'+link
                 if re.search("^#", channel):
@@ -380,12 +395,16 @@ class IRC_Server:
                             title = self.title_from_url(link).split('- YouTube')[0]
                             if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
                                 self.send_message_to_channel( ("Youtube: " + title), channel )
+                        except urllib.error.URLError:
+                            self.send_message_to_channel( (link + " Is Down"), channel)
                         except Exception as e:
                             print(e)    #probably socket error or http 404 error in title_from_url() or title not found
                     else:
                         try:
                             title = self.title_from_url(link)
                             self.send_message_to_channel( ("Title: " + title), channel )
+                        except urllib.error.URLError:
+                            self.send_message_to_channel( (link + " Is Down"), channel)
                         except Exception as e:
                             print(e)    #probably socket error or http 404 error in title_from_url() or title not found
             flood_protection = 0
