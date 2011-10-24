@@ -51,7 +51,6 @@ class IRC_Server:
         self.start_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
         self.quit_store = []
         self.join_store = []
-        self.current_names = ''
 
     ## The destructor - Close socket.
     def __del__(self):
@@ -153,7 +152,6 @@ class IRC_Server:
 
                 if recv.find (" 353 "+config.bot_nick ) != -1:
                     print("recv: "+recv)
-                    self.current_names = Names(recv)
 
         if self.should_reconnect:
             self.connect()
@@ -262,7 +260,7 @@ class IRC_Server:
     def send_names(self, channel):
         str_buff = ( "NAMES %s \r\n" ) % (channel)
         self.irc_sock.send (str_buff.encode())
-        return self.current_names.names.split(':')[2].rstrip()
+        return ''.split(':')[2].rstrip()
 
     def get_names_list(self, nicks):
         user_nicks = nicks.replace('+','').replace('@','').replace('%','').split(' ')
@@ -298,12 +296,12 @@ class IRC_Server:
         str_buff = ("TOPIC %s :%s\r\n") % (channel, topic)
         self.irc_sock.send ( str_buff.encode() )
 
-        channel_names = self.get_names(channel)
-        if channel_names.find ( " 353 "+config.bot_nick ) != -1:
-            user_nicks = channel_names.split(':')[2].rstrip()
-            user_nicks = user_nicks.split(' ')
-            if ( '@' + config.bot_nick not in user_nicks ):
-                self.send_message_to_channel( ("I tried to change the topic of this channel but do not have rights for it"), channel)
+        #channel_names = self.get_names(channel)
+        #if channel_names.find ( " 353 "+config.bot_nick ) != -1:
+        #    user_nicks = channel_names.split(':')[2].rstrip()
+        #    user_nicks = user_nicks.split(' ')
+        #    if ( '@' + config.bot_nick not in user_nicks ):
+        #        self.send_message_to_channel( ("I tried to change the topic of this channel but do not have rights for it"), channel)
 
     def logs(self, irc_user, channel, logs_of, some_data, some_more_data):
         if config.write_logs == True:
@@ -445,10 +443,6 @@ class IRC_Server:
 class BotCrashed(Exception): # Raised if the bot has crashed.
     pass
 
-class Names:
-    def __init__(self, names):
-        self.names = names
-        
 def main():
     # Here begins the main programs flow:
     ircserver = IRC_Server(config.server, config.port, config.bot_nick, config.channels.split(','))
