@@ -18,6 +18,7 @@ Shows last release and playtest versions of OpenRA
 """
 
 import urllib.request
+import time
 
 def version(self, user, channel):
     command = (self.command)
@@ -32,5 +33,18 @@ def version(self, user, channel):
         else:
             newer = 'release is newer then playtest'
         self.send_reply( ("Latest release: "+release[0:4]+" "+release[4:8]+"  | Latest playtest: "+playtest[0:4]+" "+playtest[4:8]+"  | "+newer), user, channel )
+        self.send_notice("Release:", user)
+        self.send_notice("\twin: http://openra.res0l.net/assets/downloads/windows/OpenRA-release-"+release+".exe", user)
+        self.send_notice("\tosx: http://openra.res0l.net/assets/downloads/mac/OpenRA-release-"+release+".zip", user)
+        self.send_notice("\tlinux deb: http://openra.res0l.net/assets/downloads/linux/deb/openra_release."+release+"_all.deb", user)
+        self.send_notice("\tlinux rpm: http://openra.res0l.net/assets/downloads/linux/rpm/openra-release."+release+"-1.noarch.rpm", user)
+        self.send_notice("\tlinux arch(tar.xz): http://openra.res0l.net/assets/downloads/linux/arch/openra-release."+release+"-1-any.pkg.tar.xz", user)
+        time.sleep(5)
+        self.send_notice("Playtest:", user)
+        self.send_notice("\twin: http://openra.res0l.net/assets/downloads/windows/OpenRA-playtest-"+playtest+".exe", user)
+        self.send_notice("\tosx: http://openra.res0l.net/assets/downloads/mac/OpenRA-playtest-"+playtest+".zip", user)
+        self.send_notice("\tlinux deb: http://openra.res0l.net/assets/downloads/linux/deb/openra_playtest."+playtest+"_all.deb", user)
+        self.send_notice("\tlinux rpm: http://openra.res0l.net/assets/downloads/linux/rpm/openra-playtest."+playtest+"-1.noarch.rpm", user)
+        self.send_notice("\tlinux arch(tar.xz): http://openra.res0l.net/assets/downloads/linux/arch/openra-playtest."+playtest+"-1-any.pkg.tar.xz", user)
     else:
         self.send_reply( ("Error, wrong request"), user, channel )
