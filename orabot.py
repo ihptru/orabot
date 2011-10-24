@@ -384,7 +384,6 @@ class IRC_Server:
                     flood_protection = 0
                 link = http_link.split('://')[1]
                 if check_localnetwork(self, link):
-                    self.send_notice("Can't check local network", user)
                     return
                 pre = http_link.split('http')[1].split('//')[0]
                 link = 'http'+pre+'//'+link
