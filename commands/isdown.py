@@ -19,14 +19,36 @@ Check if website is down
 
 import config
 import urllib.request
+import re
+
+def check_localnetwork(self, url):
+    if re.search('127.*', url):
+        return True
+    if re.search('192.168.*', url):
+        return True
+    if url == 'localhost':
+        return True
+    if re.search('10\..*', url):
+        return True
+    return False
+
+def usage(self, user):
+    usage = "Usage: " + config.command_prefix + "isdown <url>"
+    self.send_notice(usage, user)
 
 def isdown(self, user, channel):
     command = (self.command).split()
     if ( len(command) == 2 ):
         url = command[1].split('://')
         if ( len(url) == 1 ):
+            if check_localnetwork(self, url[0]):
+                self.send_notice("Can't check local network", user)
+                return
             url = 'http://' + url[0]
         else:
+            if check_localnetwork(self, url[1]):
+                self.send_notice("Can't check local network", user)
+                return
             url = command[1]
         try:
             urllib.request.urlopen(url)
@@ -34,6 +56,5 @@ def isdown(self, user, channel):
         except urllib.error.URLError:
             self.send_reply( (url + " Is Down"), user, channel)
     else:
-        usage = "Usage: " + config.command_prefix + "isdown <url>"
-        self.send_notice(usage, user)
+        usage(self, user)
         return
