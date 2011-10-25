@@ -19,10 +19,7 @@ import config
 def parse_event(self, recv):
     conn, cur = self.db_data()
     irc_quit_nick = recv.split( "!" )[ 0 ].split( ":" ) [ 1 ]
-    supy_host = recv.split()[0].split('!')[1]
-    
-    self.quit_store.append(irc_quit_nick)
-    
+    irc_quit_host = recv.split()[0].split('!')[1]
     ### last activity
     sql = """INSERT INTO activity
             (user,act,date_time)
@@ -34,27 +31,23 @@ def parse_event(self, recv):
     cur.execute(sql)
     conn.commit()
     ###
-    ### for ]last and logs
-    sql = """SELECT channels FROM users
+    sql = """UPDATE users
+            SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
             WHERE user = '"""+irc_quit_nick+"""'
     """
     cur.execute(sql)
+    conn.commit()
+    sql = """SELECT channel FROM user_channel
+            WHERE user = '"""+irc_quit_nick+"""'
+    """
+    cur.execute(sql)    #in current system: if user quits, we know on what channels he is
     records = cur.fetchall()
     conn.commit()
-    if ( len(records) == 0 ):   #user not found in table users
-        for chan in config.log_channels.split(','):
-            self.logs(irc_quit_nick, chan, 'quit', supy_host, '')
-    else:   #user found
-        if ( records[0][0] == '' ) or ( records[0][0] == None ):  #no channels found; reason(probably bot was offline when user joined or user was added manually)
-            for chan in config.log_channels.split(','):
-                self.logs(irc_quit_nick, chan, 'quit', supy_host, '')
-        else:   #there are channels
-            db_channels = records[0][0].split(',')
-            for chan in db_channels:
-                self.logs(irc_quit_nick, chan, 'quit', supy_host, '')
-    sql = """UPDATE users
-            SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0, channels = ''
-            WHERE user = '"""+irc_quit_nick+"'"+"""
+    for i in range(len(records)):
+        channel = records[i][0]
+        self.logs(irc_quit_nick, channel, 'quit', irc_quit_host, '')
+    sql = """DELETE FROM user_channel
+            WHERE user = '"""+irc_quit_nick+"""'
     """
     cur.execute(sql)
     conn.commit()

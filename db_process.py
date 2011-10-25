@@ -29,6 +29,7 @@ def start(self):
     black_list(conn, cur)
     commands(conn, cur)
     users(conn, cur)
+    user_channel(conn, cur)
     later(conn, cur)
     pickup(conn, cur)
     notify(conn, cur)
@@ -45,10 +46,10 @@ def start(self):
     
 def black_list(conn, cur):
     sql = """CREATE TABLE black_list (
-        uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
-        user varchar(30) NOT NULL,
-        date_time date NOT NULL,
-        count integer NOT NULL
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
+        "user" varchar(30) NOT NULL,
+        "date_time" date NOT NULL,
+        "count" integer NOT NULL
         )        
     """
     cur.execute(sql)
@@ -56,12 +57,12 @@ def black_list(conn, cur):
 
 def commands(conn, cur):
     sql = """CREATE TABLE commands (
-                uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
-                user varchar(30) NOT NULL,
-                command varchar(300) NOT NULL,
-                date_time date NOT NULL
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
+        "user" varchar(30) NOT NULL,
+        "command" varchar(300) NOT NULL,
+        "date_time" date NOT NULL
         )
-        """
+    """
     cur.execute(sql)
     conn.commit()
     for i in range(31):
@@ -77,11 +78,21 @@ def commands(conn, cur):
     
 def users(conn, cur):
     sql = """CREATE TABLE users (
-        uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
-        user varchar(30) NOT NULL,
-        date date,
-        state bool NOT NULL DEFAULT 0,
-        channels VARCHAR
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
+        "user" varchar(30) NOT NULL,
+        "date" date,
+        "state" bool NOT NULL DEFAULT 0
+        )
+    """
+    cur.execute(sql)
+    conn.commit()
+
+def user_channel(conn, cur):
+    sql = """CREATE TABLE user_channel (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
+        "user" VARCHAR NOT NULL,
+        "channel" VARCHAR NOT NULL,
+        "status" VARCHAR
         )
     """
     cur.execute(sql)
@@ -89,13 +100,13 @@ def users(conn, cur):
 
 def later(conn, cur):
     sql = """CREATE TABLE later (
-            uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
-            sender varchar(30) NOT NULL,
-            reciever varchar(30) NOT NULL,
-            channel varchar(30) NOT NULL,
-            date date NOT NULL,
-            message varchar(1000) NOT NULL
-    )
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
+        "sender" varchar(30) NOT NULL,
+        "reciever" varchar(30) NOT NULL,
+        "channel" varchar(30) NOT NULL,
+        "date" date NOT NULL,
+        "message" varchar(1000) NOT NULL
+        )
     """
     cur.execute(sql)
     conn.commit()
@@ -106,7 +117,7 @@ def pickup(conn, cur):
         "name" VARCHAR NOT NULL ,
         "host" BOOL NOT NULL  DEFAULT 0,
         "timeout" DATETIME NOT NULL
-    )
+        )
     """
     cur.execute(sql)
     conn.commit()
@@ -115,7 +126,7 @@ def pickup(conn, cur):
         "name" VARCHAR NOT NULL ,
         "host" BOOL NOT NULL  DEFAULT 0,
         "timeout" DATETIME NOT NULL
-    )
+        )
     """
     cur.execute(sql)
     conn.commit()
@@ -133,7 +144,7 @@ def pickup(conn, cur):
         "name" VARCHAR NOT NULL ,
         "host" BOOL NOT NULL  DEFAULT 0,
         "timeout" DATETIME NOT NULL
-    )
+        )
     """
     cur.execute(sql)
     conn.commit()
@@ -229,14 +240,14 @@ def pickup(conn, cur):
 
 def notify(conn, cur):
     sql = """CREATE TABLE "notify" (
-        uid INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
-        user VARCHAR NOT NULL,
-        date DATETIME NOT NULL,
-        mod VARCHAR NOT NULL DEFAULT "all",
-        version VARCHAR NOT NULL DEFAULT "all",
-        timeout VARCHAR NOT NULL DEFAULT "all",
-        num_players VARCHAR NOT NULL DEFAULT "all"
-    )                
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
+        "user" VARCHAR NOT NULL,
+        "date" DATETIME NOT NULL,
+        "mod" VARCHAR NOT NULL DEFAULT "all",
+        "version" VARCHAR NOT NULL DEFAULT "all",
+        "timeout" VARCHAR NOT NULL DEFAULT "all",
+        "num_players" VARCHAR NOT NULL DEFAULT "all"
+        )                
     """
     cur.execute(sql)
     conn.commit()
@@ -252,7 +263,7 @@ def maps(conn, cur):
         "type" VARCHAR NOT NULL ,
         "titleset" VARCHAR NOT NULL ,
         "players" INTEGER NOT NULL
-    )
+        )
     """
     cur.execute(sql)
     conn.commit()
@@ -324,7 +335,7 @@ def faq(conn, cur):
         "item" VARCHAR NOT NULL ,
         "whoset" VARCHAR NOT NULL ,
         "desc" VARCHAR NOT NULL
-    )
+        )
     """
     cur.execute(sql)
     conn.commit()
@@ -334,7 +345,7 @@ def pingme(conn, cur):
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "who" VARCHAR NOT NULL ,
         "users_back" VARCHAR NOT NULL
-    )
+        )
     """
     cur.execute(sql)
     conn.commit()
@@ -345,7 +356,7 @@ def commits(conn, cur):
         "title" VARCHAR NOT NULL,
         "repo" VARCHAR NOT NULL,
         "branch" VARCHAR NOT NULL
-    )
+        )
     """
     cur.execute(sql)
     conn.commit()
@@ -357,7 +368,7 @@ def activity(conn, cur):
         "act" VARCHAR NOT NULL,
         "date_time" date NOT NULL,
         "channel" VARCHAR
-    )
+        )
     """
     cur.execute(sql)
     conn.commit()
@@ -369,7 +380,7 @@ def messages(conn, cur):
         "message" VARCHAR NOT NULL,
         "date_time" date NOT NULL,
         "channel" VARCHAR NOT NULL
-    )
+        )
     """
     cur.execute(sql)
     conn.commit()
@@ -381,7 +392,7 @@ def games(conn, cur):
         "players" VARCHAR NOT NULL,
         "version" VARCHAR NOT NULL,
         "date_time" date NOT NULL
-    )
+        )
     """
     cur.execute(sql)
     conn.commit()

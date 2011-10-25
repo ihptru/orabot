@@ -49,8 +49,6 @@ class IRC_Server:
         self.should_reconnect = False
         self.command = ""
         self.start_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
-        self.quit_store = []
-        self.join_store = []
 
     ## The destructor - Close socket.
     def __del__(self):
@@ -60,6 +58,15 @@ class IRC_Server:
         # Create database at first run
         if not os.path.exists('db/openra.sqlite'):
             db_process.start(self)
+
+        conn, cur = self.db_data()
+        sql = """UPDATE users
+                SET state = 0;
+                DELETE FROM user_channel;
+        """
+        cur.executescript(sql)
+        conn.commit()
+        cur.close()
         if ( config.notifications == True ):
             # run notifications
             print("Notifications support...                        OK")
@@ -85,29 +92,20 @@ class IRC_Server:
         str_buff = ("NICK %s \r\n") % (self.irc_nick)
         self.irc_sock.send (str_buff.encode())
         print ("Setting bot nick to " + str(self.irc_nick) )
-        time.sleep(2)
-        recv = self.irc_sock.recv( 4096 )
-        recv=self.decode_stream(recv)
-        if str(recv).find ( " 433 * "+self.irc_nick+" " ) != -1:
-            print('Nick is already in use!!! Change nickname and restart bot!')
-            return
 
         str_buff = ("USER %s 8 * :X\r\n") % (self.irc_nick)
         self.irc_sock.send (str_buff.encode())
         print ("Setting User")
-        # Insert Alternate nick code here.
 
         if config.nickserv == True:
-            print ("Attempting to identify with NickServ...")
+            print ("Sending request to identify with NickServ...")
             data = "identify "+config.nickserv_password
             self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('NickServ', data)).encode() )
 
-        for i in range(len(self.irc_channel)):
-            str_buff = ( "JOIN %s \r\n" ) % (self.irc_channel[i])
+        for channel in self.irc_channel:
+            str_buff = ( "JOIN %s \r\n" ) % (channel)
             self.irc_sock.send (str_buff.encode())
-            print ("Joining channel " + self.irc_channel[i] )
-
-        multiprocessing.Process(target=self.startup_db_check).start()
+            print ("Joining channel " + channel )
 
         self.is_connected = True
         self.listen()
@@ -150,8 +148,18 @@ class IRC_Server:
                     imp.reload(kick_e)
                     kick_e.parse_event(self, recv)
 
-                if recv.find (" 353 "+config.bot_nick ) != -1:
-                    print("recv: "+recv)
+                if recv.find ( " 353 "+config.bot_nick ) != -1:     # NAMES
+                    imp.reload(names_e)
+                    names_e.parse_event(self, recv)
+
+                if recv.find ( " NOTICE "+self.irc_nick+" :You are now identified for " ) != -1:
+                    print("NickServ Identification Succeeded\t\tOK")
+
+                if recv.find ( " 433 * "+self.irc_nick+" " ) != -1:
+                    print('Nick is already in use!!! Change nickname and restart bot!')
+                    return
+
+                print(recv)
 
         if self.should_reconnect:
             self.connect()
@@ -190,84 +198,9 @@ class IRC_Server:
         str_buff = ( "NOTICE %s :%s\r\n" ) % (user,data)
         self.irc_sock.send (str_buff.encode())
 
-    def startup_db_check(self):
-        ### change existing users status to offline if their status in DB is online but they are not on any of the channels and upside down
-        conn, cur = self.db_data()
-        sql = """SELECT user,state,channels FROM users
-        """
-        cur.execute(sql)
-        records = cur.fetchall()
-        conn.commit()
-        if ( len(records) != 0 ):
-            db_usernames = []
-            for i in range(len(records)):
-                db_usernames.append(records[i][0])
-            time.sleep(5)
-            for chan in config.channels.split(','):
-                user_nicks = self.get_names_list(self.send_names(chan))
-                print("Debug: "+chan+" : " + str(user_nicks))
-                if ( len(user_nicks) != 0 ):    #no error on NAMES
-                    for i in range(len(records)):
-                        if ( records[i][0] not in user_nicks ):
-                            if ( str(records[i][1]) == '1' ):
-                                if ( records[i][0] not in self.join_store ):
-                                    sql = """UPDATE users
-                                            SET state = 0, channels = ''
-                                            WHERE user = '"""+records[i][0]+"""'
-                                    """
-                                    cur.execute(sql)
-                                    conn.commit()
-                                else:
-                                    print("DEBUG: DB CHECK!!!, but user managed to join during that check")
-                        else:
-                            if ( str(records[i][1]) == '0' ):
-                                if ( records[i][0] not in self.quit_store ):
-                                    sql = """UPDATE users
-                                            SET state = 1, channels = '"""+chan+"""'
-                                            WHERE user = '"""+records[i][0]+"""'
-                                    """
-                                    cur.execute(sql)
-                                    conn.commit()
-                                else:
-                                    print("DEBUG: DB CHECK!!!, but user managed to leave during that check")
-                            else:
-                                if ( chan not in records[i][2].split(',') ):
-                                    if ( records[i][2] == '' ) or ( records[i][2] == None ):
-                                        channel_to_db = chan
-                                    else:
-                                        channel_to_db = records[i][2]+','+chan
-                                    sql = """UPDATE users
-                                            SET channels = '"""+channel_to_db+"""'
-                                            WHERE user = '"""+records[i][0]+"""'
-                                    """
-                                    cur.execute(sql)
-                                    conn.commit()
-                for username in user_nicks:
-                    if ( username not in db_usernames ):
-                        if ( username not in self.join_store ):
-                            sql = """INSERT INTO users
-                                    (user,state,channels)
-                                    VALUES
-                                    (
-                                    '"""+username+"""',1,'"""+chan+"""'
-                                    )
-                            """
-                            cur.execute(sql)
-                            conn.commit()
-                print("DB iteration finished")
-        cur.close()
-
     def send_names(self, channel):
         str_buff = ( "NAMES %s \r\n" ) % (channel)
         self.irc_sock.send (str_buff.encode())
-        return ''.split(':')[2].rstrip()
-
-    def get_names_list(self, nicks):
-        user_nicks = nicks.replace('+','').replace('@','').replace('%','').split(' ')
-        return user_nicks
-
-    def get_names_full(self, nicks):
-        return nicks.split()
 
     def db_data(self):
         conn = sqlite3.connect('db/openra.sqlite')   # connect to database
@@ -296,12 +229,17 @@ class IRC_Server:
         str_buff = ("TOPIC %s :%s\r\n") % (channel, topic)
         self.irc_sock.send ( str_buff.encode() )
 
-        #channel_names = self.get_names(channel)
-        #if channel_names.find ( " 353 "+config.bot_nick ) != -1:
-        #    user_nicks = channel_names.split(':')[2].rstrip()
-        #    user_nicks = user_nicks.split(' ')
-        #    if ( '@' + config.bot_nick not in user_nicks ):
-        #        self.send_message_to_channel( ("I tried to change the topic of this channel but do not have rights for it"), channel)
+        conn, cur = self.db_data()
+        sql = """SELECT status FROM user_channel
+                WHERE user = '"""+config.bot_nick+"""' AND channel = '"""+channel+"""'
+        """
+        cur.execute(sql)
+        records = cur.fetchall()
+        conn.commit()
+        if ( len(records) != 0 ):   #at least, bot must be on a channel to send warning message
+            if ( records[0][0] == '' or records[0][0] == None ):    #simple user
+                self.send_message_to_channel( ("I tried to change the topic of this channel but do not have rights for it"), channel)
+        cur.close()
 
     def logs(self, irc_user, channel, logs_of, some_data, some_more_data):
         if config.write_logs == True:
@@ -434,12 +372,17 @@ class IRC_Server:
 
     # Special admin commands for Op/HalfOp/Voice
     def OpVoice(self, user, channel):
-        user_nicks = self.get_names_full(self.send_names(channel))
-        if '+'+user in user_nicks or '@'+user in user_nicks or '%'+user in user_nicks:
-            return True
-        else:
+        conn, cur = self.db_data()
+        sql = """SELECT status FROM user_channel
+                WHERE user = '"""+user+"""' AND channel = '"""+channel+"""'
+        """
+        cur.execute(sql)
+        records = cur.fetchall()
+        conn.commit()
+        if ( records[0][0] == '' or records[0][0] == None ):
             self.send_reply( ("No rights!"), user, channel )
             return False
+        return True
 
     def process_command(self, user, channel):
         command = (self.command)

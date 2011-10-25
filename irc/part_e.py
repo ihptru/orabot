@@ -18,31 +18,19 @@ import sqlite3
 def parse_event(self, recv):
     conn, cur = self.db_data()
     irc_part_nick = recv.split( "!" )[ 0 ].split( ":" ) [ 1 ]
-    supy_host = recv.split()[0].split('!')[1]
+    irc_part_host = recv.split()[0].split('!')[1]
     chan = recv.split()[2].strip()
     ###logs
-    self.logs(irc_part_nick, chan, 'part', supy_host, '')
+    self.logs(irc_part_nick, chan, 'part', irc_part_host, '')
     ###
-    ### for ]last  and logs
-    sql = """SELECT channels FROM users
+    sql = """UPDATE users
+            SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
             WHERE user = '"""+irc_part_nick+"""'
     """
     cur.execute(sql)
-    records = cur.fetchall()
     conn.commit()
-    channel_from_db = ''
-    if ( len(records) != 0 ):
-        if not (( records[0][0] == '' ) or ( records[0][0] == None )):
-            db_channels = records[0][0].split(',')
-            if chan in db_channels:
-                chan_index = db_channels.index(chan)
-                del db_channels[chan_index]
-                channel_from_db = ",".join(db_channels)
-            else:
-                channel_from_db = ",".join(db_channels)
-    sql = """UPDATE users
-            SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0, channels = '"""+channel_from_db+"""'
-            WHERE user = '"""+irc_part_nick+"'"+"""
+    sql = """DELETE FROM user_channel
+            WHERE user = '"""+irc_part_nick+"""' AND channel = '"""+chan+"""'
     """
     cur.execute(sql)
     conn.commit()

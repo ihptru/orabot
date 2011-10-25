@@ -218,7 +218,7 @@ def message(self, user, channel, command_request):
         flood_protection = 0
         amount_records = command_request[0][1:]
         try:
-            trash = int(amount_records)
+            amount_records = str(int(amount_records) + 1)
         except:
             self.send_reply( (usage), user, channel )
             cur.close()
@@ -235,6 +235,7 @@ def message(self, user, channel, command_request):
             self.send_notice("No records for " + channel, user)
             return
         else:
+            del records[0]
             for i in range(len(records)):
                 result = time_result(records[i][1])
                 message = records[i][3] + result + " @ " + records[i][2] + " : " + records[i][0]

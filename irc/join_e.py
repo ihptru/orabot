@@ -19,13 +19,11 @@ import time
 def parse_event(self, recv):
     conn, cur = self.db_data()
     irc_join_nick = recv.split( '!' ) [ 0 ].split( ':' ) [ 1 ]
-    supy_host = recv.split()[0].split('!')[1]
+    irc_join_host = recv.split()[0].split('!')[1]
     chan = recv.split()[2].strip()
-    
-    self.join_store.append(irc_join_nick)
-    
+
     ###logs
-    self.logs(irc_join_nick, chan, 'join', supy_host, '')
+    self.logs(irc_join_nick, chan, 'join', irc_join_host, '')
     ###
     
     ### last activity
@@ -69,42 +67,62 @@ def parse_event(self, recv):
                     cur.execute(sql)
                     conn.commit()
     ###
-    sql = """SELECT * FROM users
+    sql = """SELECT user FROM users
             WHERE user = '"""+irc_join_nick+"'"+"""
     """
     cur.execute(sql)
+    records = cur.fetchall()
     conn.commit()
-    row = []
-    for row in cur:
-        pass
-    if irc_join_nick not in row:     #user NOT found, add him (if user is not in db, he could not have ]later message)
+    if ( len(records) == 0 ):   #user NOT found, add him (if user is not in db, he could not have ]later message)   
         sql = """INSERT INTO users
-                (user,state,channels)
+                (user,state)
                 VALUES
                 (
-                '"""+irc_join_nick+"""',1,'"""+chan+"""'
+                '"""+irc_join_nick+"""',1
+                )
+        """
+        cur.execute(sql)
+        conn.commit()
+        sql = """INSERT INTO user_channel
+                (user, channel)
+                VALUES
+                (
+                '"""+irc_join_nick+"""','"""+chan+"""'
                 )
         """
         cur.execute(sql)
         conn.commit()
     else:   #user is in `users` table; he can have ]later messages
-        #for ]last and for logs (add channel in list)
-        sql = """SELECT channels FROM users
+        sql = """UPDATE users
+                SET state = 1
                 WHERE user = '"""+irc_join_nick+"""'
+        """
+        cur.execute(sql)
+        conn.commit()
+        sql = """SELECT status FROM user_channel
+                WHERE user = '"""+irc_join_nick+"""' AND channel = '"""+chan+"""'
         """
         cur.execute(sql)
         records = cur.fetchall()
         conn.commit()
-        if ( records[0][0] == '' ) or ( records[0][0] == None ):
-            channel_to_db = chan
-        else:
-            channel_to_db = records[0][0]+','+chan
-        sql = """UPDATE users
-                SET state = 1, channels = '"""+channel_to_db+"""'
-                WHERE user = '"""+irc_join_nick+"""'
-        """
-        cur.execute(sql)
-        conn.commit()
+        if ( len(records) == 0 ):
+            sql = """INSERT INTO user_channel
+                    (user, channel)
+                    VALUES
+                    (
+                    '"""+irc_join_nick+"""','"""+chan+"""'
+                    )
+            """
+            cur.execute(sql)
+            conn.commit()
+        else:   #found record
+            sql = """UPDATE user_channel
+                    SET status = ''
+                    WHERE user = '"""+irc_join_nick+"""' AND channel = '"""+chan+"""'
+            """
+            cur.execute(sql)
+            conn.commit()
+        ###
         sql = """SELECT reciever FROM later
                 WHERE reciever = '"""+irc_join_nick+"'"+"""
         """

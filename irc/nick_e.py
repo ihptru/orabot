@@ -22,26 +22,24 @@ def parse_event(self, recv):
     new_nick = recv.split()[2].replace(':','').replace('\r\n','')
     conn, cur = self.db_data()
     ### for logs
-    sql = """SELECT channels FROM users
+    sql = """SELECT channel,status FROM user_channel
             WHERE user = '"""+original_nick+"""'
     """
     cur.execute(sql)
     records = cur.fetchall()
     conn.commit()
-    channels = ''
-    if ( len(records) == 0 ):   #user not found in table users
-        for chan in config.log_channels.split(','):
-            self.logs(original_nick, chan, 'nick', new_nick, '')
-    else:   #user found
-        if ( records[0][0] == '' ) or ( records[0][0] == None ):  #no channels found; reason(probably bot was offline when user joined or user was added manually)
-            for chan in config.log_channels.split(','):
-                self.logs(original_nick, chan, 'nick', new_nick, '')
-        else:   #there are channels
-            channels = records[0][0]
-            db_channels = channels.split(',')
-            for chan in db_channels:
-                self.logs(original_nick, chan, 'nick', new_nick, '')
-    ###
+    transfer_channel = []
+    transfer_status = []
+    for i in range(len(records)):
+        channel = records[i][0]
+        transfer_channel.append(channel)
+        transfer_status.append(records[i][1])
+        self.logs(original_nick, channel, 'nick', new_nick, '')
+    sql = """DELETE FROM user_channel
+            WHERE user = '"""+original_nick+"""'
+    """
+    cur.execute(sql)
+    conn.commit()
     ### last activity
     sql = """INSERT INTO activity
             (user,act,date_time)
@@ -54,7 +52,7 @@ def parse_event(self, recv):
     conn.commit()
     ###
     sql = """UPDATE users
-            SET state = 0, date = strftime('%Y-%m-%d-%H-%M-%S'), channels = ''
+            SET state = 0, date = strftime('%Y-%m-%d-%H-%M-%S')
             WHERE user = '"""+original_nick+"""'
     """
     cur.execute(sql)
@@ -67,21 +65,41 @@ def parse_event(self, recv):
     conn.commit()
     if ( len(records) == 0 ):
         sql = """INSERT INTO users
-                (user,state,channels)
+                (user,state)
                 VALUES
                 (
-                '"""+new_nick+"""',1,'"""+channels+"""'
+                '"""+new_nick+"""',1
                 )
         """
         cur.execute(sql)
         conn.commit()
+        for i in range(len(transfer_channel)):
+            sql = """INSERT INTO user_channel
+                    (user,channel,status)
+                    VALUES
+                    (
+                    '"""+new_nick+"""','"""+transfer_channel[i]+"""','"""+transfer_status[i]+"""'
+                    )
+            """
+            cur.execute(sql)
+            conn.commit()
     else:
         sql = """UPDATE users
-                SET state = 1, channels = '"""+channels+"""'
+                SET state = 1
                 WHERE user = '"""+new_nick+"""'
         """
         cur.execute(sql)
         conn.commit()
+        for i in range(len(transfer_channel)):
+            sql = """INSERT INTO user_channel
+                    (user,channel,status)
+                    VALUES
+                    (
+                    '"""+new_nick+"""','"""+transfer_channel[i]+"""','"""+transfer_status[i]+"""'
+                    )
+            """
+            cur.execute(sql)
+            conn.commit()
     ### for ping me
     sql = """DELETE FROM pingme
             WHERE who = '"""+original_nick+"""'
