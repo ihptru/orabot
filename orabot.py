@@ -148,6 +148,11 @@ class IRC_Server:
                     imp.reload(kick_e)
                     kick_e.parse_event(self, recv)
 
+                if recv.split()[1] == "MODE":
+                    if recv.split()[3] in ['+v','-v','+o','-o','+h','-h']:
+                        imp.reload(mode_e)
+                        mode_e.parse_event(self, recv)
+
                 if recv.find ( " 353 "+config.bot_nick ) != -1:     # NAMES
                     imp.reload(names_e)
                     names_e.parse_event(self, recv)
@@ -273,6 +278,8 @@ class IRC_Server:
                     row = ' *** '+irc_user+' changes topic to "'+some_data+'"\n'
                 elif ( logs_of == 'kick' ):
                     row = ' *** '+irc_user+' was kicked by '+some_data+' ('+some_more_data+')\n'
+                elif ( logs_of == 'mode' ):
+                    row = ' *** ' + some_data
                 else:
                     return  # probably an error.
                 dir = os.path.dirname(filename)
