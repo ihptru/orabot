@@ -188,8 +188,8 @@ class IRC_Server:
 
     # This function sends a message to a channel or user
     def send_message_to_channel(self, data, channel):
-        print ( ( "%s: %s") % (self.irc_nick, data[:256]) )
-        self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (channel, data[:256])).encode() )
+        print ( ( "%s: %s") % (self.irc_nick, data) )
+        self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (channel, data)).encode() )
         ### logs
         self.logs(self.irc_nick, channel, 'privmsg', str(data), '')
 
