@@ -13,8 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sqlite3
-
 def parse_event(self, recv):
     who_gives = recv.split('!')[0][1:]
     user = recv.split()[4]

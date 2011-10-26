@@ -77,7 +77,7 @@ class IRC_Server:
         multiprocessing.Process(target=openra_topic.start, args=(self,)).start()
         multiprocessing.Process(target=openra_bugs.start, args=(self,)).start()
         multiprocessing.Process(target=github_commits.start, args=(self,)).start()
-        multiprocessing.Process(target=openra_game.start, args=(self,)).start()
+        #multiprocessing.Process(target=openra_game.start, args=(self,)).start()
 
     # This is the bit that controls connection to a server & channel.
     def connect(self):
@@ -89,26 +89,31 @@ class IRC_Server:
             exit(1) # We should make it recconect if it gets an error here
         print ("Connected to: " + str(self.irc_host) + ":" + str(self.irc_port))
 
-        str_buff = ("NICK %s \r\n") % (self.irc_nick)
-        self.irc_sock.send (str_buff.encode())
-        print ("Setting bot nick to " + str(self.irc_nick) )
+        def bot_connect(self):
+            str_buff = ("NICK %s \r\n") % (self.irc_nick)
+            self.irc_sock.send (str_buff.encode())
+            print ("Setting bot nick to " + str(self.irc_nick) )
 
-        str_buff = ("USER %s 8 * :X\r\n") % (self.irc_nick)
-        self.irc_sock.send (str_buff.encode())
-        print ("Setting User")
+            str_buff = ("USER %s 8 * :X\r\n") % (self.irc_nick)
+            self.irc_sock.send (str_buff.encode())
+            print ("Setting User")
 
+            for channel in self.irc_channel:
+                str_buff = ( "JOIN %s \r\n" ) % (channel)
+                self.irc_sock.send (str_buff.encode())
+                print ("Joining channel " + channel )
+        bot_connect(self)
+        
         if config.nickserv == True:
             print ("Sending request to identify with NickServ...")
             data = "identify "+config.nickserv_password
             self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('NickServ', data)).encode() )
 
-        for channel in self.irc_channel:
-            str_buff = ( "JOIN %s \r\n" ) % (channel)
-            self.irc_sock.send (str_buff.encode())
-            print ("Joining channel " + channel )
-
         self.is_connected = True
-        self.listen()
+        if not self.listen():
+            self.irc_nick = self.irc_nick + "_"
+            bot_connect(self)
+            self.listen()
 
     def listen(self):
         while self.is_connected:
@@ -153,7 +158,7 @@ class IRC_Server:
                         imp.reload(mode_e)
                         mode_e.parse_event(self, recv)
 
-                if recv.find ( " 353 "+config.bot_nick ) != -1:     # NAMES
+                if recv.find ( " 353 "+self.irc_nick ) != -1:     # NAMES
                     imp.reload(names_e)
                     names_e.parse_event(self, recv)
 
@@ -161,8 +166,8 @@ class IRC_Server:
                     print("NickServ Identification Succeeded\t\tOK")
 
                 if recv.find ( " 433 * "+self.irc_nick+" " ) != -1:
-                    print('Nick is already in use!!! Change nickname and restart bot!')
-                    return
+                    print('Nick is already in use!!!')
+                    return False
 
                 print(recv)
 
@@ -245,7 +250,7 @@ class IRC_Server:
 
         conn, cur = self.db_data()
         sql = """SELECT status FROM user_channel
-                WHERE user = '"""+config.bot_nick+"""' AND channel = '"""+channel+"""'
+                WHERE user = '"""+self.irc_nick+"""' AND channel = '"""+channel+"""'
         """
         cur.execute(sql)
         records = cur.fetchall()
