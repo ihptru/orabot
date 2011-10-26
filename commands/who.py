@@ -20,8 +20,7 @@ The command shows current list of games with players added in Pickup Game
 import sqlite3
 
 def who(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) >= 1 ) and ( len(command) < 3 ):
         modes = ['1v1','2v2','3v3','4v4','5v5']

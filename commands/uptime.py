@@ -21,7 +21,7 @@ import time
 import datetime
 
 def uptime(self, user, channel):
-    if not self.OpVoice(user, channel):
+    if not self.Admin(user, channel):
         return
     command = (self.command).split()
     if ( len(command) == 1 ):

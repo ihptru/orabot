@@ -40,8 +40,7 @@ for item in _commands:
     exec("from commands import " + item)
 
 def help(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     no_desc = "No description available"
     help_desc = "(help [<command module>] [<command>]) -- This command gives a useful description of what <command module> does. <command> is only necessary if the command module contains commands tree. (help commands) -- gives a list of commands"
     if ( len(command) == 1 ):

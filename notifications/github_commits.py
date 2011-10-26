@@ -48,6 +48,8 @@ def start(self):
 
     print("Updating commits table...")
     repos = config.git_repos.split()
+    if ( len(repos) == 0 ):
+        return  #no repositories specified
     for repo in repos:
         if ( repo[-1] == '/' ):
             slash = ''

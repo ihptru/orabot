@@ -18,9 +18,8 @@ Repeat given arguments
 """
 
 def say(self, user, channel):
-    if not self.OpVoice(user, channel):
+    if not self.Admin(user, channel):
         return
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     if ( len(command) > 1 ):
         self.send_reply( (" ".join(command[1:])), user, channel )

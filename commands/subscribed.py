@@ -20,10 +20,9 @@ Shows all subscribed for notifications users or the subscription state of a spec
 import sqlite3
 
 def subscribed(self, user, channel):
-    if not self.OpVoice(user, channel):
+    if not self.Admin(user, channel):
         return
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     cconn, cur = self.db_data()
     if ( len(command) == 1 ):
         sql = """SELECT user FROM notify

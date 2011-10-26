@@ -21,8 +21,7 @@ import random
 import time
 
 def randomserver(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     if ( len(command) >= 4 ):
         if ( command[1][0:2] == '-c' ):
             max_positions = command[1][2:]

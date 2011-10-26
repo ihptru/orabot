@@ -20,8 +20,7 @@ Shows the full openra map's information
 import sqlite3
 
 def mapinfo(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) == 1 ):
         self.send_reply( ("Part of map's name required!"), user, channel )

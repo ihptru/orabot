@@ -24,8 +24,7 @@ def weather(self, user, channel):
         message = "(]weather [--current|--forecast|--all] [US zip code | US/Canada city, state | Foreign city, country]) -- Returns the approximate weather conditions for a given city from Google Weather. --current, --forecast, and --all control what kind of information the command shows."
         self.send_notice( message, user )
 
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     if ( len(command) == 1 ):
         weather_usage()
     elif ( len(command) > 1 ):

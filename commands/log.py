@@ -22,10 +22,9 @@ import time
 import re
 
 def log(self, user, channel):
-    if not self.OpVoice(user, channel):
+    if not self.Admin(user, channel):
         return
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) == 1 ):
         sql = """SELECT * FROM commands

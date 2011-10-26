@@ -20,8 +20,7 @@ Single elimination tournament brackets generator
 import pyrand
 
 def randomteam(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     if ( len(command) > 3 ):
         pyrand.start(self, user, channel, command[1:])
     else:

@@ -20,10 +20,9 @@ Removes a user specified in command as a argument from any game he is added to
 import sqlite3
 
 def pickup_remove(self, user, channel):
-    if not self.OpVoice(user, channel):
+    if not self.Admin(user, channel):
         return
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) == 2 ):
         modes = ['1v1','2v2','3v3','4v4','5v5']

@@ -20,10 +20,9 @@ Command is used to add a particular irc user to bot's database if he does not ex
 import sqlite3
 
 def adduser(self, user, channel):
-    if not self.OpVoice(user, channel):
+    if not self.Admin(user, channel):
         return
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) == 2 ):
         nick = command[1]

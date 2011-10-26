@@ -18,7 +18,7 @@ Admin only: NAMES for channel with user's statuses for debug purposes
 """
 
 def names(self, user, channel):
-    if not self.OpVoice(user, channel):
+    if not self.Admin(user, channel):
         return
     command = (self.command).split()
     if ( len(command) == 2 ):
@@ -43,4 +43,3 @@ def names(self, user, channel):
             self.send_reply( (string), user, channel )
     else:
         self.send_notice( "Argument required: channel", user )
-        return

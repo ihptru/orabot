@@ -46,10 +46,9 @@ for item in _commands:
     exec("from commands import " + item)
 
 def show(self, user, channel):
-    if not self.OpVoice(user, channel):
+    if not self.Admin(user, channel):
         return
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     if ( len(command) >= 4 ):
         if ( command[-2] == '|' ):
             to_user = command[-1]

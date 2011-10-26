@@ -25,8 +25,7 @@ def unnotify(self, user, channel):
         message = "The bot is run without notifications support!"
         self.send_notice( message, user )
         return
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) == 1 ):
         sql = """SELECT user FROM notify

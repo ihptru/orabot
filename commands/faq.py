@@ -21,8 +21,7 @@ import sqlite3
 import config
 
 def faq(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) == 1 ):
         sql = """SELECT item FROM faq
@@ -57,7 +56,7 @@ def faq(self, user, channel):
                 self.send_reply( (item+": "+records[0][0]), user, channel )
     elif ( len(command) == 3 ):
         if ( command[1] == "remove" ):
-            if not self.OpVoice(user, channel):
+            if not self.Admin(user, channel):
                 return
             item = command[2]
             sql = """SELECT item FROM faq
@@ -83,7 +82,7 @@ def faq(self, user, channel):
         if ( command[1] == "remove" ):
             self.send_reply( ("Usage: "+config.command_prefix+"faq remove item_name"), user, channel )
         elif ( command[1] == "set" ):
-            if not self.OpVoice(user, channel):
+            if not self.Admin(user, channel):
                 return
             item = command[2]
             sql = """SELECT item FROM faq

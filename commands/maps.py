@@ -18,8 +18,7 @@ Map list for Pickup Games
 """
 
 def maps(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     if ( len(command) == 1 ):
         self.send_reply( ("Pickup Matches Maps: https://github.com/ihptru/orabot/wiki/Pickup-Maps"), user, channel )
     else:

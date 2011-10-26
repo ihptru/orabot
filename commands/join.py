@@ -18,10 +18,9 @@ Use this to make bot join one more channel
 """
 
 def join(self, user, channel):
-    if not self.OpVoice(user, channel):
+    if not self.Admin(user, channel):
         return
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     if ( len(command) == 2 ):
         if ( (command[1])[0] == "#"):
             irc_channel = command[1]

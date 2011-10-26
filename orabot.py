@@ -202,15 +202,24 @@ class IRC_Server:
         str_buff = ( "NAMES %s \r\n" ) % (channel)
         self.irc_sock.send (str_buff.encode())
 
+    def get_names(self, channel):
+        conn, cur = self.db_data()
+        sql = """SELECT user FROM user_channel
+                WHERE channel = '"""+channel+"""'
+        """
+        cur.execute(sql)
+        records = cur.fetchall()
+        conn.commit()
+        cur.close()
+        names = []
+        for i in range(len(records)):
+            names.append(records[i][0])
+        return names
+
     def db_data(self):
         conn = sqlite3.connect('db/openra.sqlite')   # connect to database
         cur=conn.cursor()
         return (conn, cur)
-
-    def parse_html(self, string):
-        h = html.parser.HTMLParser()
-        string = h.unescape(string)
-        return string.strip()
 
     # This function takes a channel, which must start with a #.
     def join_channel(self, channel):
@@ -238,7 +247,7 @@ class IRC_Server:
         conn.commit()
         if ( len(records) != 0 ):   #at least, bot must be on a channel to send warning message
             if ( records[0][0] == '' or records[0][0] == None ):    #simple user
-                self.send_message_to_channel( ("I tried to change the topic of this channel but do not have rights for it"), channel)
+                self.send_message_to_channel( ("I've tried to change the topic of this channel but do not have rights for it"), channel)
         cur.close()
 
     def logs(self, irc_user, channel, logs_of, some_data, some_more_data):
@@ -275,6 +284,11 @@ class IRC_Server:
                     file.close()
                 except:
                     print('####### ERROR !!! ###### Probably no write permissions to logs directory!')
+
+    def parse_html(self, string):
+        h = html.parser.HTMLParser()
+        string = h.unescape(string)
+        return string.strip()
 
     def data_from_url(self, url, bytes):
         opener = urllib.request.build_opener()
@@ -371,7 +385,7 @@ class IRC_Server:
         return sum( map( int, mode.split('v') ) )
 
     # Special admin commands for Op/HalfOp/Voice
-    def OpVoice(self, user, channel):
+    def Admin(self, user, channel):
         conn, cur = self.db_data()
         sql = """SELECT status FROM user_channel
                 WHERE user = '"""+user+"""' AND channel = '"""+channel+"""'

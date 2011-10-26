@@ -20,8 +20,7 @@ Shows a message to promote a game with amount of players needed
 import sqlite3
 
 def promote(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) == 2 ):
         modes = ['1v1','2v2','3v3','4v4','5v5']

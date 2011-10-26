@@ -20,10 +20,9 @@ Complain if user is not shown for a pickup game (after 'some' amount of complain
 import sqlite3
 
 def complain(self, user, channel):
-    if not self.OpVoice(user, channel):
+    if not self.Admin(user, channel):
         return
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) == 2 ):
         name = command[1]

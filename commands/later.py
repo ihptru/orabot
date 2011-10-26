@@ -22,8 +22,7 @@ import re
 import sqlite3
 
 def later(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) >= 3 ):
         if re.search("^#", channel):
@@ -32,7 +31,7 @@ def later(self, user, channel):
                 self.send_message_to_channel( (user+", you can not send a message to yourself"), channel)
             else:
                 user_message = " ".join(command[2:])  #message
-                user_nicks = self.parse_names(self.get_names(channel))
+                user_nicks = self.get_names(channel)
                 if user_nick in user_nicks:  #reciever is on the channel right now
                     self.send_message_to_channel( (user+", "+user_nick+" is on the channel right now!"), channel)
                 else:   #reciever is not on the channel

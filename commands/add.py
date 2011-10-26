@@ -24,8 +24,7 @@ import random
 import time
 
 def add(self, user, channel):        
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     conn, cur = self.db_data()
     if re.search("^#", channel):
         if ( len(command) > 1 ) and ( len(command) < 4 ):   #normal about of arguments

@@ -18,10 +18,9 @@ Use this to make bot leave the server
 """
 
 def quit(self, user, channel):
-    if not self.OpVoice(user, channel):
+    if not self.Admin(user, channel):
         return
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     if ( len(command) == 1 ):
         str_buff = ( "QUIT %s \r\n" ) % (channel)
         self.irc_sock.send (str_buff.encode())

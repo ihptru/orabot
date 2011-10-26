@@ -21,8 +21,7 @@ import urllib.request
 import time
 
 def version(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     if ( len(command) == 1 ):
         url = 'http://openra.res0l.net/download/linux/deb/index.php'
         stream = urllib.request.urlopen(url).read().decode('utf-8')
@@ -39,7 +38,7 @@ def version(self, user, channel):
         self.send_notice("\tlinux deb: http://openra.res0l.net/assets/downloads/linux/deb/openra_release."+release+"_all.deb", user)
         self.send_notice("\tlinux rpm: http://openra.res0l.net/assets/downloads/linux/rpm/openra-release."+release+"-1.noarch.rpm", user)
         self.send_notice("\tlinux arch(tar.xz): http://openra.res0l.net/assets/downloads/linux/arch/openra-release."+release+"-1-any.pkg.tar.xz", user)
-        time.sleep(5)
+        time.sleep(6)
         self.send_notice("Playtest:", user)
         self.send_notice("\twin: http://openra.res0l.net/assets/downloads/windows/OpenRA-playtest-"+playtest+".exe", user)
         self.send_notice("\tosx: http://openra.res0l.net/assets/downloads/mac/OpenRA-playtest-"+playtest+".zip", user)

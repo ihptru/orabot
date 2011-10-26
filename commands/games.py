@@ -50,8 +50,7 @@ def modinfo( mod ):
         return (mod_split[0].upper() + '@' + result_version).ljust(16)
 
 def games(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     url = 'http://master.open-ra.org/list.php'
     conn, cur = self.db_data()
     flood_protection = 0

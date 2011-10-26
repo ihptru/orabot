@@ -20,10 +20,9 @@ Removes subscribed for notifications user
 import sqlite3
 
 def unsubscribe(self, user, channel):
-    if not self.OpVoice(user, channel):
+    if not self.Admin(user, channel):
         return
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) == 2 ):
         sql = """SELECT user FROM notify

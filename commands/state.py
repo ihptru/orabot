@@ -18,7 +18,7 @@ Admin only: check online/offline state of user for debug purposes
 """
 
 def state(self, user, channel):
-    if not self.OpVoice(user, channel):
+    if not self.Admin(user, channel):
         return
     command = (self.command).split()
     if ( len(command) == 2 ):
@@ -41,4 +41,3 @@ def state(self, user, channel):
             self.send_reply( (username+" is "+state), user, channel )
     else:
         self.send_notice("error",user)
-        return

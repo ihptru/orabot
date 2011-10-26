@@ -18,8 +18,7 @@ Says 'Hello' back
 """
 
 def hi(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     if ( len(command) == 1 ):
         self.send_reply( ("Yo " + user + "! Whats up?"), user, channel )
     else:

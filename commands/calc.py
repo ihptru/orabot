@@ -20,8 +20,7 @@ Makes mathematical calculations
 import math
 
 def calc(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     if ( len(command) > 1 ):
         expr = " ".join(command[1:])
         expr = expr.replace('^','**')

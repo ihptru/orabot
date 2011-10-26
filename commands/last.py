@@ -25,8 +25,7 @@ import datetime
 import config
 
 def last(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     usage = "Usage: " + config.command_prefix + "last {seen|activity|message|game} args"
     if ( len(command) == 1 ):
         self.send_reply( (usage), user, channel )
@@ -105,7 +104,7 @@ def seen(self, user, channel, request_user):
         return
     conn, cur = self.db_data()
     if re.search("^#", channel):
-        user_nicks = self.parse_names(self.get_names(channel))
+        user_nicks = self.get_names(channel)
         if request_user in user_nicks:  #reciever is on the channel right now
             self.send_message_to_channel( ("User is online!"), channel)
             cur.close()

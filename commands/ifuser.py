@@ -20,8 +20,7 @@ Command is used to check if irc user exists in bot's database (to make sure ]lat
 import sqlite3
 
 def ifuser(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) == 2 ):
         nick = command[1].replace("'","''")

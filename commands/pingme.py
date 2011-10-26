@@ -25,8 +25,7 @@ def usage(self, user, channel):
     self.send_reply( ("Usage: "+config.command_prefix+"pingme when USERNAME join"), user, channel )
 
 def pingme(self, user, channel):
-    command = (self.command)
-    command = command.split()
+    command = (self.command).split()
     if not re.search("^#", channel):
         message = "Command can be used only on a channel"
         self.send_notice( message, user )
