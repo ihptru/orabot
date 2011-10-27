@@ -29,10 +29,7 @@ import process_commands
 ### irc events in 'irc' directory
 from irc import *
 ### notifications package
-from notifications import openra_topic
-from notifications import openra_bugs
-from notifications import github_commits
-from notifications import openra_game
+from notifications import *
 
 # Defining a class to run the server. One per connection. This class will do most of our work.
 class IRC_Server:
