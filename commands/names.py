@@ -33,13 +33,14 @@ def names(self, user, channel):
         if ( len(records) == 0 ):
             self.send_reply( ("Nothing found"), user, channel )
         else:
-            string = 'Names: '
-            for i in range(len(records)):
+            string = ''
+            amount_names = len(records)
+            for i in range(amount_names):
                 username = records[i][0]
                 status = records[i][1]
                 if status == None:
                     status = ''
                 string = string + status+username + ", "
-            self.send_reply( (string), user, channel )
+            self.send_reply( ("Names["+str(amount_names)+"]: " + string), user, channel )
     else:
         self.send_notice( "Argument required: channel", user )

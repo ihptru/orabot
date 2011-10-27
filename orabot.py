@@ -110,10 +110,10 @@ class IRC_Server:
             self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('NickServ', data)).encode() )
 
         self.is_connected = True
-        if not self.listen():
-            self.irc_nick = self.irc_nick + "_"
-            bot_connect(self)
-            self.listen()
+        while True:
+            if not self.listen():
+                self.irc_nick = self.irc_nick + "_"
+                bot_connect(self)
 
     def listen(self):
         while self.is_connected:
