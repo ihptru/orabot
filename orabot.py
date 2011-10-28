@@ -356,16 +356,12 @@ class IRC_Server:
                             title = self.title_from_url(link).split('- YouTube')[0]
                             if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
                                 self.send_message_to_channel( ("Youtube: " + title), channel )
-                        except urllib.error.URLError:
-                            self.send_message_to_channel( (link + " Is Down"), channel)
                         except Exception as e:
                             print(e)    #probably socket error or http 404 error in title_from_url() or title not found
                     else:
                         try:
                             title = self.title_from_url(link)
                             self.send_message_to_channel( ("Title: " + title), channel )
-                        except urllib.error.URLError:
-                            self.send_message_to_channel( (link + " Is Down"), channel)
                         except Exception as e:
                             print(e)    #probably socket error or http 404 error in title_from_url() or title not found
             flood_protection = 0
