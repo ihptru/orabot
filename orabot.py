@@ -74,7 +74,7 @@ class IRC_Server:
         multiprocessing.Process(target=openra_topic.start, args=(self,)).start()
         multiprocessing.Process(target=openra_bugs.start, args=(self,)).start()
         multiprocessing.Process(target=github_commits.start, args=(self,)).start()
-        #multiprocessing.Process(target=openra_game.start, args=(self,)).start()
+        multiprocessing.Process(target=openra_game.start, args=(self,)).start()
 
     # This is the bit that controls connection to a server & channel.
     def connect(self):
@@ -150,10 +150,11 @@ class IRC_Server:
                     imp.reload(kick_e)
                     kick_e.parse_event(self, recv)
 
-                if recv.split()[1] == "MODE":
-                    if recv.split()[3] in ['+v','-v','+o','-o','+h','-h']:
-                        imp.reload(mode_e)
-                        mode_e.parse_event(self, recv)
+                if recv.find ( " MODE " ) != -1:
+                    if ( recv.split()[0] != ":" + self.irc_nick ):
+                        if recv.split()[3] in ['+v','-v','+o','-o','+h','-h']:
+                            imp.reload(mode_e)
+                            mode_e.parse_event(self, recv)
 
                 if recv.find ( " 353 "+self.irc_nick ) != -1:     # NAMES
                     imp.reload(names_e)
@@ -438,10 +439,9 @@ def main():
         ircserver_process.join()
     except KeyboardInterrupt: # Ctrl + C pressed
         pass # We're ignoring that Exception, so the user does not see that this Exception was raised.
-    if ircserver_process.is_alive:
-        ircserver_process.terminate()
-        ircserver_process.join() # Wait for terminate
-    if ircserver_process.exitcode == 0 or ircserver_process.exitcode < 0:
-        print("Bot exited.")
-    else:
-        raise BotCrashed("The bot has crashed")
+    while True:
+        if not ircserver_process.is_alive:
+            ircserver_process.terminate()
+            ircserver_process.join() # Wait for terminate
+            raise BotCrashed("The bot has crashed")
+        time.sleep(30)

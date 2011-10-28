@@ -32,8 +32,11 @@ def parse_event(self, recv):
     transfer_status = []
     for i in range(len(records)):
         channel = records[i][0]
+        status = records[i][1]
+        if ( status == None ):
+            status = ''
         transfer_channel.append(channel)
-        transfer_status.append(records[i][1])
+        transfer_status.append(status)
         self.logs(original_nick, channel, 'nick', new_nick, '')
     sql = """DELETE FROM user_channel
             WHERE user = '"""+original_nick+"""'
