@@ -18,10 +18,9 @@ Subscribe for a new game notifications
 """
 
 import sqlite3
-import config
 
 def notify(self, user, channel):
-    if config.notifications == False:
+    if self.notifications_support == False:
         message = "The bot is run without notifications support!"
         self.send_notice( message, user )
         return

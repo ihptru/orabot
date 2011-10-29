@@ -17,16 +17,14 @@
 Last Command Module: seen, activity, message, game
 """
 
-import config
 import sqlite3
 import re
 import time
 import datetime
-import config
 
 def last(self, user, channel):
     command = (self.command).split()
-    usage = "Usage: " + config.command_prefix + "last {seen|activity|message|game} args"
+    usage = "Usage: " + self.command_prefix + "last {seen|activity|message|game} args"
     if ( len(command) == 1 ):
         self.send_reply( (usage), user, channel )
         return
@@ -34,17 +32,17 @@ def last(self, user, channel):
         if ( len(command) == 3):
             seen(self, user, channel, command[2])
         else:
-            self.send_reply( ("Usage: " + config.command_prefix + "last seen <username>"), user, channel )
+            self.send_reply( ("Usage: " + self.command_prefix + "last seen <username>"), user, channel )
     elif ( command[1].lower() == 'activity' ):
         if ( len(command) >= 3 and len(command) <= 4 ):
             activity(self, user, channel, command[2:])
         else:
-            self.send_reply( ("Usage: " + config.command_prefix + "last activity [-<amount of records>] username"), user, channel )
+            self.send_reply( ("Usage: " + self.command_prefix + "last activity [-<amount of records>] username"), user, channel )
     elif ( command[1].lower() == 'message' ):
         if ( len(command) >= 2 and len(command) <= 4 ):
             message(self, user, channel, command[2:])
         else:
-            self.send_reply( ("Usage: " + config.command_prefix + "last message [-<amount of records>] username"), user, channel )
+            self.send_reply( ("Usage: " + self.command_prefix + "last message [-<amount of records>] username"), user, channel )
     elif ( command[1].lower() == 'game' ):
         if ( len(command) >= 2 and len(command) <= 3 ):
             if ( len(command) == 2 ):
@@ -53,7 +51,7 @@ def last(self, user, channel):
                 arg = command[2]
             game(self, user, channel, arg)
         else:
-            self.send_reply( ("Usage: " + config.command_prefix + "last game [-<amount of records>]"), user, channel )
+            self.send_reply( ("Usage: " + self.command_prefix + "last game [-<amount of records>]"), user, channel )
     else:
         self.send_reply( (usage), user, channel )
 
@@ -144,7 +142,7 @@ def activity(self, user, channel, command_request):
     
     conn, cur = self.db_data()
     flood_protection = 0
-    usage = "Usage: " + config.command_prefix + "last activity [-<amount of records>] username"
+    usage = "Usage: " + self.command_prefix + "last activity [-<amount of records>] username"
     if ( len(command_request) == 1 ):
         username = command_request[0]
         amount_records = '10'
@@ -214,7 +212,7 @@ def message(self, user, channel, command_request):
     """
     
     conn, cur = self.db_data()
-    usage = "Usage: " + config.command_prefix + "last message [-<amount of records>] [username]"
+    usage = "Usage: " + self.command_prefix + "last message [-<amount of records>] [username]"
 
     def messages_from_channel(self, user, channel, usage, cur, conn, command_request):
         flood_protection = 0
@@ -311,7 +309,7 @@ def game(self, user, channel, command_request):
     
     conn, cur = self.db_data()
     flood_protection = 0
-    usage = "Usage: " + config.command_prefix + "last game [-<amount of records>]"
+    usage = "Usage: " + self.command_prefix + "last game [-<amount of records>]"
     if ( command_request == '' ):
         amount_records = '10'
     else:

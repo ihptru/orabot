@@ -18,10 +18,9 @@ Unsubscribe from notifications
 """
 
 import sqlite3
-import config
 
 def unnotify(self, user, channel):
-    if config.notifications == False:
+    if self.notifications_support == False:
         message = "The bot is run without notifications support!"
         self.send_notice( message, user )
         return

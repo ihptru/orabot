@@ -26,7 +26,16 @@ import orabot
 try:
     os.mkdir("var")
 except OSError as e:
-    if e.args[0]==17:   #Run already exists
+    if e.args[0]==17:   #Directory already exists
+        pass    #Ignore
+    else:
+        raise e #Raise exception again
+
+try:
+    os.mkdir("db")
+    os.chmod("db", 0o700)
+except OSError as e:
+    if e.args[0]==17:   #Directory already exists
         pass    #Ignore
     else:
         raise e #Raise exception again

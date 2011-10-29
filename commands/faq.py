@@ -18,7 +18,6 @@ Add/List/Remove faq manuals
 """
 
 import sqlite3
-import config
 
 def faq(self, user, channel):
     command = (self.command).split()
@@ -39,9 +38,9 @@ def faq(self, user, channel):
             self.send_reply( (result), user, channel )
     elif ( len(command) == 2 ):
         if ( command[1] == "set" ):
-            self.send_reply( ("Usage: "+config.command_prefix+"faq set new_item_name item_description"), user, channel )
+            self.send_reply( ("Usage: "+self.command_prefix+"faq set new_item_name item_description"), user, channel )
         elif ( command[1] == "remove" ):
-            self.send_reply( ("Usage: "+config.command_prefix+"faq remove item_name"), user, channel )
+            self.send_reply( ("Usage: "+self.command_prefix+"faq remove item_name"), user, channel )
         else:
             item = command[1]
             sql = """SELECT desc FROM faq
@@ -75,12 +74,12 @@ def faq(self, user, channel):
                 conn.commit()
                 self.send_reply( (item + ": removed"), user, channel )
         elif ( command[1] == "set" ):
-            self.send_reply( ("Usage: "+config.command_prefix+"faq set new_item_name item_description"), user, channel )
+            self.send_reply( ("Usage: "+self.command_prefix+"faq set new_item_name item_description"), user, channel )
         else:
             self.send_reply( ("Error!"), user, channel )
     elif ( len(command) >= 4 ):
         if ( command[1] == "remove" ):
-            self.send_reply( ("Usage: "+config.command_prefix+"faq remove item_name"), user, channel )
+            self.send_reply( ("Usage: "+self.command_prefix+"faq remove item_name"), user, channel )
         elif ( command[1] == "set" ):
             if not self.Admin(user, channel):
                 return

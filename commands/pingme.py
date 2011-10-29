@@ -17,12 +17,11 @@
 Ping you when 'someone' joins IRC
 """
 
-import config
 import re
 import sqlite3
 
 def usage(self, user, channel):
-    self.send_reply( ("Usage: "+config.command_prefix+"pingme when USERNAME join"), user, channel )
+    self.send_reply( ("Usage: "+self.command_prefix+"pingme when USERNAME join"), user, channel )
 
 def pingme(self, user, channel):
     command = (self.command).split()
@@ -75,7 +74,7 @@ def pingme(self, user, channel):
                 self.send_notice( message, user )
                 return
             if ( len(records_list) == 20 ):
-                message = "Sorry, You've already requested `"+config.command_prefix+"pingme` of 20 users! I don't support more..."
+                message = "Sorry, You've already requested `"+self.command_prefix+"pingme` of 20 users! I don't support more..."
                 self.send_notice( message, user )
                 cur.close()
                 return

@@ -14,7 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
-import config
 import re
 import sqlite3
 import urllib.request
@@ -45,11 +44,11 @@ def start(self):
             cur.execute(sql)
             conn.commit()
         cur.close()
-
-    print("Updating commits table...")
-    repos = config.git_repos.split()
+    
+    repos = self.git_repos.split()
     if ( len(repos) == 0 ):
         return  #no repositories specified
+    print("Updating commits table...")
     for repo in repos:
         if ( repo[-1] == '/' ):
             slash = ''
@@ -82,7 +81,7 @@ def start(self):
 
 def detect_commits(self):
     flood_protection = 0
-    repos = config.git_repos.split()
+    repos = self.git_repos.split()
     for repo in repos:
         if ( repo[-1] == '/' ):
             slash = ''
@@ -141,7 +140,7 @@ def detect_commits(self):
                 if flood_protection == 5:
                     time.sleep(5)
                     flood_protection = 0
-                for channel in config.write_commit_notifications_to.split(','):
+                for channel in self.write_commit_notifications_to.split():
                     commit = self.parse_html(commits_to_show[i])
                     self.send_message_to_channel( ("News from "+repo.split('github.com/')[1]+branch+": "+commit), channel )
                 sql = """INSERT INTO commits

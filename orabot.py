@@ -36,11 +36,22 @@ class IRC_Server:
 
     # The default constructor - declaring our global variables
     # This needs to support an alternate nick.
-    def __init__(self, host, port, nick, channel , password =""):
+    def __init__(self, host, port, nick, channels, nickserv, nickserv_password, command_prefix, command_timeout, write_logs, log_channels, notifications_support, write_bug_notifications_to, write_commit_notifications_to, git_repos, change_topic_channel):
         self.irc_host = host
         self.irc_port = port
         self.irc_nick = nick
-        self.irc_channel = channel
+        self.channels = channels
+        self.nickserv = nickserv
+        self.nickserv_password = nickserv_password
+        self.command_prefix = command_prefix
+        self.command_timeout = command_timeout
+        self.write_logs = write_logs
+        self.log_channels = log_channels
+        self.notifications_support = notifications_support
+        self.write_bug_notifications_to = write_bug_notifications_to
+        self.write_commit_notifications_to = write_commit_notifications_to
+        self.git_repos = git_repos
+        self.change_topic_channel = change_topic_channel
         self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
         self.is_connected = False
         self.should_reconnect = False
@@ -53,7 +64,7 @@ class IRC_Server:
 
     def ircbot(self):
         # Create database at first run
-        if not os.path.exists('db/openra.sqlite'):
+        if not os.path.exists('db/'+self.irc_host+'.sqlite'):
             db_process.start(self)
 
         conn, cur = self.db_data()
@@ -64,9 +75,9 @@ class IRC_Server:
         cur.executescript(sql)
         conn.commit()
         cur.close()
-        if ( config.notifications == True ):
+        if ( self.notifications_support == True ):
             # run notifications
-            print("Notifications support...                        OK")
+            print(("[%s] Notifications support...\t\tOK") % (self.irc_host))
             self.notifications()
         self.connect()
 
@@ -89,21 +100,21 @@ class IRC_Server:
         def bot_connect(self):
             str_buff = ("NICK %s \r\n") % (self.irc_nick)
             self.irc_sock.send (str_buff.encode())
-            print ("Setting bot nick to " + str(self.irc_nick) )
+            print (("[%s] Setting bot nick to " + str(self.irc_nick)) % (self.irc_host))
 
             str_buff = ("USER %s 8 * :X\r\n") % (self.irc_nick)
             self.irc_sock.send (str_buff.encode())
-            print ("Setting User")
+            print (("[%s] Setting User") % (self.irc_host))
 
-            for channel in self.irc_channel:
+            for channel in self.channels:
                 str_buff = ( "JOIN %s \r\n" ) % (channel)
                 self.irc_sock.send (str_buff.encode())
-                print ("Joining channel " + channel )
+                print (("[%s] Joining channel " + channel) % (self.irc_host))
         bot_connect(self)
         
-        if config.nickserv == True:
-            print ("Sending request to identify with NickServ...")
-            data = "identify "+config.nickserv_password
+        if self.nickserv == True:
+            print (("[%s] Sending request to identify with NickServ...") % (self.irc_host))
+            data = "identify "+self.nickserv_password
             self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('NickServ', data)).encode() )
 
         self.is_connected = True
@@ -161,13 +172,11 @@ class IRC_Server:
                     names_e.parse_event(self, recv)
 
                 if recv.find ( " NOTICE "+self.irc_nick+" :You are now identified for " ) != -1:
-                    print("NickServ Identification Succeeded\t\tOK")
+                    print(("[%s] NickServ Identification Succeeded\t\tOK") % (self.irc_host))
 
                 if recv.find ( " 433 * "+self.irc_nick+" " ) != -1:
-                    print('Nick is already in use!!!')
+                    print(("[%s] Nick is already in use!!!") % (self.irc_host))
                     return False
-
-                print(recv)
 
         if self.should_reconnect:
             self.connect()
@@ -196,15 +205,17 @@ class IRC_Server:
 
     # This function sends a message to a channel or user
     def send_message_to_channel(self, data, channel):
-        print ( ( "%s: %s") % (self.irc_nick, data) )
+        print ( ( "[%s] %s: %s") % (self.irc_host, self.irc_nick, data) )
         self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (channel, data)).encode() )
+        time.sleep(1)
         ### logs
         self.logs(self.irc_nick, channel, 'privmsg', str(data), '')
 
     def send_notice(self, data, user):
-        print ( ( "NOTICE to %s: %s" ) % (user, data) )
+        print ( ( "[%s] NOTICE to %s: %s" ) % (self.irc_host, user, data) )
         str_buff = ( "NOTICE %s :%s\r\n" ) % (user,data)
         self.irc_sock.send (str_buff.encode())
+        time.sleep(1)
 
     def send_names(self, channel):
         str_buff = ( "NAMES %s \r\n" ) % (channel)
@@ -225,7 +236,7 @@ class IRC_Server:
         return names
 
     def db_data(self):
-        conn = sqlite3.connect('db/openra.sqlite')   # connect to database
+        conn = sqlite3.connect('db/'+self.irc_host+'.sqlite')   # connect to database
         cur=conn.cursor()
         return (conn, cur)
 
@@ -259,12 +270,15 @@ class IRC_Server:
         cur.close()
 
     def logs(self, irc_user, channel, logs_of, some_data, some_more_data):
-        if config.write_logs == True:
+        if self.write_logs == True:
             chan_d = str(channel).replace('#','')
             t = time.localtime( time.time() )
             time_prefix = time.strftime( '%Y-%m-%dT%T', t )
-            filename = config.log_dir + chan_d + time.strftime( '/%Y/%m/%d', t )
-            if channel in config.log_channels.split(','):
+            log_dir = config.log_dir
+            if ( log_dir[-1] != '/' ):
+                log_dir = log_dir + '/'
+            filename = log_dir + self.irc_host + '/' + chan_d + time.strftime( '/%Y/%m/%d', t )
+            if channel in self.log_channels.split():
                 if ( logs_of == 'privmsg' ):
                     row = ' <'+irc_user+'> '+some_data+'\n'
                 elif ( logs_of == 'action' ):
@@ -415,7 +429,7 @@ class IRC_Server:
         if spam_filter.start(self, user, channel):
             # This line makes sure an actual command was sent, not a plain command prefix
             if ( len(command) == 0):
-                error = "Usage: "+config.command_prefix+"command [arguments]"
+                error = "Usage: "+self.command_prefix+"command [arguments]"
                 self.send_reply( (error), user, channel )
                 return
             imp.reload(process_commands)
@@ -426,18 +440,8 @@ class BotCrashed(Exception): # Raised if the bot has crashed.
 
 def main():
     # Here begins the main programs flow:
-    ircserver = IRC_Server(config.server, config.port, config.bot_nick, config.channels.split(','))
-    ircserver_process = multiprocessing.Process(None,ircserver.ircbot,name="IRC Server" )
-    ircserver_process.start()
-    try:
-        while(ircserver.should_reconnect):
-            time.sleep(5)
-        ircserver_process.join()
-    except KeyboardInterrupt: # Ctrl + C pressed
-        pass # We're ignoring that Exception, so the user does not see that this Exception was raised.
-    while True:
-        if not ircserver_process.is_alive:
-            ircserver_process.terminate()
-            ircserver_process.join() # Wait for terminate
-            raise BotCrashed("The bot has crashed")
-        time.sleep(30)
+    for irc_server in config.servers:
+        server_data = eval('config.'+irc_server)
+        ircserver = IRC_Server(server_data['host'], server_data['port'], server_data['bot_nick'], server_data['channels'].split(), server_data['nickserv'], server_data['nickserv_password'], server_data['command_prefix'], server_data['command_timeout'], server_data['write_logs'], server_data['log_channels'], server_data['notifications'], server_data['write_bug_notifications_to'], server_data['write_commit_notifications_to'], server_data['git_repos'], server_data['change_topic_channel'])
+        ircserver_process = multiprocessing.Process(None,ircserver.ircbot,name="IRC Server" )
+        ircserver_process.start()

@@ -18,7 +18,6 @@ import os
 import re
 import signal
 import inspect
-import config
 
 _commands = os.listdir('commands')
 
@@ -55,7 +54,7 @@ def evalCommand(self, commandname, user, channel):
 
             signal.signal(signal.SIGALRM, signal_handler)
 
-            signal.alarm(config.command_timeout)    #Limit command execution time
+            signal.alarm(self.command_timeout)    #Limit command execution time
             try:
                 command_function(self, user, channel)
                 signal.alarm(0)

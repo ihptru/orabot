@@ -17,7 +17,6 @@
 Redirect of specified command's output to specified user
 """
 
-import config
 import re
 import time
 import os

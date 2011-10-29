@@ -14,7 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
-import config
 import urllib.request
 
 def start(self):
@@ -49,7 +48,9 @@ def change_topic(self):
         write_version(release, playtest)
         return
     if ( (release + '\n' not in lines) or (playtest + '\n' not in lines) ):
+        if ( self.change_topic_channel == '' ):
+            return
         topic = "open-source RTS | latest: "+release+" | testing: "+playtest+" | http://open-ra.org | bugs: http://bugs.open-ra.org"
-        self.topic(config.change_topic_channel, topic)
-        print("### DEBUG: made an attempt to change the TOPIC of " + config.change_topic_channel + " ###")
+        self.topic(self.change_topic_channel, topic)
+        print("### DEBUG: made an attempt to change the TOPIC of " + self.change_topic_channel + " ###")
         write_version(release, playtest)

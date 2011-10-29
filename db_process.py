@@ -14,17 +14,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sqlite3
-import os
 
 def start(self):
-    try:
-        os.mkdir("db")
-        os.chmod("db", 0o700)
-    except:
-        print("Error! Can not create a directory, check permissions and try again")
-        return
     conn, cur = self.db_data()
-    print("Creating databases")
+    print(("[%s] Creating databases") % (self.irc_host))
     
     black_list(conn, cur)
     commands(conn, cur)
@@ -42,7 +35,7 @@ def start(self):
     games(conn, cur)
     
     cur.close()
-    print("Creating databases completed.\tOK")
+    print(("[%s] Creating databases completed.\tOK") % (self.irc_host))
     
 def black_list(conn, cur):
     sql = """CREATE TABLE black_list (

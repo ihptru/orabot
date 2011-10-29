@@ -14,7 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
-import config
 import urllib.request
 
 def start(self):
@@ -46,5 +45,5 @@ def bugreport(self):
         file.close()
         bug_report_title = self.parse_html(bug_report_title)
         message = bug_report_title+" | "+bug_report_url
-        for channel in config.write_bug_notifications_to.split(','):
+        for channel in self.write_bug_notifications_to.split():
             self.send_message_to_channel( (message), channel )

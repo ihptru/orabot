@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import config
 import re
 import sqlite3
 
@@ -43,10 +42,10 @@ def parse_event(self, recv):
     ###
     cur.close()
 
-    print ( irc_user_nick + ": " + irc_user_message)
+    print ( ( "[%s] %s: %s" ) % (self.irc_host, irc_user_nick, irc_user_message) )
     # Message starts with command prefix?
     if ( irc_user_message != '' ):
-        if ( irc_user_message[0] == config.command_prefix ):
+        if ( irc_user_message[0] == self.command_prefix ):
             self.command = irc_user_message[1:]
             self.process_command(irc_user_nick, ( chan ))
     ### parse links and bug reports numbers

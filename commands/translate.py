@@ -19,13 +19,12 @@ Translate text using Google API.
 
 import urllib.request
 import urllib.parse
-import config
 
 def translate(self, user, channel):
     command = (self.command).split()
     lang = ['af','sq','ar','be','bg','ca','zh-CN','hr','cs','da','nl','en','et','tl','fi','fr','gl','de','el','iw','hi','hu','is','id','ga','it','ja','ko','lv','lt','mk','ml','mt','no','fa','pl','ro','ru','sr','sk','sl','es','sw','sv','th','tr','uk','vi','cy','yi']
     if ( len(command) < 4 ):
-        usage = "Usage: "+config.command_prefix+"translate <from language> <to language> <text to translate>   |   To find out country code, use: "+config.command_prefix+"lang <pattern>    Where <pattern> is a part of country name | For example, to translate from English to German: "+config.command_prefix+"translate en de Thank you"
+        usage = "Usage: "+self.command_prefix+"translate <from language> <to language> <text to translate>   |   To find out country code, use: "+self.command_prefix+"lang <pattern>    Where <pattern> is a part of country name | For example, to translate from English to German: "+self.command_prefix+"translate en de Thank you"
         self.send_notice(usage, user)
         return
     if command[1].lower() in lang:

@@ -17,7 +17,6 @@
 Command is used to send an offline message to irc user
 """
 
-import config
 import re
 import sqlite3
 
