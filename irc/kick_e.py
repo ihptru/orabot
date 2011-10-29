@@ -31,4 +31,36 @@ def parse_event(self, recv):
     """
     cur.execute(sql)
     conn.commit()
+    
+    ### last activity
+    sql = """INSERT INTO activity
+            (user,act,date_time,channel)
+            VALUES
+            (
+            '"""+whom+"""','kick',strftime('%Y-%m-%d-%H-%M-%S'),'"""+chan+"""'
+            )
+    """
+    cur.execute(sql)
+    conn.commit()
+    ### for ping me
+    sql = """DELETE FROM pingme
+            WHERE who = '"""+whom+"""'
+    """
+    cur.execute(sql)
+    conn.commit()
+    ### for ]pick
+    modes = ['1v1','2v2','3v3','4v4','5v5']
+    for diff_mode in modes:
+        sql = """DELETE FROM pickup_"""+diff_mode+"""
+                WHERE name = '"""+whom+"""'
+        """
+        cur.execute(sql)
+        conn.commit()
+    ### for notify
+    sql = """DELETE FROM notify
+            WHERE user = '"""+whom+"""' AND timeout <> 'f' AND timeout <> 'forever'
+    """
+    cur.execute(sql)
+    conn.commit()
+    
     cur.close()

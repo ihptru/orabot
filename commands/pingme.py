@@ -40,7 +40,7 @@ def pingme(self, user, channel):
             usage(self, user, channel)
             cur.close()
             return
-        user_nicks = self.parse_names(self.get_names(channel))
+        user_nicks = self.get_names(channel)
         user_join = command[2]
         chars = ['`','-','_','[',']','{','}','\\','^']
         for i in range(len(user_join)):

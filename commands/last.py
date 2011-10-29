@@ -194,6 +194,9 @@ def activity(self, user, channel, command_request):
             elif ( records[i][0] == 'nick' ):
                 event = "Change nick"
                 chan = ''
+            elif ( records[i][0] == 'kick' ):
+                event = "Kicked from"
+                chan = ' ' + records[i][2]
             result = time_result(records[i][1])
             message = event + chan + ":" + result
             flood_protection = flood_protection + 1

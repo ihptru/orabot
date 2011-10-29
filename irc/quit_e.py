@@ -59,7 +59,6 @@ def parse_event(self, recv):
     conn.commit()
     ### for ]pick
     modes = ['1v1','2v2','3v3','4v4','5v5']
-    diff_mode = ''
     for diff_mode in modes:
         sql = """DELETE FROM pickup_"""+diff_mode+"""
                 WHERE name = '"""+irc_quit_nick+"""'
