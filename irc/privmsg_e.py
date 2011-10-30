@@ -22,9 +22,9 @@ def parse_event(self, recv):
     irc_user_message = self.data_to_message(recv)
     chan = (recv).split()[2]  #channel
     ###logs
-    if re.search('^.*01ACTION', irc_user_message) and re.search('01$', irc_user_message):
-        irc_user_message_me = irc_user_message.split('01ACTION ')[1][0:-4]
-        self.logs(irc_user_nick, chan, 'action', irc_user_message_me, '')
+    action = re.findall('^ACTION (.*?)$', irc_user_message)
+    if ( len(action) != 0 ):
+        self.logs(irc_user_nick, chan, 'action', action[0], '')
     else:
         self.logs(irc_user_nick, chan, 'privmsg', irc_user_message, '')
     ### logs end

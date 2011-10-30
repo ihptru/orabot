@@ -35,7 +35,6 @@ from notifications import *
 class IRC_Server:
 
     # The default constructor - declaring our global variables
-    # This needs to support an alternate nick.
     def __init__(self, host, port, nick, channels, nickserv, nickserv_password, command_prefix, command_timeout, write_logs, log_channels, notifications_support, write_bug_notifications_to, write_commit_notifications_to, git_repos, change_topic_channel):
         self.irc_host = host
         self.irc_port = port
