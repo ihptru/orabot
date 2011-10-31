@@ -23,16 +23,16 @@ def subscribed(self, user, channel):
     if not self.Admin(user, channel):
         return
     command = (self.command).split()
-    cconn, cur = self.db_data()
+    conn, cur = self.db_data()
     if ( len(command) == 1 ):
         sql = """SELECT user FROM notify
         """
         cur.execute(sql)
+        records = cur.fetchall()
         conn.commit()
-        row = []
         subscribed = []
-        for row in cur:
-            subscribed.append(row[0])
+        for i in range(len(records)):
+            subscribed.append(records[i][0])
         if ( subscribed == [] ):
             self.send_reply( ("No one is subscribed for notifications"), user, channel )
         else:
@@ -43,11 +43,9 @@ def subscribed(self, user, channel):
                 WHERE user = '"""+command[1]+"""'
         """
         cur.execute(sql)
+        records = cur.fetchall()
         conn.commit()
-        row = []
-        for row in cur:
-            pass
-        if ( command[1] in row ):
+        if ( len(records) != 0 ):
             self.send_reply( ("Yes, "+command[1]+" is subscribed for notifications"), user, channel )
         else:
             self.send_reply( ("No, "+command[1]+" is not subscribed for notifications"), user, channel )

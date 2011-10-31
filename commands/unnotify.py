@@ -31,11 +31,9 @@ def unnotify(self, user, channel):
                 WHERE user = '"""+user+"""'
         """
         cur.execute(sql)
+        records = cur.fetchall()
         conn.commit()
-        row = []
-        for row in cur:
-            pass
-        if ( user in row ):
+        if ( len(records) == 1 ):
             sql = """DELETE FROM notify
                     WHERE user = '"""+user+"""'
             """

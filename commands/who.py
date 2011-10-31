@@ -32,15 +32,15 @@ def who(self, user, channel):
                 sql = """SELECT name,host FROM pickup_"""+temp_mode+"""
                 """
                 cur.execute(sql)
+                records = cur.fetchall()
                 conn.commit()
-                row = []
                 name = []
-                for row in cur:
-                    if ( row[1] == 1 ):
-                        name.append(row[0]+"[h]")
+                for i in range(len(records)):
+                    if ( records[i][1] == 1 ):
+                        name.append(records[i][0]+"[h]")
                     else:
-                        name.append(row[0])
-                if name != []:
+                        name.append(records[i][0])
+                if ( name != [] ):
                     names.append(temp_mode + " ["+str(len(name))+"/"+str(amount_players_required)+"]: " + ", ".join(name))
             if names == []:
                 message = "No game going on!"
@@ -55,15 +55,14 @@ def who(self, user, channel):
                 sql = """SELECT name,host FROM pickup_"""+mode+"""
                 """
                 cur.execute(sql)
+                records = cur.fetchall()
                 conn.commit()
-                row = []
-                name = []
-                for row in cur:
-                    if ( row[1] == 1 ):
-                        name.append(row[0]+"[h]")
+                for i in range(len(records)):
+                    if ( records[i][1] == 1 ):
+                        name.append(records[i][0]+"[h]")
                     else:
-                        name.append(row[0])
-                if name == []:
+                        name.append(records[i][0])
+                if ( name == [] ):
                     message = "No players detected for :: "+mode+" ::"
                     self.send_notice( message, user )
                 else:
@@ -72,7 +71,6 @@ def who(self, user, channel):
             else:
                 self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
                 return
-
     else:
         self.send_message_to_channel( ("Error, wrong request"), channel )
     cur.close()

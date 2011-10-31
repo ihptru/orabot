@@ -29,11 +29,11 @@ def weather(self, user, channel):
         weather_usage()
     elif ( len(command) > 1 ):
         if ( command[1] == "--current" ):
-            if ( len(command) == 2 ):
+            if ( len(command) >= 2 ):
                 weather_usage();
             else:
                 try:
-                    location = command[2]
+                    location = " ".join(command[2:])
                     data = pywapi.get_weather_from_google(location)
                     city = data.get("forecast_information").get("city")
                     current = data.get("current_conditions")
@@ -43,11 +43,11 @@ def weather(self, user, channel):
                     message = "Error: No such location could be found."
                     self.send_notice( message, user )
         elif (command[1] == "--forecast" ):
-            if ( len(command) == 2 ):
+            if ( len(command) >= 2 ):
                 weather_usage()
             else:
                 try:
-                    location = command[2]
+                    location = " ".join(command[2:])
                     data = pywapi.get_weather_from_google(location)
                     city = data.get("forecast_information").get("city")
                     length = len(data.get("forecasts"))
@@ -65,11 +65,11 @@ def weather(self, user, channel):
                     message = "Error: No such location could be found."
                     self.send_notice( message, user )
         elif (command[1] == "--all" ):
-            if ( len(command) == 2 ):
+            if ( len(command) >= 2 ):
                 weather_usage()
             else:
                 try:
-                    location = command[2]
+                    location = " ".join(command[2:])
                     data = pywapi.get_weather_from_google(location)
                     city = data.get("forecast_information").get("city")
                     current = data.get("current_conditions")
@@ -89,7 +89,7 @@ def weather(self, user, channel):
                     self.send_notice( message, user )
         else:
             try:
-                location = command[1]
+                location = " ".join(command[1:])
                 data = pywapi.get_weather_from_google(location)
                 city = data.get("forecast_information").get("city")
                 current = data.get("current_conditions")

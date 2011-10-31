@@ -29,11 +29,9 @@ def unsubscribe(self, user, channel):
                 WHERE user = '"""+command[1]+"""'
         """
         cur.execute(sql)
+        records = cur.fetchall()
         conn.commit()
-        row = []
-        for row in cur:
-            pass
-        if command[1] in row:
+        if ( len(records) != 0 ):
             sql = """DELETE FROM notify
                     WHERE user = '"""+command[1]+"""'
             """
