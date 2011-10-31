@@ -17,7 +17,7 @@
 Single elimination tournament brackets generator
 """
 
-import pyrand
+from plugins import pyrand
 
 def randomteam(self, user, channel):
     command = (self.command).split()

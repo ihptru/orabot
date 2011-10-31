@@ -52,5 +52,5 @@ def change_topic(self):
             return
         topic = "open-source RTS | latest: "+release+" | testing: "+playtest+" | http://open-ra.org | bugs: http://bugs.open-ra.org"
         self.topic(self.change_topic_channel, topic)
-        print("### DEBUG: made an attempt to change the TOPIC of " + self.change_topic_channel + " ###")
+        print("[%s] ### DEBUG: made an attempt to change the TOPIC of " + self.change_topic_channel + " ###" % self.irc_host)
         write_version(release, playtest)

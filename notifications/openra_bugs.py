@@ -43,6 +43,8 @@ def bugreport(self):
         file = open(filename, 'a')
         file.write(bug_report_title.split()[1]+"\n")
         file.close()
+        if ( self.write_bug_notifications_to == '' ):
+            return
         bug_report_title = self.parse_html(bug_report_title)
         message = bug_report_title+" | "+bug_report_url
         for channel in self.write_bug_notifications_to.split():

@@ -48,7 +48,9 @@ def start(self):
     repos = self.git_repos.split()
     if ( len(repos) == 0 ):
         return  #no repositories specified
-    print("Updating commits table...")
+    if ( self.write_commit_notifications_to == '' ):
+        return
+    print("[%s] Updating commits table..." % self.irc_host)
     for repo in repos:
         if ( repo[-1] == '/' ):
             slash = ''
@@ -80,7 +82,6 @@ def start(self):
         detect_commits(self)
 
 def detect_commits(self):
-    flood_protection = 0
     repos = self.git_repos.split()
     for repo in repos:
         if ( repo[-1] == '/' ):
@@ -136,10 +137,6 @@ def detect_commits(self):
                         commits_to_show.append(titles[i])
             commits_to_show.reverse()
             for i in range(len(commits_to_show)):
-                flood_protection = flood_protection + 1
-                if flood_protection == 5:
-                    time.sleep(5)
-                    flood_protection = 0
                 for channel in self.write_commit_notifications_to.split():
                     commit = self.parse_html(commits_to_show[i])
                     self.send_message_to_channel( ("News from "+repo.split('github.com/')[1]+branch+": "+commit), channel )
@@ -152,7 +149,6 @@ def detect_commits(self):
                 """
                 cur.execute(sql)
                 conn.commit()
-            flood_protection = 0
             cur.close()
 
 def branch_list(self, repo):

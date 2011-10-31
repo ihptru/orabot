@@ -14,7 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sqlite3
-import time
 
 def parse_event(self, recv):
     conn, cur = self.db_data()
