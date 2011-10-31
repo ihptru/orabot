@@ -350,13 +350,8 @@ class IRC_Server:
                     return True
                 return False
             
-            flood_protection = 0
             matches = re.findall(r"http.?://[^\s]*", message)
             for http_link in matches:
-                flood_protection = flood_protection + 1
-                if flood_protection == 5:
-                    time.sleep(6)
-                    flood_protection = 0
                 link = http_link.split('://')[1]
                 if check_localnetwork(self, link):
                     return
@@ -377,27 +372,20 @@ class IRC_Server:
                             self.send_message_to_channel( ("Title: " + title), channel )
                         except Exception as e:
                             print(e)    #probably socket error or http 404 error in title_from_url() or title not found
-            flood_protection = 0
 
     def parse_bug_num(self, channel, message):
         matches = re.findall("#([0-9]*)", message)
         if ( matches != [] ):
-            flood_protection = 0    
             if re.search("^#", channel):
                 for bug_report in matches:
                     if ( bug_report == '' ):
                         return
-                    flood_protection = flood_protection + 1
-                    if flood_protection == 5:
-                        time.sleep(6)
-                        flood_protection = 0
                     url = 'http://bugs.open-ra.org/issues/'+bug_report
                     try:
                         fetched = self.title_from_url(url).split('OpenRA - ')[1].split(' - open-ra')[0]
                         self.send_message_to_channel( (fetched+" | "+url), channel )
                     except Exception as e:
                         print(e)
-                flood_protection = 0
 
     # This function is for pickup matches code
     def players_for_mode(self, mode):
