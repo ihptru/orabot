@@ -22,8 +22,7 @@ def quit(self, user, channel):
         return
     command = (self.command).split()
     if ( len(command) == 1 ):
-        str_buff = ( "QUIT %s \r\n" ) % (channel)
+        str_buff = ( "QUIT %s :\r\n" ) % (channel)
         self.irc_sock.send (str_buff.encode())
         self.irc_sock.close()
         self.is_connected = False
-        self.should_reconnect = False

@@ -53,7 +53,6 @@ class IRC_Server:
         self.change_topic_channel = change_topic_channel
         self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
         self.is_connected = False
-        self.should_reconnect = False
         self.command = ""
         self.start_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
 
@@ -66,6 +65,11 @@ class IRC_Server:
         if not os.path.exists('db/'+self.irc_host+'.sqlite'):
             db_process.start(self)
 
+        proc_1 = multiprocessing.Process(target=openra_topic.start, args=(self,))
+        proc_2 = multiprocessing.Process(target=openra_bugs.start, args=(self,))
+        proc_3 = multiprocessing.Process(target=github_commits.start, args=(self,))
+        proc_4 = multiprocessing.Process(target=openra_game.start, args=(self,))
+        
         conn, cur = self.db_data()
         sql = """UPDATE users
                 SET state = 0;
@@ -77,18 +81,24 @@ class IRC_Server:
         if ( self.notifications_support == True ):
             # run notifications
             print(("[%s] Notifications support...\t\tOK") % (self.irc_host))
-            self.notifications()
-        self.connect()
+            self.notifications(proc_1, proc_2, proc_3, proc_4)
+        if self.connect():
+            pass
+        else:
+            proc_1.terminate()
+            proc_2.terminate()
+            proc_3.terminate()
+            proc_4.terminate()
+            print("[%s] Terminated child processes" % self.irc_host)
 
-    def notifications(self):
-        multiprocessing.Process(target=openra_topic.start, args=(self,)).start()
-        multiprocessing.Process(target=openra_bugs.start, args=(self,)).start()
-        multiprocessing.Process(target=github_commits.start, args=(self,)).start()
-        multiprocessing.Process(target=openra_game.start, args=(self,)).start()
+    def notifications(self, proc_1, proc_2, proc_3, proc_4):
+        proc_1.start()
+        proc_2.start()
+        proc_3.start()
+        proc_4.start()
 
     # This is the bit that controls connection to a server & channel.
     def connect(self):
-        self.should_reconnect = True
         try:
             self.irc_sock.connect ((self.irc_host, self.irc_port))
         except:
@@ -121,6 +131,9 @@ class IRC_Server:
             if not self.listen():
                 self.irc_nick = self.irc_nick + "_"
                 bot_connect(self)
+            else:
+                self.is_connected = False
+                return False
 
     def listen(self):
         while self.is_connected:
@@ -141,6 +154,10 @@ class IRC_Server:
                     join_e.parse_event(self, recv)
 
                 if recv.find ( " QUIT " ) != -1:
+                    nick = recv.split('!')[0][1:]
+                    if ( nick == self.irc_nick ):
+                        print("[%s] Disconnected" % self.irc_host)
+                        return True
                     imp.reload(quit_e)
                     quit_e.parse_event(self, recv)
 
@@ -176,9 +193,6 @@ class IRC_Server:
                 if recv.find ( " 433 * "+self.irc_nick+" " ) != -1:
                     print(("[%s] Nick is already in use!!!") % (self.irc_host))
                     return False
-
-        if self.should_reconnect:
-            self.connect()
 
     def data_to_message(self, data):
         data = data[data.find(" :")+2:]
@@ -251,7 +265,7 @@ class IRC_Server:
         if (channel[0] == "#"):
             str_buff = ( "PART %s \r\n" ) % (channel)
             self.irc_sock.send ( str_buff.encode() )
-            # This needs to modify the list of active channels
+
     def topic(self, channel, topic):
         str_buff = ("TOPIC %s :%s\r\n") % (channel, topic)
         self.irc_sock.send ( str_buff.encode() )
