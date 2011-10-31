@@ -81,21 +81,25 @@ class IRC_Server:
         if ( self.notifications_support == True ):
             # run notifications
             print(("[%s] Notifications support...\t\tOK") % (self.irc_host))
-            self.notifications(proc_1, proc_2, proc_3, proc_4)
+            self.notifications('start', proc_1, proc_2, proc_3, proc_4)
         if self.connect():
             pass
         else:
+            if ( self.notifications_support == True ):
+                self.notifications('terminate', proc_1, proc_2, proc_3, proc_4)
+                print("[%s] Terminated child processes" % self.irc_host)
+
+    def notifications(self, action, proc_1, proc_2, proc_3, proc_4):
+        if ( action == 'start' ):
+            proc_1.start()
+            proc_2.start()
+            proc_3.start()
+            proc_4.start()
+        elif ( action == 'terminate' ):
             proc_1.terminate()
             proc_2.terminate()
             proc_3.terminate()
             proc_4.terminate()
-            print("[%s] Terminated child processes" % self.irc_host)
-
-    def notifications(self, proc_1, proc_2, proc_3, proc_4):
-        proc_1.start()
-        proc_2.start()
-        proc_3.start()
-        proc_4.start()
 
     # This is the bit that controls connection to a server & channel.
     def connect(self):
