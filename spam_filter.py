@@ -20,7 +20,7 @@ def start(self, user, channel):
     string_command = (self.command)
     conn, cur = self.db_data()
     sql = """SELECT date_time,count FROM black_list
-        WHERE user = '"""+user+"'"+"""
+        WHERE user = '"""+user+"""'
     """
     cur.execute(sql)
     records = cur.fetchall()
@@ -53,7 +53,7 @@ def start(self, user, channel):
             (user,command,date_time)
             VALUES
             (
-            '"""+user+"','"+string_command.replace("'","''")+"',"+"strftime('%Y-%m-%d-%H-%M-%S')"+""" 
+            '"""+user+"""','"""+string_command.replace("'","''")+"""',strftime('%Y-%m-%d-%H-%M-%S')
             )
     """
     cur.execute(sql)
@@ -80,7 +80,7 @@ def start(self, user, channel):
         seconds_range = last_date - first_date  #how many seconds between player's commands
         if seconds_range < 60:  #more than 10 commands per minute. It is too quick, spam!
             sql = """SELECT user,count FROM black_list
-                    WHERE user = '"""+user+"'"+"""
+                    WHERE user = '"""+user+"""'
             """
             cur.execute(sql)
             records = cur.fetchall()
@@ -91,7 +91,7 @@ def start(self, user, channel):
                     (user,date_time,count)
                     VALUES
                     (
-                    '"""+user+"',strftime('%Y-%m-%d-%H-%M-%S'),"+str(6)+"""
+                    '"""+user+"""',strftime('%Y-%m-%d-%H-%M-%S'),"""+str(6)+"""
                     )                   
                 """
                 cur.execute(sql)
@@ -100,13 +100,13 @@ def start(self, user, channel):
                 count_ignore = int(records[0][1])
                 count_ignore = count_ignore + 6
                 sql = """UPDATE black_list
-                        SET count = """+str(count_ignore)+", "+"""date_time = strftime('%Y-%m-%d-%H-%M-%S')
-                        WHERE user = '"""+user+"'"+""" 
+                        SET count = """+str(count_ignore)+""", date_time = strftime('%Y-%m-%d-%H-%M-%S')
+                        WHERE user = '"""+user+"""'
                 """
                 cur.execute(sql)
                 conn.commit()
             sql = """SELECT count FROM black_list
-                WHERE user = '"""+user+"'"+"""
+                WHERE user = '"""+user+"""'
             """
             cur.execute(sql)
             records = cur.fetchall()

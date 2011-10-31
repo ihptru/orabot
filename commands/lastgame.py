@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Shows information of the last game generated
+Shows information of the pickup last game generated
 """
 
 import sqlite3

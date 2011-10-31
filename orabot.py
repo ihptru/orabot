@@ -285,7 +285,7 @@ class IRC_Server:
                 elif ( logs_of == 'join' ):
                     row = ' *** '+irc_user+' <'+some_data+'> has joined '+channel+'\n'
                 elif ( logs_of == 'quit' ):
-                    row = ' *** '+irc_user+' <'+some_data+'> has quit IRC\n'
+                    row = ' *** '+irc_user+' <'+some_data+'> has quit IRC'+some_more_data+'\n'
                 elif ( logs_of == 'part' ):
                     row = ' *** '+irc_user+' <'+some_data+'> has left '+channel+'\n'
                 elif ( logs_of == 'nick' ):

@@ -19,6 +19,10 @@ def parse_event(self, recv):
     conn, cur = self.db_data()
     irc_quit_nick = recv.split( "!" )[ 0 ].split( ":" ) [ 1 ]
     irc_quit_host = recv.split()[0].split('!')[1]
+    try:
+        reason = ' ('+recv.split('QUIT :')[1]+')'
+    except:
+        reason = ''
     ### last activity
     sql = """INSERT INTO activity
             (user,act,date_time)
@@ -44,7 +48,7 @@ def parse_event(self, recv):
     conn.commit()
     for i in range(len(records)):
         channel = records[i][0]
-        self.logs(irc_quit_nick, channel, 'quit', irc_quit_host, '')
+        self.logs(irc_quit_nick, channel, 'quit', irc_quit_host, reason)
     sql = """DELETE FROM user_channel
             WHERE user = '"""+irc_quit_nick+"""'
     """

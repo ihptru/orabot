@@ -123,37 +123,22 @@ def parse_event(self, recv):
             cur.execute(sql)
             conn.commit()
         ###
-        sql = """SELECT reciever FROM later
+        sql = """SELECT sender,channel,date,message FROM later
                 WHERE reciever = '"""+irc_join_nick+"'"+"""
         """
         cur.execute(sql)
+        records = cur.fetchall()
         conn.commit()
-
-        row = []
-        for row in cur:
-            pass
-        if irc_join_nick in row:    #he has messages in database, read it
-            sql = """SELECT * FROM later
-                    WHERE reciever = '"""+irc_join_nick+"'"+"""
-            """
-            cur.execute(sql)
-            conn.commit()
-            row = []
-            msgs = []
-            for row in cur:
-                msgs.append(row)
-            msgs_length = len(msgs) #number of messages for player
-            self.send_message_to_channel( ("You have "+str(msgs_length)+" offline messages:"), irc_join_nick )
-            for i in range(int(msgs_length)):
-                who_sent = msgs[i][1]
-                on_channel = msgs[i][3]
-                message_date = msgs[i][4]
-                offline_message = msgs[i][5]
-                self.send_message_to_channel( ("### From: "+who_sent+";  channel: "+on_channel+";  date: "+message_date), irc_join_nick )
-                self.send_message_to_channel( (offline_message), irc_join_nick )
-            time.sleep(0.1)
+        if ( len(records) != 0 ):    #he has messages in database, read it
+            messages_ = len(records) #number of messages for player
+            self.send_message_to_channel( ("You have "+str(messages_)+" offline messages:"), irc_join_nick )
+            for i in range(messages_):
+                date_l = "-".join(records[i][2].split('-')[0:3])
+                time_l = ":".join(records[i][2].split('-')[3:5])
+                self.send_message_to_channel( ("### From: "+records[i][0]+";  channel: "+records[i][1]+";  date: "+date_l+" "+time_l), irc_join_nick )
+                self.send_message_to_channel( (records[i][3]), irc_join_nick )
             sql = """DELETE FROM later
-                    WHERE reciever = '"""+irc_join_nick+"'"+"""
+                    WHERE reciever = '"""+irc_join_nick+"""'
             """
             cur.execute(sql)
             conn.commit()
