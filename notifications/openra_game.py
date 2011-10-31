@@ -29,7 +29,6 @@ def parse_list(self, notify_ip_list, notify_players_list):
     ip_current_games = []
     players_current_games = []
     timeouts = ['s','m','h','d']
-    flood_protection = 0
     url = 'http://master.open-ra.org/list.php'
     try:
         stream = self.data_from_url(url, None)
@@ -91,10 +90,6 @@ def parse_list(self, notify_ip_list, notify_players_list):
                         if ( data != [] ):
                             length_data = len(data)
                             for i in range(int(length_data)):
-                                flood_protection = flood_protection + 1
-                                if flood_protection == 5:
-                                    time.sleep(5)
-                                    flood_protection = 0
                                 db_user = data[i][0]
                                 db_date = data[i][1]
                                 db_mod = data[i][2]
@@ -113,7 +108,6 @@ def parse_list(self, notify_ip_list, notify_players_list):
                                             check_num_players = False
                                         if ( check_num_players == True ):
                                             check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn)
-                            flood_protection = 0
                         cur.close()
             else:   #ip is not in a list
                 if ( state == 'State: 1' ):
@@ -132,10 +126,6 @@ def parse_list(self, notify_ip_list, notify_players_list):
                         if ( data != [] ):
                             length_data = len(data)
                             for i in range(int(length_data)):
-                                flood_protection = flood_protection + 1
-                                if flood_protection == 5:
-                                    time.sleep(5)
-                                    flood_protection = 0
                                 db_user = data[i][0]
                                 db_date = data[i][1]
                                 db_mod = data[i][2]
@@ -154,7 +144,6 @@ def parse_list(self, notify_ip_list, notify_players_list):
                                             check_num_players = True
                                         if ( check_num_players == True ):
                                             check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn)
-                            flood_protection = 0
                         cur.close()
         length = len(notify_ip_list)
         indexes = []

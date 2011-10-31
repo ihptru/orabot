@@ -59,13 +59,13 @@ def start(self):
         repo = repo + slash
         branches = branch_list(self, repo)
         if ( len(branches) == 0 ):
-            print("Error fetching list of branches from repo: " + repo)
+            print("[%s] Error fetching list of branches from repo: " + repo % self.irc_host)
         else:
             for branch in branches:
                 url = repo + branch
                 titles = get_commits(self, url)
                 if ( len(titles) == 0 ):
-                    print("### Something went wrong fetching commits info! ###")
+                    print("[%s] ### Something went wrong fetching commits info! ###" % self.irc_host)
                     conn, cur = self.db_data()
                     sql = """DELETE FROM commits
                             WHERE repo = '"""+repo+"""' AND branch = '"""+branch+"""'
@@ -75,7 +75,7 @@ def start(self):
                     cur.close()
                 else:
                     update_commits(self, titles, repo, branch)
-    print("Updating commits table completed!")
+    print("[%s] Updating commits table completed!" % self.irc_host)
     
     while True:
         time.sleep(60)
@@ -91,7 +91,7 @@ def detect_commits(self):
         repo = repo + slash
         branches = branch_list(self, repo)
         if ( len(branches) == 0 ):
-            print("Error fetching list of branches from repo: " + repo)
+            print("[%s] Error fetching list of branches from repo: " + repo % self.irc_host)
             return
         for branch in branches:
             url = repo + branch
@@ -104,7 +104,7 @@ def detect_commits(self):
             conn.commit()
             titles = get_commits(self, url)
             if ( len(titles) == 0 ):
-                print("### Something went wrong fetching commits info! ###")
+                print("[%s] ### Something went wrong fetching commits info! ###" % self.irc_host)
                 return
             if ( len(records) == 0 ):   #There was an error at notification's start (probably fetching error(caused by socket)), so `commits` table is clear
                 ### current fetch is full of commits, so we fill table; return; do not notify
