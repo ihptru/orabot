@@ -28,13 +28,14 @@ def lastgame(self, user, channel):
                     ORDER BY uid DESC LIMIT 1
             """
             cur.execute(sql)
+            records = cur.fetchall()
             conn.commit()
-            row = []
-            for row in cur:
-                pass
-            last_date = "-".join(row[5].split('-')[0:3])
-            last_time = ":".join(row[5].split('-')[3:5])
-            message = "@ "+row[2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+row[3]+" || Map: "+row[4]+" || Team 1: "+row[0]+" || Team 2: "+row[1]
+            if ( len(records) == 0 ):
+                self.send_notice( 'No games played', user )
+                return
+            last_date = "-".join(records[0][5].split('-')[0:3])
+            last_time = ":".join(records[0][5].split('-')[3:5])
+            message = "@ "+records[0][2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+records[0][3]+" || Map: "+records[0][4]+" || Team 1: "+records[0][0]+" || Team 2: "+records[0][1]
             self.send_notice( message, user )
         else:
             modes = ['1v1','2v2','3v3','4v4','5v5']
@@ -45,14 +46,12 @@ def lastgame(self, user, channel):
                     ORDER BY uid DESC LIMIT 1
                 """
                 cur.execute(sql)
+                records = cur.fetchall()
                 conn.commit()
-                row = []
-                for row in cur:
-                    pass
-                if row != []:
-                    last_date = "-".join(row[5].split('-')[0:3])
-                    last_time = ":".join(row[5].split('-')[3:5])
-                    message = "@ "+row[2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+row[3]+" || Map: "+row[4]+" || Team 1: "+row[0]+" || Team 2: "+row[1]
+                if ( len(records) != 0 ):
+                    last_date = "-".join(records[0][5].split('-')[0:3])
+                    last_time = ":".join(records[0][5].split('-')[3:5])
+                    message = "@ "+records[0][2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+records[0][3]+" || Map: "+records[0][4]+" || Team 1: "+records[0][0]+" || Team 2: "+records[0][1]
                     self.send_notice( message, user )
                 else:
                     message = "No "+mode+" games played"
