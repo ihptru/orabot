@@ -17,14 +17,13 @@
 Command is used to send an offline message to irc user
 """
 
-import re
 import sqlite3
 
 def later(self, user, channel):
     command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) >= 3 ):
-        if re.search("^#", channel):
+        if ( channel.startswith('#') ):
             user_nick = command[1].replace("'", "''") #reciever
             if ( user_nick == user ):
                 self.send_message_to_channel( (user+", you can not send a message to yourself"), channel)
@@ -36,22 +35,20 @@ def later(self, user, channel):
                 else:   #reciever is not on the channel
                     #check if he exists in database
                     sql = """SELECT user FROM users
-                            WHERE user = '"""+user_nick+"'"+"""
+                            WHERE user = '"""+user_nick+"""'
                     
                     """
                     cur.execute(sql)
+                    records = cur.fetchall()
                     conn.commit()
-                    row = ''
-                    for row in cur:
-                        pass
-                    if user_nick not in row:
+                    if ( len(records) == 0 ):
                         self.send_message_to_channel( ("Error! No such user in my database"), channel)
                     else:   #user exists
                         sql = """INSERT INTO later
                                 (sender,reciever,channel,date,message)
                                 VALUES
                                 (
-                                '"""+user+"','"+user_nick+"','"+channel+"',strftime('%Y-%m-%d-%H-%M'),'"+user_message.replace("'","''")+"""'
+                                '"""+user+"""','"""+user_nick+"""','"""+channel+"""',strftime('%Y-%m-%d-%H-%M'),'"""+user_message.replace("'","''")+"""'
                                 )
                         """
                         cur.execute(sql)

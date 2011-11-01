@@ -108,19 +108,17 @@ def seen(self, user, channel, request_user):
             cur.close()
             return
         else:
-            sql = """SELECT * FROM users
-                    WHERE user = '"""+request_user+"'"+"""
+            sql = """SELECT user,date,state FROM users
+                    WHERE user = '"""+request_user+"""'
             """
             cur.execute(sql)
+            records = cur.fetchall()
             conn.commit()
-            row = []
-            for row in cur:
-                pass
-            if request_user not in row:   #user not found
+            if ( len(records) == 0 ):   #user not found
                 self.send_message_to_channel( ("Error! No such user in my database"), channel)
             else:
-                last_time = row[2]
-                state = row[3]
+                last_time = records[0][1]
+                state = records[0][2]
                 if state == True:
                     self.send_message_to_channel( ("User is somewhere online on IRC Network!"), channel)
                     cur.close()

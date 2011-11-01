@@ -26,19 +26,17 @@ def complain(self, user, channel):
     conn, cur = self.db_data()
     if ( len(command) == 2 ):
         name = command[1]
-        sql = """SELECT name,complaints FROM pickup_stats
+        sql = """SELECT complaints FROM pickup_stats
                 WHERE name = '"""+name+"""'
         """
         cur.execute(sql)
+        records = cur.fetchall()
         conn.commit()
-        row = []
-        for row in cur:
-            pass
-        if name not in row:
+        if ( len(records) == 0 ):
             message = "No such a user"
             self.send_notice( message, user )
         else:
-            complaints = row[1]
+            complaints = records[0][0]
             complaints = str(int(complaints) + 1)
             sql = """UPDATE pickup_stats
                     SET complaints = """+complaints+"""

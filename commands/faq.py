@@ -98,7 +98,7 @@ def faq(self, user, channel):
                         (item,whoset,desc)
                         VALUES
                         (
-                        '"""+item+"','"+user+"','"+desc+"""'
+                        '"""+item+"""','"""+user+"""','"""+desc+"""'
                         )
                 """
                 cur.execute(sql)
