@@ -30,16 +30,13 @@ def promote(self, user, channel):
             sql = """SELECT name FROM pickup_"""+mode+"""
             """
             cur.execute(sql)
+            records = cur.fetchall()
             conn.commit()
-            row = []
-            name = []
-            for row in cur:
-                name.append(row[0])
-            if ( name == [] ):
+            if ( len(records) == 0 ):
                 message = "Promote Error, no players added for "+mode
                 self.send_notice( message, user )
             else:
-                message = "Please add up for :: "+mode+" :: ! "+ str(amount_players_required-int(len(name))) + " more people needed! (Type ]add "+mode+"  or  ]add "+mode+" host  ,if you can host)"
+                message = "Please add up for :: "+mode+" :: ! "+ str(amount_players_required-int(len(records))) + " more people needed! (Type "+self.command_prefix+"add "+mode+"  or  "+self.command_prefix+"add "+mode+" host  ,if you can host)"
                 self.send_message_to_channel( (message), channel )
         else:
             self.send_message_to_channel( ("Invalid game mode! Try again"), channel )

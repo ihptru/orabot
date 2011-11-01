@@ -26,17 +26,14 @@ def pickup_remove(self, user, channel):
     conn, cur = self.db_data()
     if ( len(command) == 2 ):
         modes = ['1v1','2v2','3v3','4v4','5v5']
-        temp_mode = ''
         for temp_mode in modes:
             sql = """SELECT name FROM pickup_"""+temp_mode+"""
                     WHERE name = '"""+command[1]+"""'
             """
             cur.execute(sql)
+            records = cur.fetchall()
             conn.commit()
-            row = []
-            for row in cur:
-                pass
-            if command[1] in row:
+            if ( len(records) != 0 ):
                 sql = """DELETE FROM pickup_"""+temp_mode+"""
                         WHERE name = '"""+command[1]+"""'
                 """

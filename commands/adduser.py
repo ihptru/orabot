@@ -26,16 +26,13 @@ def adduser(self, user, channel):
     conn, cur = self.db_data()
     if ( len(command) == 2 ):
         nick = command[1]
-
-        sql = """SELECT * FROM users
-                WHERE user = '"""+nick+"'"+"""
+        sql = """SELECT user FROM users
+                WHERE user = '"""+nick+"""'
         """
         cur.execute(sql)
+        records = cur.fetchall()
         conn.commit()
-        row = []
-        for row in cur:
-            pass
-        if nick in row: #users exists in database already
+        if ( len(records) != 0 ): #users exists in database already
             self.send_reply( ("Error! User already exists"), user, channel )
         else:   
             sql = """INSERT INTO users

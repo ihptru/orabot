@@ -411,6 +411,9 @@ class IRC_Server:
 
     # Special admin commands for Op/HalfOp/Voice
     def Admin(self, user, channel):
+        if ( not channel.startswith('#') ):
+            self.send_reply( ("Admin commands can be used only on a channel!"), user, channel )
+            return False
         conn, cur = self.db_data()
         sql = """SELECT status FROM user_channel
                 WHERE user = '"""+user+"""' AND channel = '"""+channel+"""'

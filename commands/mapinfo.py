@@ -31,15 +31,13 @@ def mapinfo(self, user, channel):
                         ORDER BY RANDOM() LIMIT 1
                 """
                 cur.execute(sql)
+                records = cur.fetchall()
                 conn.commit()
-                row = []
-                for row in cur:
-                    pass
-                if ( row[2] == '' ):
+                if ( records[0][2] == '' ):
                     description = ''
                 else:
-                    description = " - Description: "+row[2]
-                self.send_reply( ("Map name: "+row[1]+" - Mod: "+row[0]+description+" - Author: "+row[3]+" - Max Players: "+str(row[6])+" - Type: "+row[4]+" - Titleset: "+row[5]), user, channel )
+                    description = " - Description: "+records[0][2]
+                self.send_reply( ("Map name: "+records[0][1]+" - Mod: "+records[0][0]+description+" - Author: "+records[0][3]+" - Max Players: "+str(records[0][6])+" - Type: "+records[0][4]+" - Titleset: "+records[0][5]), user, channel )
             else:
                 self.send_reply( ("Error, wrong request"), user, channel )
         else:
@@ -61,21 +59,18 @@ def mapinfo(self, user, channel):
                     WHERE upper(title) LIKE upper('%"""+map_pattern+"""%') and upper(mod) LIKE upper('%"""+mod+"""%')
             """
             cur.execute(sql)
+            records = cur.fetchall()
             conn.commit()
-            row = []
-            data = []
-            for row in cur:
-                data.append(row)
-            if ( len(data) == 0 ):
+            if ( len(records) == 0 ):
                 self.send_reply( ("Map is not found!"), user, channel )
                 cur.close()
                 return
-            elif ( len(data) == 1 ):
-                if ( row[2] == '' ):
+            elif ( len(records) == 1 ):
+                if ( records[0][2] == '' ):
                     description = ''
                 else:
-                    description = " - Description: "+row[2]
-                self.send_reply( ("Map name: "+row[1]+" - Mod: "+row[0]+description+" - Author: "+row[3]+" - Max Players: "+str(row[6])+" - Type: "+row[4]+" - Titleset: "+row[5]), user, channel )
+                    description = " - Description: "+records[0][2]
+                self.send_reply( ("Map name: "+records[0][1]+" - Mod: "+records[0][0]+description+" - Author: "+records[0][3]+" - Max Players: "+str(records[0][6])+" - Type: "+records[0][4]+" - Titleset: "+records[0][5]), user, channel )
             else:
                 self.send_reply( ("Too many matches!"), user, channel )
                 cur.close()

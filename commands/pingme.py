@@ -41,7 +41,7 @@ def pingme(self, user, channel):
             return
         user_nicks = self.get_names(channel)
         user_join = command[2]
-        chars = ['`','-','_','[',']','{','}','\\','^']
+        chars = ['`','-','_','[',']','{','}','\\','^']  #char which CAN be used in irc nick
         for i in range(len(user_join)):
             if ( (user_join[i] not in chars) and ( not re.search('[a-zA-Z0-9]', user_join[i])) ):
                 self.send_message_to_channel( ("Username Error!"), channel)
@@ -61,7 +61,7 @@ def pingme(self, user, channel):
                     (who,users_back)
                     VALUES
                     (
-                    '"""+user+"','"+user_join+"""'
+                    '"""+user+"""','"""+user_join+"""'
                     )
             """
             cur.execute(sql)

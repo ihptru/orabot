@@ -18,8 +18,6 @@ Command is used to show 10 last commands sent to bot
 """
 
 import sqlite3
-import time
-import re
 
 def log(self, user, channel):
     if not self.Admin(user, channel):
@@ -27,22 +25,13 @@ def log(self, user, channel):
     command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) == 1 ):
-        sql = """SELECT * FROM commands
+        sql = """SELECT user,command,date_time FROM commands
                 ORDER BY uid DESC LIMIT 10
         """
         cur.execute(sql)
+        records = cur.fetchall()
         conn.commit()
-        row = []
-        logs = []
-        actual = []
-        for row in cur:
-            logs.append(row)
-        for i in range(len(logs)):
-            actual.append(logs[i][1])
-            actual.append(logs[i][2])
-            actual.append(logs[i][3])
-            message = "User: "+actual[0]+"; Date: "+actual[2]+"; Command: ]"+actual[1]
+        for i in range(len(records)):
+            message = "User: "+records[i][0]+"; Date: "+records[i][2]+"; Command: "+self.command_prefix+records[i][1]
             self.send_notice( message, user )
-            actual = []
-            time.sleep(0.5)
     cur.close()

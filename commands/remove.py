@@ -27,17 +27,14 @@ def remove(self, user, channel):
         if ( len(command) >= 1 ) and ( len(command) < 3 ):
             modes = ['1v1','2v2','3v3','4v4','5v5']
             if ( len(command) == 1 ):
-                temp_mode = ''
                 for temp_mode in modes:
                     sql = """SELECT name FROM pickup_"""+temp_mode+"""
                             WHERE name = '"""+user+"""'
                     """
                     cur.execute(sql)
+                    records = cur.fetchall()
                     conn.commit()
-                    row = []
-                    for row in cur:
-                        pass
-                    if user in row:
+                    if ( len(records) != 0 ):
                         sql = """DELETE FROM pickup_"""+temp_mode+"""
                                 WHERE name = '"""+user+"""'
                         """
@@ -55,11 +52,9 @@ def remove(self, user, channel):
                             WHERE name = '"""+user+"""'
                     """
                     cur.execute(sql)
+                    records = cur.fetchall()
                     conn.commit()
-                    row = []
-                    for row in cur:
-                        pass
-                    if user in row:
+                    if ( len(records) != 0 ):
                         sql = """DELETE FROM pickup_"""+mode+"""
                                 WHERE name = '"""+user+"""'
                         """
