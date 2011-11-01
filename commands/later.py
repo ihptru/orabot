@@ -24,7 +24,7 @@ def later(self, user, channel):
     conn, cur = self.db_data()
     if ( len(command) >= 3 ):
         if ( channel.startswith('#') ):
-            user_nick = command[1].replace("'", "''") #reciever
+            user_nick = command[1] #reciever
             if ( user_nick == user ):
                 self.send_message_to_channel( (user+", you can not send a message to yourself"), channel)
             else:
@@ -48,7 +48,7 @@ def later(self, user, channel):
                                 (sender,reciever,channel,date,message)
                                 VALUES
                                 (
-                                '"""+user+"""','"""+user_nick+"""','"""+channel+"""',strftime('%Y-%m-%d-%H-%M'),'"""+user_message.replace("'","''")+"""'
+                                '"""+user+"""','"""+user_nick+"""','"""+channel+"""',strftime('%Y-%m-%d-%H-%M'),'"""+user_message+"""'
                                 )
                         """
                         cur.execute(sql)

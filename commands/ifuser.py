@@ -23,7 +23,7 @@ def ifuser(self, user, channel):
     command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) == 2 ):
-        nick = command[1].replace("'","''")
+        nick = command[1]
         sql = """SELECT user FROM users
                 WHERE user = '"""+nick+"""'
         """

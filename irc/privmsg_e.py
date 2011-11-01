@@ -46,7 +46,7 @@ def parse_event(self, recv):
     # Message starts with command prefix?
     if ( irc_user_message != '' ):
         if ( irc_user_message[0] == self.command_prefix ):
-            self.command = irc_user_message[1:]
+            self.command = irc_user_message[1:].replace("'","''")
             self.process_command(irc_user_nick, ( chan ))
     ### parse links and bug reports numbers
     self.parse_link(chan, irc_user_nick, irc_user_message)

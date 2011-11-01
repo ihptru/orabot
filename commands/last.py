@@ -98,7 +98,7 @@ def seen(self, user, channel, request_user):
     Shows when user was last seen on the channel
     """
     if ( "'" in request_user ):
-        self.send_message_to_channel( ("Error! No such user in my database"), channel)
+        self.send_reply( ("Error! No such user in my database"), user, channel)
         return
     conn, cur = self.db_data()
     if re.search("^#", channel):
@@ -115,7 +115,7 @@ def seen(self, user, channel, request_user):
             records = cur.fetchall()
             conn.commit()
             if ( len(records) == 0 ):   #user not found
-                self.send_message_to_channel( ("Error! No such user in my database"), channel)
+                self.send_reply( ("Error! No such user in my database"), user, channel)
             else:
                 last_time = records[0][1]
                 state = records[0][2]
