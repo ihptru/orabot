@@ -24,16 +24,16 @@ def ifuser(self, user, channel):
     conn, cur = self.db_data()
     if ( len(command) == 2 ):
         nick = command[1].replace("'","''")
-        sql = """SELECT * FROM users
-                WHERE user = '"""+nick+"'"+"""
+        sql = """SELECT user FROM users
+                WHERE user = '"""+nick+"""'
         """
         cur.execute(sql)
+        records = cur.fetchall()
         conn.commit()
-
-        row = []
-        for row in cur:
-            pass
-        result = str( nick in row )
+        if ( len(records) == 0 ):
+            result = 'False'
+        else:
+            result = 'True'
         self.send_reply( (result), user, channel )
     else:
         self.send_reply( ("Error, wrong request"), user, channel )
