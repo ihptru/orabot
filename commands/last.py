@@ -104,7 +104,7 @@ def seen(self, user, channel, request_user):
     if re.search("^#", channel):
         user_nicks = self.get_names(channel)
         if request_user in user_nicks:  #reciever is on the channel right now
-            self.send_message_to_channel( ("User is online!"), channel)
+            self.send_reply( ("User is online!"), user, channel)
             cur.close()
             return
         else:
@@ -120,14 +120,14 @@ def seen(self, user, channel, request_user):
                 last_time = records[0][1]
                 state = records[0][2]
                 if state == True:
-                    self.send_message_to_channel( ("User is somewhere online on IRC Network!"), channel)
+                    self.send_reply( ("User is somewhere online on IRC Network!"), user, channel)
                     cur.close()
                     return
                 if ( last_time == None or last_time == '' ):
-                    self.send_message_to_channel( ("Sorry, I don't have any record of when user left"), channel)
+                    self.send_reply( ("Sorry, I don't have any record of when user left"), user, channel)
                 else:
                     result = time_result(last_time)
-                    self.send_message_to_channel( (request_user + " was last seen" + result), channel)
+                    self.send_reply( (request_user + " was last seen" + result), user, channel)
     else:
         self.send_message_to_channel( ("You can use `]last seen` only on a channel"), user)
     cur.close()

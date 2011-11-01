@@ -69,8 +69,8 @@ def who(self, user, channel):
                     message = "@ " + mode + " ["+str(len(name))+"/"+str(amount_players_required)+"]: " + ", ".join(name)
                     self.send_notice( message, user )
             else:
-                self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
+                self.send_reply( ("Invalid game mode! Try again"), user, channel )
                 return
     else:
-        self.send_message_to_channel( ("Error, wrong request"), channel )
+        self.send_reply( ("Error, wrong request"), user, channel )
     cur.close()

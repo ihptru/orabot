@@ -44,10 +44,10 @@ def pingme(self, user, channel):
         chars = ['`','-','_','[',']','{','}','\\','^']  #char which CAN be used in irc nick
         for i in range(len(user_join)):
             if ( (user_join[i] not in chars) and ( not re.search('[a-zA-Z0-9]', user_join[i])) ):
-                self.send_message_to_channel( ("Username Error!"), channel)
+                self.send_reply( ("Username Error!"), user, channel)
                 return
         if user_join in user_nicks:  #reciever is on the channel right now
-            self.send_message_to_channel( ("User is online!"), channel)
+            self.send_reply( ("User is online!"), user, channel)
             cur.close()
             return
         sql = """SELECT users_back FROM pingme

@@ -26,12 +26,12 @@ def later(self, user, channel):
         if ( channel.startswith('#') ):
             user_nick = command[1] #reciever
             if ( user_nick == user ):
-                self.send_message_to_channel( (user+", you can not send a message to yourself"), channel)
+                self.send_reply( (user+", you can not send a message to yourself"), user, channel)
             else:
                 user_message = " ".join(command[2:])  #message
                 user_nicks = self.get_names(channel)
                 if user_nick in user_nicks:  #reciever is on the channel right now
-                    self.send_message_to_channel( (user+", "+user_nick+" is on the channel right now!"), channel)
+                    self.send_reply( (user+", "+user_nick+" is on the channel right now!"), user, channel)
                 else:   #reciever is not on the channel
                     #check if he exists in database
                     sql = """SELECT user FROM users
@@ -42,7 +42,7 @@ def later(self, user, channel):
                     records = cur.fetchall()
                     conn.commit()
                     if ( len(records) == 0 ):
-                        self.send_message_to_channel( ("Error! No such user in my database"), channel)
+                        self.send_reply( ("Error! No such user in my database"), user, channel)
                     else:   #user exists
                         sql = """INSERT INTO later
                                 (sender,reciever,channel,date,message)
@@ -53,7 +53,7 @@ def later(self, user, channel):
                         """
                         cur.execute(sql)
                         conn.commit()
-                        self.send_message_to_channel( ("The operation succeeded"), channel)
+                        self.send_reply( ("The operation succeeded"), user, channel)
         else:
             self.send_message_to_channel( ("You can use ]later only on a channel"), user)
     else:

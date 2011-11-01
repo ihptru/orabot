@@ -66,10 +66,10 @@ def remove(self, user, channel):
                     message = "Error, you are not detected added to :: "+mode+" ::"
                     self.send_notice( message, user )
                 else:
-                    self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
+                    self.send_reply( ("Invalid game mode! Try again"), user, channel )
                     return
         else:
-            self.send_message_to_channel( ("Error, wrong request"), channel )
+            self.send_reply( ("Error, wrong request"), user, channel )
     else:
         self.send_message_to_channel( ("]remove can be used only on a channel"), user )
     cur.close()

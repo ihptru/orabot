@@ -30,7 +30,7 @@ def add(self, user, channel):
         if ( len(command) > 1 ) and ( len(command) < 4 ):   #normal about of arguments
             modes = ['1v1','2v2','3v3','4v4','5v5']
             if ( command[1] not in modes ):
-                self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
+                self.send_reply( ("Invalid game mode! Try again"), user, channel )
                 return
             else:
                 host = '0'
@@ -38,7 +38,7 @@ def add(self, user, channel):
                     if ( command[2] == 'host' ):
                         host = '1'  #user can host a game
                     else:
-                        self.send_message_to_channel( ("What is '"+command[2]+"'? Try again"), channel )
+                        self.send_reply( ("What is '"+command[2]+"'? Try again"), user, channel )
                         return
 
                 amount_players_required = self.players_for_mode(command[1])
@@ -53,7 +53,7 @@ def add(self, user, channel):
                 if ( len(records) != 0 ):
                     num_complaints = records[0][0]
                     if ( int(num_complaints) > 10 ):
-                        self.send_message_to_channel( ("You have too many complaints, please contact more privileged user to figure out this issue"), channel )
+                        self.send_reply( ("You have too many complaints, please contact more privileged user to figure out this issue"), user, channel )
                         return
                 mode = command[1]
                 sql = """SELECT name FROM pickup_"""+mode+"""
@@ -63,7 +63,7 @@ def add(self, user, channel):
                 records = cur.fetchall()
                 conn.commit()
                 if ( len(records) != 0 ):
-                    self.send_message_to_channel( ("You are already added for :: "+mode+" :: - Operation failed"), channel )
+                    self.send_reply( ("You are already added for :: "+mode+" :: - Operation failed"), user, channel )
                     return
                 modes.remove(mode)
                 for diff_mode in modes:
@@ -74,7 +74,7 @@ def add(self, user, channel):
                     records = cur.fetchall()
                     conn.commit()
                     if ( len(records) != 0 ):
-                        self.send_message_to_channel( ("You are already added for :: "+diff_mode+" :: - Operation failed"), channel )
+                        self.send_reply( ("You are already added for :: "+diff_mode+" :: - Operation failed"), user, channel )
                         return
                 ### timeout check
                 sql = """SELECT name,timeout FROM pickup_"""+mode+"""
@@ -93,7 +93,7 @@ def add(self, user, channel):
                             """
                             cur.execute(sql)
                             conn.commit()
-                            self.send_message_to_channel( ("@ "+remove_user+" was removed. Reason: Time Out"), channel )
+                            self.send_reply( ("@ "+remove_user+" was removed. Reason: Time Out"), user, channel )
                 #generating match
                 sql = """SELECT name FROM pickup_"""+mode+"""
                 """
@@ -112,8 +112,8 @@ def add(self, user, channel):
                         """
                         cur.execute(sql)
                         conn.commit()
-                        self.send_message_to_channel( ("@ "+user+" is successfully added for :: "+mode+" ::"), channel )
-                        self.send_message_to_channel( ("@ Enough player detected for :: "+mode+" ::"), channel )
+                        self.send_reply( ("@ "+user+" is successfully added for :: "+mode+" ::"), user, channel )
+                        self.send_reply( ("@ Enough player detected for :: "+mode+" ::"), user, channel )
                         sql = """SELECT name FROM pickup_"""+mode+"""
                                 WHERE host = 1
                         """
@@ -150,7 +150,7 @@ def add(self, user, channel):
                             name.append(records[i][0])
                         map_to_play = random.choice(name)
                         message = "@ "+mode+" || Hoster: "+hoster+" || Map: "+map_to_play+" || Team 1: "+", ".join(team1)+" || Team 2: "+", ".join(team2)
-                        self.send_message_to_channel( (message), channel )
+                        self.send_reply( (message), user, channel )
                         team = team1+team2
                         for name in team:
                             self.send_message_to_channel( (message), name )
@@ -212,7 +212,7 @@ def add(self, user, channel):
                         records = cur.fetchall()
                         conn.commit()
                         if ( len(records) == 0 ):
-                            self.send_message_to_channel( ("@ No any players added, want to be hosters and you are last. You can play only if you can host. Try again"), channel )
+                            self.send_reply( ("@ No any players added, want to be hosters and you are last. You can play only if you can host. Try again"), user, channel )
                             return
                         sql = """INSERT INTO pickup_"""+mode+"""
                             (name,host,timeout)
@@ -222,8 +222,8 @@ def add(self, user, channel):
                         """
                         cur.execute(sql)
                         conn.commit()
-                        self.send_message_to_channel( ("@ "+user+" is successfully added for :: "+mode+" ::"), channel )
-                        self.send_message_to_channel( ("@ Enough player detected for :: "+mode+" ::"), channel )
+                        self.send_reply( ("@ "+user+" is successfully added for :: "+mode+" ::"), user, channel )
+                        self.send_reply( ("@ Enough player detected for :: "+mode+" ::"), user, channel )
                         sql = """SELECT name FROM pickup_"""+mode+"""
                                 WHERE host = 1
                         """
@@ -260,7 +260,7 @@ def add(self, user, channel):
                             name.append(records[i][0])
                         map_to_play = random.choice(name)
                         message = "@ "+mode+" || Hoster: "+hoster+" || Map: "+map_to_play+" || Team 1: "+", ".join(team1)+" || Team 2: "+", ".join(team2)
-                        self.send_message_to_channel( (message), channel )
+                        self.send_reply( (message), user, channel )
                         team = team1+team2
                         for name in team:
                             self.send_message_to_channel( (message), name )
@@ -321,9 +321,9 @@ def add(self, user, channel):
                     """
                     cur.execute(sql)
                     conn.commit()
-                    self.send_message_to_channel( ("@ "+user+" is successfully added for :: "+mode+" ::"), channel )
+                    self.send_reply( ("@ "+user+" is successfully added for :: "+mode+" ::"), user, channel )
         else:
-            self.send_message_to_channel( ("Error, wrong request"), channel )
+            self.send_reply( ("Error, wrong request"), user, channel )
     else:
         self.send_message_to_channel( ("]add can be used only on a channel"), user )
     cur.close()

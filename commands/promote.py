@@ -37,12 +37,12 @@ def promote(self, user, channel):
                 self.send_notice( message, user )
             else:
                 message = "Please add up for :: "+mode+" :: ! "+ str(amount_players_required-int(len(records))) + " more people needed! (Type "+self.command_prefix+"add "+mode+"  or  "+self.command_prefix+"add "+mode+" host  ,if you can host)"
-                self.send_message_to_channel( (message), channel )
+                self.send_reply( (message), user, channel )
         else:
-            self.send_message_to_channel( ("Invalid game mode! Try again"), channel )
+            self.send_reply( ("Invalid game mode! Try again"), user, channel )
             return
     elif ( len(command) > 2 ):
-        self.send_message_to_channel( ("Error, wrong request"), channel )
+        self.send_reply( ("Error, wrong request"), user, channel )
     else:
         message = "Specify mode type to promote! 1v1, 2v2, 3v3, 4v4 or 5v5"
         self.send_notice( message, user )
