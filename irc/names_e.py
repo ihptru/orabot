@@ -19,6 +19,11 @@ def parse_event(self, recv):
     channel = recv.split()[4]
     users = " ".join(recv.split()[5:])[1:]
     conn, cur = self.db_data()
+    sql = """DELETE FROM user_channel
+            WHERE channel = '"""+channel+""""'
+    """
+    cur.execute(sql)
+    conn.commit()
     for user in users.split():
         if ( user[0] in ['@','%','+'] ):
             status = user[0]
@@ -73,7 +78,7 @@ def parse_event(self, recv):
                 """
                 cur.execute(sql)
                 conn.commit()
-            else:   #found record
+            else:   #found record # since we delete all users related to current channel, NAMES made for, part below probably not needed
                 db_status = records[0][0]
                 if ( status != db_status ):
                     sql = """UPDATE user_channel

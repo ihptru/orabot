@@ -218,6 +218,10 @@ class IRC_Server:
                         channel = recv.split()[3]
                         print ("[%s] Key is required for "+channel+" !" % self.irc_host)
 
+                if recv.find ( " 401 " + self.irc_nick + " " ) != -1:   # no such nick/channel
+                    imp.reload(e_401)
+                    e_401.parse_event(self, recv)
+
     def data_to_message(self, data):
         data = data[data.find(" :")+2:]
         return data
