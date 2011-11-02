@@ -260,7 +260,7 @@ def message(self, user, channel, command_request):
         if ( command_request[0].startswith('-') ):
             amount_records = command_request[0][1:]
             try:
-                trash = int(amount_records)
+                amount_records = str(int(amount_records) + 1)
             except:
                 self.send_reply( (usage), user, channel )
                 cur.close()
@@ -271,10 +271,6 @@ def message(self, user, channel, command_request):
             return
     if ( int(amount_records) > 30 ):
         amount_records = '30'
-    if ( "'" in username ):
-        self.send_notice("User is not found", user)
-        cur.close()
-        return
     sql = """SELECT message,date_time,channel FROM messages
             WHERE user = '""" + username + """'
             ORDER BY uid DESC
@@ -288,6 +284,7 @@ def message(self, user, channel, command_request):
         cur.close()
         return
     else:
+        del records[0]
         for i in range(len(records)):
             result = time_result(records[i][1])
             message = username + result + " @ " + records[i][2] + " : " + records[i][0]

@@ -19,7 +19,9 @@ def parse_event(self, recv):
     conn, cur = self.db_data()
     irc_join_nick = recv.split( '!' ) [ 0 ].split( ':' ) [ 1 ]
     irc_join_host = recv.split()[0].split('!')[1]
-    chan = recv.split()[2][1:].strip()
+    chan = recv.split()[2].strip()
+    if ( chan.startswith(':') ):
+        chan = recv.split()[2][1:].strip()
 
     ###logs
     self.logs(irc_join_nick, chan, 'join', irc_join_host, '')
