@@ -23,8 +23,24 @@ def parse_event(self, recv):
     ###logs
     self.logs(irc_part_nick, chan, 'part', irc_part_host, '')
     ###
+    sql = """SELECT user FROM user_channel
+            WHERE channel <> '"""+chan+"""'
+    """
+    cur.execute(sql)
+    records = cur.fetchall()
+    conn.commit()
+    if ( len(records) == 0  ):
+        state = '0'
+    else:
+        name_other_channels = []
+        for i in range(len(records)):
+            name_other_channels.append(records[i][0])
+        if ( irc_part_nick not in name_other_channels ):
+            state = '0'
+        else:
+            state = '1'
     sql = """UPDATE users
-            SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
+            SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = """+state+"""
             WHERE user = '"""+irc_part_nick+"""'
     """
     cur.execute(sql)

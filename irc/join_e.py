@@ -19,7 +19,7 @@ def parse_event(self, recv):
     conn, cur = self.db_data()
     irc_join_nick = recv.split( '!' ) [ 0 ].split( ':' ) [ 1 ]
     irc_join_host = recv.split()[0].split('!')[1]
-    chan = recv.split()[2].strip()
+    chan = recv.split()[2][1:].strip()
 
     ###logs
     self.logs(irc_join_nick, chan, 'join', irc_join_host, '')
@@ -67,7 +67,7 @@ def parse_event(self, recv):
                     conn.commit()
     ###
     sql = """SELECT user FROM users
-            WHERE user = '"""+irc_join_nick+"'"+"""
+            WHERE user = '"""+irc_join_nick+"""'
     """
     cur.execute(sql)
     records = cur.fetchall()
@@ -123,7 +123,7 @@ def parse_event(self, recv):
             conn.commit()
         ###
         sql = """SELECT sender,channel,date,message FROM later
-                WHERE reciever = '"""+irc_join_nick+"'"+"""
+                WHERE reciever = '"""+irc_join_nick+"""'
         """
         cur.execute(sql)
         records = cur.fetchall()

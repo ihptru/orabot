@@ -291,6 +291,42 @@ class IRC_Server:
     # This function takes a channel, which must start with a #.
     def quit_channel(self, channel):
         if (channel[0] == "#"):
+            conn, cur = self.db_data()
+            sql = """SELECT user FROM user_channel
+                    WHERE channel = '"""+channel+"""'
+            """
+            cur.execute(sql)
+            records = cur.fetchall()
+            conn.commit()
+            name_this_channel = []
+            for i in range(len(records)):
+                name_this_channel.append(records[i][0])
+            sql = """SELECT user FROM user_channel
+                    WHERE channel <> '"""+channel+"""'
+            """
+            cur.execute(sql)
+            records = cur.fetchall()
+            conn.commit()
+            name_other_channels = []
+            if ( len(records) == 0 ):
+                pass
+            else:
+                for i in range(len(records)):
+                    name_other_channels.append(records[i][0])
+            for n in name_this_channel:
+                if ( n not in name_other_channels ):
+                    sql = """UPDATE users
+                            SET state = 0
+                            WHERE user = '"""+n+"""'
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+            sql = """DELETE FROM user_channel
+                    WHERE channel = '"""+channel+"""'
+            """
+            cur.execute(sql)
+            conn.commit()
+            cur.close()
             str_buff = ( "PART %s \r\n" ) % (channel)
             self.irc_sock.send ( str_buff.encode() )
 
