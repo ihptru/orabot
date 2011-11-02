@@ -53,6 +53,8 @@ class IRC_Server:
         self.change_topic_channel = change_topic_channel
         self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
         self.is_connected = False
+        self.listen_return = ''
+        self.connect_return = ''
         self.command = ""
         self.start_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
 
@@ -64,30 +66,37 @@ class IRC_Server:
         # Create database at first run
         if not os.path.exists('db/'+self.irc_host+'.sqlite'):
             db_process.start(self)
+        while True:
+            proc_1 = multiprocessing.Process(target=openra_topic.start, args=(self,))
+            proc_2 = multiprocessing.Process(target=openra_bugs.start, args=(self,))
+            proc_3 = multiprocessing.Process(target=github_commits.start, args=(self,))
+            proc_4 = multiprocessing.Process(target=openra_game.start, args=(self,))
 
-        proc_1 = multiprocessing.Process(target=openra_topic.start, args=(self,))
-        proc_2 = multiprocessing.Process(target=openra_bugs.start, args=(self,))
-        proc_3 = multiprocessing.Process(target=github_commits.start, args=(self,))
-        proc_4 = multiprocessing.Process(target=openra_game.start, args=(self,))
-        
-        conn, cur = self.db_data()
-        sql = """UPDATE users
-                SET state = 0;
-                DELETE FROM user_channel;
-        """
-        cur.executescript(sql)
-        conn.commit()
-        cur.close()
-        if ( self.notifications_support == True ):
-            # run notifications
-            print(("[%s] Notifications support...\t\tOK") % (self.irc_host))
-            self.notifications('start', proc_1, proc_2, proc_3, proc_4)
-        if self.connect():
-            pass
-        else:
+            conn, cur = self.db_data()
+            sql = """UPDATE users
+                    SET state = 0;
+                    DELETE FROM user_channel;
+            """
+            cur.executescript(sql)
+            conn.commit()
+            cur.close()
             if ( self.notifications_support == True ):
-                self.notifications('terminate', proc_1, proc_2, proc_3, proc_4)
-                print("[%s] Terminated child processes" % self.irc_host)
+                # run notifications
+                print(("[%s] Notifications support...\t\tOK") % (self.irc_host))
+                self.notifications('start', proc_1, proc_2, proc_3, proc_4)
+            
+            if self.connect():
+                if ( self.connect_return == 'Excess Flood' ):
+                    self.notifications('terminate', proc_1, proc_2, proc_3, proc_4)
+                    print("[%s] Terminated child processes" % self.irc_host)
+                    print("[%s] Restarting the bot" % self.irc_host)
+                    time.sleep(5)
+                    continue
+                elif ( self.connect_return == 'Manual Quit' ):
+                    self.notifications('terminate', proc_1, proc_2, proc_3, proc_4)
+                    print("[%s] Terminated child processes" % self.irc_host)
+                    print("[%s] Exit" % self.irc_host)
+                    break
 
     def notifications(self, action, proc_1, proc_2, proc_3, proc_4):
         if ( action == 'start' ):
@@ -132,12 +141,18 @@ class IRC_Server:
 
         self.is_connected = True
         while True:
-            if not self.listen():
-                self.irc_nick = self.irc_nick + "_"
-                bot_connect(self)
-            else:
-                self.is_connected = False
-                return False
+            if self.listen():
+                if ( self.listen_return == 'Nick in Use' ):
+                    self.irc_nick = self.irc_nick + "_"
+                    bot_connect(self)
+                    continue
+                elif ( self.listen_return == 'Manual Quit' ):
+                    self.is_connected = False
+                    self.connect_return = 'Manual Quit'
+                    return True
+                elif ( self.listen_return == 'Excess Flood' ):
+                    self.connect_return = 'Excess Flood'
+                    return True
 
     def listen(self):
         while self.is_connected:
@@ -159,9 +174,16 @@ class IRC_Server:
 
                 if recv.find ( " QUIT " ) != -1:
                     nick = recv.split('!')[0][1:]
+                    message = " ".join(recv.split()[2:])[1:]
                     if ( nick == self.irc_nick ):
+                        print(recv)
                         print("[%s] Disconnected" % self.irc_host)
-                        return True
+                        if ( message == 'Excess Flood' ):
+                            self.listen_return = 'Excess Flood'
+                            return True
+                        else:
+                            self.listen_return = 'Manual Quit'
+                            return True
                     imp.reload(quit_e)
                     quit_e.parse_event(self, recv)
 
@@ -196,7 +218,8 @@ class IRC_Server:
 
                 if recv.find ( " 433 * "+self.irc_nick+" " ) != -1:
                     print(("[%s] Nick is already in use!!!") % (self.irc_host))
-                    return False
+                    self.listen_return = 'Nick in Use'
+                    return True
                 
                 if recv.find ( " 471 " ) != -1:
                     if ( recv.split()[1] == "471" ):
