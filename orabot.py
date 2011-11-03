@@ -396,7 +396,7 @@ class IRC_Server:
                 elif ( logs_of == 'kick' ):
                     row = ' *** '+irc_user+' was kicked by '+some_data+' ('+some_more_data+')\n'
                 elif ( logs_of == 'mode' ):
-                    row = ' *** ' + some_data
+                    row = ' *** ' + some_data+'\n'
                 else:
                     return  # probably an error.
                 dir = os.path.dirname(filename)
