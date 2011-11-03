@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
-import urllib.request
+import re
 
 def start(self):
     while  True:
@@ -28,14 +28,14 @@ def change_topic(self):
         file.write(release + "\n" + playtest + "\n")
         file.close()
 
-    url = 'http://openra.res0l.net/download/linux/deb/index.php'
+    url = 'http://github.com/api/v2/json/repos/show/OpenRA/OpenRA/tags'
     try:
         stream = self.data_from_url(url, None)
     except Exception as e:
         print(e) #can not reach page in 90% cases
         return
-    release = stream.split('<ul')[1].split('<li>')[1].split('>')[1].split('</a')[0]
-    playtest = stream.split('<ul')[2].split('<li>')[1].split('>')[1].split('</a')[0]
+    release = get_release(self, stream)
+    playtest = get_playtest(self, stream)
     filename = 'var/version.txt'
     lines = []
     try:
@@ -54,3 +54,13 @@ def change_topic(self):
         self.topic(self.change_topic_channel, topic)
         print("[%s] ### DEBUG: made an attempt to change the TOPIC of " + self.change_topic_channel + " ###" % self.irc_host)
         write_version(release, playtest)
+
+def get_release(self, stream):
+    release = re.findall('.*?"release-(.*?)"', stream)
+    release.sort()
+    return release[-1]
+
+def get_playtest(self, stream):
+    playtest = re.findall('.*?"playtest-(.*?)"', stream)
+    playtest.sort()
+    return playtest[-1]
