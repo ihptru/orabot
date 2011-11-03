@@ -26,8 +26,8 @@ def version(self, user, channel):
         url = 'http://github.com/api/v2/json/repos/show/OpenRA/OpenRA/tags'
         stream = self.data_from_url(url, None)
         
-        release = get_release(self, stream)
-        playtest = get_playtest(self, stream)
+        release = get_version(self, stream, 'release')
+        playtest = get_version(self, stream, 'playtest')
         
         if ( int(release.split('.')[0]) < int(playtest.split('.')[0]) ):
             newer = 'playtest is newer then release'
@@ -50,12 +50,7 @@ def version(self, user, channel):
     else:
         self.send_reply( ("Error, wrong request"), user, channel )
 
-def get_release(self, stream):
-    release = re.findall('.*?"release-(.*?)"', stream)
-    release.sort()
-    return release[-1]
-
-def get_playtest(self, stream):
-    playtest = re.findall('.*?"playtest-(.*?)"', stream)
-    playtest.sort()
-    return playtest[-1]
+def get_version(self, stream, version):
+    version = re.findall('.*?"'+version+'-(.*?)"', stream)
+    version.sort()
+    return version[-1]

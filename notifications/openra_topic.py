@@ -34,8 +34,8 @@ def change_topic(self):
     except Exception as e:
         print(e) #can not reach page in 90% cases
         return
-    release = get_release(self, stream)
-    playtest = get_playtest(self, stream)
+    release = get_version(self, stream, 'release')
+    playtest = get_version(self, stream, 'playtest')
     filename = 'var/version.txt'
     lines = []
     try:
@@ -55,12 +55,7 @@ def change_topic(self):
         print("[%s] ### DEBUG: made an attempt to change the TOPIC of " + self.change_topic_channel + " ###" % self.irc_host)
         write_version(release, playtest)
 
-def get_release(self, stream):
-    release = re.findall('.*?"release-(.*?)"', stream)
-    release.sort()
-    return release[-1]
-
-def get_playtest(self, stream):
-    playtest = re.findall('.*?"playtest-(.*?)"', stream)
-    playtest.sort()
-    return playtest[-1]
+def get_version(self, stream, version):
+    version = re.findall('.*?"'+version+'-(.*?)"', stream)
+    version.sort()
+    return version[-1]
