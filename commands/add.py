@@ -93,7 +93,7 @@ def add(self, user, channel):
                             """
                             cur.execute(sql)
                             conn.commit()
-                            self.send_reply( ("@ "+remove_user+" was removed. Reason: Time Out"), user, channel )
+                            self.send_reply( ("@ "+records[i][0]+" was removed. Reason: Time Out"), user, channel )
                 #generating match
                 sql = """SELECT name FROM pickup_"""+mode+"""
                 """
