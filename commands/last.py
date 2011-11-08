@@ -43,6 +43,11 @@ def last(self, user, channel):
             message(self, user, channel, command[2:])
         else:
             self.send_reply( ("Usage: " + self.command_prefix + "last message [-<amount of records>] username"), user, channel )
+    elif ( command[1].lower() == 'mention' ):
+        if ( len(command) == 3 ):
+            mention(self, user, channel, command[2:])
+        else:
+            self.send_reply( ("Usage: " + self.command_prefix + "last mention word"), user, channel )
     elif ( command[1].lower() == 'game' ):
         if ( len(command) >= 2 and len(command) <= 3 ):
             if ( len(command) == 2 ):
@@ -139,7 +144,6 @@ def activity(self, user, channel, command_request):
     """
     
     conn, cur = self.db_data()
-    flood_protection = 0
     usage = "Usage: " + self.command_prefix + "last activity [-<amount of records>] username"
     if ( len(command_request) == 1 ):
         username = command_request[0]
@@ -195,12 +199,7 @@ def activity(self, user, channel, command_request):
                 chan = ' ' + records[i][2]
             result = time_result(records[i][1])
             message = event + chan + ":" + result
-            flood_protection = flood_protection + 1
-            if flood_protection == 5:
-                time.sleep(5)
-                flood_protection = 0
             self.send_notice(message, user)
-        flood_protection = 0
     cur.close()
 
 def message(self, user, channel, command_request):
@@ -213,7 +212,6 @@ def message(self, user, channel, command_request):
     usage = "Usage: " + self.command_prefix + "last message [-<amount of records>] [username]"
 
     def messages_from_channel(self, user, channel, usage, cur, conn, command_request):
-        flood_protection = 0
         amount_records = command_request[0][1:]
         try:
             amount_records = str(int(amount_records) + 1)
@@ -237,14 +235,8 @@ def message(self, user, channel, command_request):
             for i in range(len(records)):
                 result = time_result(records[i][1])
                 message = records[i][3] + result + " @ " + records[i][2] + " : " + records[i][0]
-                flood_protection = flood_protection + 1
-                if flood_protection == 5:
-                    time.sleep(5)
-                    flood_protection = 0
                 self.send_notice(message, user)
-            flood_protection = 0
 
-    flood_protection = 0
     if ( len(command_request) == 0 ):
         messages_from_channel(self, user, channel, usage, cur, conn, ['-10'])
         return
@@ -288,12 +280,7 @@ def message(self, user, channel, command_request):
         for i in range(len(records)):
             result = time_result(records[i][1])
             message = username + result + " @ " + records[i][2] + " : " + records[i][0]
-            flood_protection = flood_protection + 1
-            if flood_protection == 5:
-                time.sleep(5)
-                flood_protection = 0
             self.send_notice(message, user)
-        flood_protection = 0
     cur.close()
 
 def game(self, user, channel, command_request):
@@ -303,7 +290,6 @@ def game(self, user, channel, command_request):
     """
     
     conn, cur = self.db_data()
-    flood_protection = 0
     usage = "Usage: " + self.command_prefix + "last game [-<amount of records>]"
     if ( command_request == '' ):
         amount_records = '10'
@@ -345,10 +331,35 @@ def game(self, user, channel, command_request):
                     ver = records[i][3][-4:]
                 ver = ' | ver: ' + ver + ' |'
             message = records[i][1] + " players" + ver + result + " | Name: " + records[i][0]
-            flood_protection = flood_protection + 1
-            if flood_protection == 5:
-                time.sleep(5)
-                flood_protection = 0
             self.send_notice(message, user)
-        flood_protection = 0
+    cur.close()
+
+def mention(self, user, channel, command_request):
+    
+    """
+    Shows last mentions of the word
+    """
+    
+    conn, cur = self.db_data()
+    usage = "Usage: " + self.command_prefix + "last mention word"
+
+    word = command_request[0]
+    sql = """SELECT message,date_time,channel,user FROM messages
+            WHERE channel = '"""+channel+"""' AND upper(message) LIKE upper('%"""+word+"""%')
+            ORDER BY uid DESC
+            LIMIT 10
+    """
+    cur.execute(sql)
+    records = cur.fetchall()
+    conn.commit()
+    if ( len(records) == 0 ):
+        self.send_notice("No records with "+word, user)
+        cur.close()
+        return
+    else:
+        del records[0]
+        for i in range(len(records)):
+            result = time_result(records[i][1])
+            message = records[i][3] + result + " @ " + records[i][2] + " : " + records[i][0]
+            self.send_notice(message, user)
     cur.close()
