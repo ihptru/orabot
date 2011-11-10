@@ -27,9 +27,9 @@ def weather(self, user, channel):
     command = (self.command).split()
     if ( len(command) == 1 ):
         weather_usage()
-    elif ( len(command) > 1 ):
+    elif ( len(command) >= 2 ):
         if ( command[1] == "--current" ):
-            if ( len(command) >= 2 ):
+            if ( len(command) < 3 ):
                 weather_usage();
             else:
                 try:
@@ -43,7 +43,7 @@ def weather(self, user, channel):
                     message = "Error: No such location could be found."
                     self.send_notice( message, user )
         elif (command[1] == "--forecast" ):
-            if ( len(command) >= 2 ):
+            if ( len(command) < 3 ):
                 weather_usage()
             else:
                 try:
@@ -65,7 +65,7 @@ def weather(self, user, channel):
                     message = "Error: No such location could be found."
                     self.send_notice( message, user )
         elif (command[1] == "--all" ):
-            if ( len(command) >= 2 ):
+            if ( len(command) < 3 ):
                 weather_usage()
             else:
                 try:
