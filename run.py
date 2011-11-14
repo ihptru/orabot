@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-## This script restarts the server every time it is crashing.
-
 import io
 import sys
 import time

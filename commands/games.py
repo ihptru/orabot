@@ -136,14 +136,14 @@ def games(self, user, channel):
                 ### for location
                 ip = " ".join(game['Address'].split(':')[0:-1])    # ip address
                 gi = pygeoip.GeoIP('GeoIP.dat')
-                country = gi.country_name_by_addr(ip).upper()   #got country name
+                country = gi.country_code_by_addr(ip).upper()   #got country name
                 ###
                 sname = game['Name'].replace('-..-','[').replace('.--.',']')
                 if ( len(sname) == 0 ):
                     sname = 'noname'
                 map_name, max_players = get_map_info(cur, game['Map'])
                 players = str(game['Players'])
-                games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+modinfo(game['Mods'])+' - '+country
+                games = '@ '+sname.strip().ljust(15)[0:15]+' - '+state+' - '+players+max_players+' - '+modinfo(game['Mods'])+' - '+country
                 time.sleep(0.5)
                 self.send_reply( (games), user, channel )
         elif ( (command[1]) == "-l" ):
