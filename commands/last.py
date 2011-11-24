@@ -345,7 +345,7 @@ def mention(self, user, channel, command_request):
 
     word = command_request[0]
     sql = """SELECT message,date_time,channel,user FROM messages
-            WHERE channel = '"""+channel+"""' AND upper(message) LIKE upper('%"""+word+"""%')
+            WHERE channel = '"""+channel+"""' AND upper(message) LIKE upper('%"""+word+"""%') AND user <> '"""+user+"""'
             ORDER BY uid DESC
             LIMIT 10
     """

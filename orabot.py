@@ -91,6 +91,7 @@ class IRC_Server:
                     print("[%s] Terminated child processes" % self.irc_host)
                     print("[%s] Restarting the bot" % self.irc_host)
                     time.sleep(5)
+                    self.irc_sock.close()
                     continue
                 elif ( self.connect_return == 'Manual Quit' ):
                     self.notifications('terminate', proc_1, proc_2, proc_3, proc_4)
@@ -396,7 +397,7 @@ class IRC_Server:
                 elif ( logs_of == 'kick' ):
                     row = ' *** '+irc_user+' was kicked by '+some_data+' ('+some_more_data+')\n'
                 elif ( logs_of == 'mode' ):
-                    row = ' *** ' + some_data+'\n'
+                    row = ' *** '+some_data+'\n'
                 else:
                     return  # probably an error.
                 dir = os.path.dirname(filename)

@@ -14,7 +14,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Shows current games
+Shows current games.\n
+Options:\n
+\t-w\n
+\t-p\n
+\t--all | -wp\n
+\t-s\n
+\t-l\n
+\t-r\n
+\t-v\n
+\t-vw | -wv\n
+\t-vp | -pv
 """
 
 import pygeoip
