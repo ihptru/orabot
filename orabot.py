@@ -225,22 +225,22 @@ class IRC_Server:
                 if recv.find ( " 471 " ) != -1:
                     if ( recv.split()[1] == "471" ):
                         channel = recv.split()[3]
-                        print ("[%s] "+channel+" is full!" % self.irc_host)
+                        print (("[%s] "+channel+" is full!") % (self.irc_host))
 
                 if recv.find ( " 473 " ) != -1:
                     if ( recv.split()[1] == "473" ):
                         channel = recv.split()[3]
-                        print ("[%s] "+channel+" is invite only!" % self.irc_host)
+                        print (("[%s] "+channel+" is invite only!") % (self.irc_host))
 
                 if recv.find ( " 474 " ) != -1:
                     if ( recv.split()[1] == "474" ):
                         channel = recv.split()[3]
-                        print ("[%s] Bot is banned from "+channel+" !" % self.irc_host)
+                        print (("[%s] Bot is banned from "+channel+" !") % (self.irc_host))
 
                 if recv.find ( " 475 " ) != -1:
                     if ( recv.split()[1] == "475" ):
                         channel = recv.split()[3]
-                        print ("[%s] Key is required for "+channel+" !" % self.irc_host)
+                        print (("[%s] Key is required for "+channel+" !") % (self.irc_host))
 
                 if recv.find ( " 401 " + self.irc_nick + " " ) != -1:   # no such nick/channel
                     imp.reload(e_401)
