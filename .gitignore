@@ -1,6 +1,7 @@
-/run
-/run/*
+/var
+/var/*
 *.pyc
 /db
+/db/*
 *.sw?
 *.e4p
