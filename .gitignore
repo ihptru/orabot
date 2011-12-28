@@ -5,3 +5,5 @@
 /db/*
 *.sw?
 *.e4p
+.eric4project/
+.eric4project/*

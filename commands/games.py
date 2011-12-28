@@ -34,12 +34,12 @@ import urllib.request
 import time
 import json
 
-def get_map_info( cur, sha ):
-    sql = "SELECT title,players FROM maps WHERE hash = '%s'" % sha
-    cur.execute(sql)
-    records = cur.fetchall()
-    if len(records):
-        return (records[0][0], '/' + str(records[0][1]))
+def get_map_info( sha ):
+    url = "http://oramod.lv-vl.net/api/map_by_hash.php?hash=%s" % sha
+    data = urllib.request.urlopen(url).read().decode('utf-8')
+    y = json.loads(data)
+    if len(y):
+        return (y[0]['title'], '/' + y[0]['players'])
     else:
         return ('unknown', '')
 
@@ -82,7 +82,7 @@ def games(self, user, channel):
                 sname = game['name']
                 if ( len(sname) == 0 ):
                     sname = 'noname'
-                map_name, max_players = get_map_info(cur, game['map'])
+                map_name, max_players = get_map_info(game['map'])
                 players = game['players']
                 games = '@ '+sname.strip().ljust(15)[0:15]+' - '+state+' - '+players+max_players+' - '+map_name+' - '+modinfo(game['mods'])+' - '+country
                 time.sleep(0.5)
@@ -109,7 +109,7 @@ def games(self, user, channel):
                     sname = game['name']
                     if ( len(sname) == 0 ):
                         sname = 'noname'
-                    map_name, max_players = get_map_info(cur, game['map'])
+                    map_name, max_players = get_map_info(game['map'])
                     players = game['players']
                     games = '@ '+sname.strip().ljust(15)[0:15]+' - '+state+' - '+players+max_players+' - '+map_name+' - '+modinfo(game['mods'])+' - '+country
                     time.sleep(0.5)
@@ -130,7 +130,7 @@ def games(self, user, channel):
                     sname = game['name']
                     if ( len(sname) == 0 ):
                         sname = 'noname'
-                    map_name, max_players = get_map_info(cur, game['map'])
+                    map_name, max_players = get_map_info(game['map'])
                     players = game['players']
                     games = '@ '+sname.strip().ljust(15)[0:15]+' - '+state+' - '+players+max_players+' - '+map_name+' - '+modinfo(game['mods'])+' - '+country
                     time.sleep(0.5)
@@ -151,7 +151,7 @@ def games(self, user, channel):
                 sname = game['name']
                 if ( len(sname) == 0 ):
                     sname = 'noname'
-                map_name, max_players = get_map_info(cur, game['map'])
+                map_name, max_players = get_map_info(game['map'])
                 players = game['players']
                 games = '@ '+sname.strip().ljust(15)[0:15]+' - '+state+' - '+players+max_players+' - '+modinfo(game['mods'])+' - '+country
                 time.sleep(0.5)
@@ -298,7 +298,7 @@ def games(self, user, channel):
                         ###
                         if ( len(sname) == 0 ):
                             sname = 'noname'
-                        map_name, max_players = get_map_info(cur, game['map'])
+                        map_name, max_players = get_map_info(game['map'])
                         players = game['players']
                         games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+modinfo(game['mods'])+' - '+country
                         time.sleep(0.5)
