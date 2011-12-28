@@ -35,7 +35,7 @@ import time
 import json
 
 def get_map_info( sha ):
-    url = "http://oramod.lv-vl.net/api/map_by_hash.php?hash=%s" % sha
+    url = "http://oramod.lv-vl.net/api/map_data.php?hash=%s" % sha
     data = urllib.request.urlopen(url).read().decode('utf-8')
     y = json.loads(data)
     if len(y):
