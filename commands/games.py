@@ -16,15 +16,15 @@
 """
 Shows current games.\n
 Options:\n
-\t-w\n
-\t-p\n
-\t--all | -wp\n
-\t-s\n
-\t-l\n
-\t-r\n
-\t-v\n
-\t-vw | -wv\n
-\t-vp | -pv
+\t(-w)
+\t(-p)
+\t(--all | -wp)
+\t(-s)
+\t(-l)
+\t(-r)
+\t(-v)
+\t(-vw | -wv)
+\t(-vp | -pv)
 """
 
 import pygeoip
@@ -32,7 +32,7 @@ import sqlite3
 import re
 import urllib.request
 import time
-import yaml
+import json
 
 def get_map_info( cur, sha ):
     sql = "SELECT title,players FROM maps WHERE hash = '%s'" % sha
@@ -61,117 +61,117 @@ def modinfo( mod ):
 
 def games(self, user, channel):
     command = (self.command).split()
-    url = 'http://master.open-ra.org/list.php'
+    url = 'http://master.open-ra.org/list_json.php'
     conn, cur = self.db_data()
     if ( len(command) == 1 ):
-        content = urllib.request.urlopen(url).read().decode('utf-8').replace('[','-..-').replace(']','.--.')
+        content = urllib.request.urlopen(url).read().decode('utf-8')
         if ( len(content) == 0 ):
             self.send_reply( ("No games found"), user, channel )
             return
-        y = yaml.load(content.replace('\t','    '))
+        y = json.loads(content)
         count='0'
-        for game in y.values():
-            if ( game['State'] == 1 ):
+        for game in y:
+            if ( game['state'] == '1' ):
                 count='1'   # lock - there are games in State: 1
                 state = '(W)'
                 ### for location
-                ip = " ".join(game['Address'].split(':')[0:-1])    # ip address
+                ip = " ".join(game['address'].split(':')[0:-1])    # ip address
                 gi = pygeoip.GeoIP('GeoIP.dat')
-                country = gi.country_name_by_addr(ip).upper()   #got country name
+                country = gi.country_code_by_addr(ip).upper()   #got country name
                 ###
-                sname = game['Name'].replace('-..-','[').replace('.--.',']')
+                sname = game['name']
                 if ( len(sname) == 0 ):
                     sname = 'noname'
-                map_name, max_players = get_map_info(cur, game['Map'])
-                players = str(game['Players'])
-                games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+modinfo(game['Mods'])+' - '+country
+                map_name, max_players = get_map_info(cur, game['map'])
+                players = game['players']
+                games = '@ '+sname.strip().ljust(15)[0:15]+' - '+state+' - '+players+max_players+' - '+map_name+' - '+modinfo(game['mods'])+' - '+country
                 time.sleep(0.5)
                 self.send_reply( (games), user, channel )
         if ( count == "0" ):    #appeared no games in State: 1
             self.send_reply( ("No games waiting for players found"), user, channel )
     elif ( len(command) == 2 ):   # ]games with args
-        content = urllib.request.urlopen(url).read().decode('utf-8').replace('[','-..-').replace(']','.--.')
+        content = urllib.request.urlopen(url).read().decode('utf-8')
         if ( len(content) == 0 ):
             self.send_reply( ("No games found"), user, channel )
             return
-        y = yaml.load(content.replace('\t','    '))
+        y = json.loads(content)
         if ( command[1] == "-w" ):   #request games in State = 1
             count='0'
-            for game in y.values():
-                if ( game['State'] == 1 ):
+            for game in y:
+                if ( game['state'] == '1' ):
                     count='1'   # lock - there are games in State: 1
                     state = '(W)'
                     ### for location
-                    ip = " ".join(game['Address'].split(':')[0:-1])    # ip address
+                    ip = " ".join(game['address'].split(':')[0:-1])    # ip address
                     gi = pygeoip.GeoIP('GeoIP.dat')
-                    country = gi.country_name_by_addr(ip).upper()   #got country name
+                    country = gi.country_code_by_addr(ip).upper()   #got country name
                     ###
-                    sname = game['Name'].replace('-..-','[').replace('.--.',']')
+                    sname = game['name']
                     if ( len(sname) == 0 ):
                         sname = 'noname'
-                    map_name, max_players = get_map_info(cur, game['Map'])
-                    players = str(game['Players'])
-                    games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+modinfo(game['Mods'])+' - '+country
+                    map_name, max_players = get_map_info(cur, game['map'])
+                    players = game['players']
+                    games = '@ '+sname.strip().ljust(15)[0:15]+' - '+state+' - '+players+max_players+' - '+map_name+' - '+modinfo(game['mods'])+' - '+country
                     time.sleep(0.5)
                     self.send_reply( (games), user, channel )
             if ( count == "0" ):
                 self.send_reply( ("No games waiting for players found"), user, channel )
         elif ( command[1] == "-p" ):     # request games in State = 2
             count = '0'
-            for game in y.values():
-                if ( game['State'] == 2 ):
+            for game in y:
+                if ( game['state'] == '2' ):
                     count='1'   # lock - there are games in State: 2
                     state = '(P)'
                     ### for location
-                    ip = " ".join(game['Address'].split(':')[0:-1])    # ip address
+                    ip = " ".join(game['address'].split(':')[0:-1])    # ip address
                     gi = pygeoip.GeoIP('GeoIP.dat')
-                    country = gi.country_name_by_addr(ip).upper()   #got country name
+                    country = gi.country_code_by_addr(ip).upper()   #got country name
                     ###
-                    sname = game['Name'].replace('-..-','[').replace('.--.',']')
+                    sname = game['name']
                     if ( len(sname) == 0 ):
                         sname = 'noname'
-                    map_name, max_players = get_map_info(cur, game['Map'])
-                    players = str(game['Players'])
-                    games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+modinfo(game['Mods'])+' - '+country
+                    map_name, max_players = get_map_info(cur, game['map'])
+                    players = game['players']
+                    games = '@ '+sname.strip().ljust(15)[0:15]+' - '+state+' - '+players+max_players+' - '+map_name+' - '+modinfo(game['mods'])+' - '+country
                     time.sleep(0.5)
                     self.send_reply( (games), user, channel )
             if ( count == "0" ):    #appeared no games in State: 2
                 self.send_reply( ("No started games found"), user, channel )
         elif ( (command[1] == "--all") or (command[1] == "-wp") ): # request games in both states
-            for game in y.values():
-                if ( game['State'] == 1 ):
+            for game in y:
+                if ( game['state'] == '1' ):
                     state = '(W)'
-                elif ( game['State'] == 2 ):
+                elif ( game['state'] == '2' ):
                     state = '(P)'
                 ### for location
-                ip = " ".join(game['Address'].split(':')[0:-1])    # ip address
+                ip = " ".join(game['address'].split(':')[0:-1])    # ip address
                 gi = pygeoip.GeoIP('GeoIP.dat')
                 country = gi.country_code_by_addr(ip).upper()   #got country name
                 ###
-                sname = game['Name'].replace('-..-','[').replace('.--.',']')
+                sname = game['name']
                 if ( len(sname) == 0 ):
                     sname = 'noname'
-                map_name, max_players = get_map_info(cur, game['Map'])
-                players = str(game['Players'])
-                games = '@ '+sname.strip().ljust(15)[0:15]+' - '+state+' - '+players+max_players+' - '+modinfo(game['Mods'])+' - '+country
+                map_name, max_players = get_map_info(cur, game['map'])
+                players = game['players']
+                games = '@ '+sname.strip().ljust(15)[0:15]+' - '+state+' - '+players+max_players+' - '+modinfo(game['mods'])+' - '+country
                 time.sleep(0.5)
                 self.send_reply( (games), user, channel )
         elif ( (command[1]) == "-l" ):
             games_state1 = ''
             games_state2 = ''
-            for game in y.values():
-                if ( game['State'] == 1 ):
+            for game in y:
+                if ( game['state'] == '1' ):
                     state = 'W'
-                elif ( game['State'] == 2 ):
+                elif ( game['state'] == '2' ):
                     state = 'P'
-                sname = game['Name'].replace('-..-','[').replace('.--.',']')
+                sname = game['name']
                 if ( len(sname) == 0 ):
                     sname = 'noname'
-                players = str(game['Players'])
+                players = game['players']
                 if ( state == 'W' ):
-                    games_state1 = games_state1+'\t'+('['+players+']').ljust(5)+sname.strip()+' - '+modinfo(game['Mods'])+'||'
+                    games_state1 = games_state1+'\t'+('['+players+']').ljust(5)+sname.strip()+' - '+modinfo(game['mods'])+'||'
                 elif ( state == 'P' ):
-                    games_state2 = games_state2+'\t'+('['+players+']').ljust(5)+sname.strip()+' - '+modinfo(game['Mods'])+'||'
+                    games_state2 = games_state2+'\t'+('['+players+']').ljust(5)+sname.strip()+' - '+modinfo(game['mods'])+'||'
             split_games_state1 = games_state1.split('||')
             split_games_state2 = games_state2.split('||')
             if ( len(split_games_state2) > 1 ):
@@ -187,27 +187,27 @@ def games(self, user, channel):
         elif ( (command[1]) == "-s" ):
             waiting = 0
             playing = 0
-            for game in y.values():
-                if ( game['State'] == 1 ):
+            for game in y:
+                if ( game['state'] == '1' ):
                     waiting = waiting + 1
-                elif ( game['State'] == 2 ):
+                elif ( game['state'] == '2' ):
                     playing = playing + 1
             games = "@ Games: waiting ["+str(waiting)+"] | playing ["+str(playing)+"]"
             self.send_reply( (games), user, channel )
         elif ( (command[1]) == "-v" or (command[1]) == "-vp" or (command[1]) == "-vw" or (command[1]) == "-wv" or (command[1]) == "-pv"):
             games_state1 = []
             games_state2 = []
-            for game in y.values():
-                if ( game['State'] == 1 ):
+            for game in y:
+                if ( game['state'] == '1' ):
                     state = 'W'
-                elif ( game['State'] == 2 ):
+                elif ( game['state'] == '2' ):
                     state = 'P'
-                sname = game['Name'].replace('-..-','[').replace('.--.',']')
+                sname = game['name']
                 if not ( sname[0:6] == '[down]' ):
                     if ( state == 'W' ):
-                        games_state1.append(modinfo(game['Mods']))
+                        games_state1.append(modinfo(game['mods']))
                     elif ( state == 'P' ):
-                        games_state2.append(modinfo(game['Mods']))
+                        games_state2.append(modinfo(game['mods']))
             mod_state1_ready = []
             mod_state2_ready = []
             for mod in games_state1:
@@ -267,11 +267,11 @@ def games(self, user, channel):
             self.send_reply( ("Incorrect option!"), user, channel )
     elif ( len(command) > 2 ):
         if ( command[1] == "-r" ):  #patter request
-            content = urllib.request.urlopen(url).read().decode('utf-8').replace('[','-..-').replace(']','.--.')
+            content = urllib.request.urlopen(url).read().decode('utf-8')
             if ( len(content) == 0 ):
                 self.send_reply( ("No games found"), user, channel )
                 return
-            y = yaml.load(content.replace('\t','    '))
+            y = json.loads(content)
             chars=['*','.','$','^','@','{','}','+','?'] # chars to ignore
             request_pattern = " ".join(command[2:])
             for i in range(len(chars)):
@@ -283,24 +283,24 @@ def games(self, user, channel):
             if ( check == 'fals' ):     #requested pattern does not contain any of 'forbidden' chars
                 p = re.compile(request_pattern, re.IGNORECASE)
                 count='0'
-                for game in y.values():
-                    sname = game['Name'].replace('-..-','[').replace('.--.',']')
+                for game in y:
+                    sname = game['name']
                     if p.search(sname):
                         count='1'   # lock
-                        if ( game['State'] == 1 ):
+                        if ( game['state'] == '1' ):
                             state = '(W)'
-                        elif ( game['State'] == 2 ):
+                        elif ( game['state'] == '2' ):
                             state = '(P)'
                         ### for location
-                        ip = " ".join(game['Address'].split(':')[0:-1])    # ip address
+                        ip = " ".join(game['address'].split(':')[0:-1])    # ip address
                         gi = pygeoip.GeoIP('GeoIP.dat')
-                        country = gi.country_name_by_addr(ip).upper()   #got country name
+                        country = gi.country_code_by_addr(ip).upper()   #got country name
                         ###
                         if ( len(sname) == 0 ):
                             sname = 'noname'
-                        map_name, max_players = get_map_info(cur, game['Map'])
-                        players = str(game['Players'])
-                        games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+modinfo(game['Mods'])+' - '+country
+                        map_name, max_players = get_map_info(cur, game['map'])
+                        players = game['players']
+                        games = '@ '+sname.strip().ljust(15)+' - '+state+' - Players: '+players+max_players+' - Map: '+map_name+' - '+modinfo(game['mods'])+' - '+country
                         time.sleep(0.5)
                         self.send_reply( (games), user, channel )
                 if ( count == "0" ):    #appeared no matches
