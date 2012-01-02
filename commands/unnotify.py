@@ -39,10 +39,10 @@ def unnotify(self, user, channel):
             """
             cur.execute(sql)
             conn.commit()
-            message = "You are unsubscribed from new games notification"
+            message = "The operation succeeded!"
             self.send_notice( message, user )
         else:
-            message = "You are not subscribed for new games notification"
+            message = "Fail: you were not subscribed!"
             self.send_notice( message, user )
     else:
         message = "Error arguments"
