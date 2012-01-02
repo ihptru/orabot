@@ -16,153 +16,175 @@
 import time
 import sqlite3
 import re
-import urllib.request
+import json
 
 def start(self):
-    notify_ip_list = []
-    notify_players_list = []
+    # IP_LIST contains  all waiting games ( ex: {ip: amount_of_players} )
+    IP_LIST = {}
     while True:
         time.sleep(15)
-        parse_list(self, notify_ip_list, notify_players_list)
+        IP_LIST = parse_list(self, IP_LIST)
         
-def parse_list(self, notify_ip_list, notify_players_list):
-    ip_current_games = []
-    players_current_games = []
+def parse_list(self, IP_LIST):
+    # CURRENT_LIST contains all games ( ex: {ip: amount_of_players } )
+    CURRENT_LIST = {}
     timeouts = ['s','m','h','d']
-    url = 'http://master.open-ra.org/list.php'
+    url = 'http://master.open-ra.org/list_json.php'
     try:
         stream = self.data_from_url(url, None)
     except:
         return
-    if ( stream != '' ):
-        split_games = str(stream).split('\nGame')
-        length_games = len(split_games)
-        for i in range(int(length_games)):
-            ip = split_games[i].split('\n\t')[3].split()[1].split(':')[0]
+    if ( stream == '' ):
+        return
 
-            ip_current_games.append(ip)
+    # get JSON object
+    y = json.loads(stream)
 
-            state = split_games[i].split('\n\t')[4]
-            players = split_games[i].split('\n\t')[5].split()[1]
+    conn, cur = self.db_data()
+    # take one game from server list per iteration
+    for i in range(len(y)):
+        ip = y[i]['address'].split(':')[0]
+        state = y[i]['state']
+        players = y[i]['players']
+        CURRENT_LIST[ip] = players
 
-            players_current_games.append(players)
+        name = y[i]['name']
+        mod = y[i]['mods'].split('@')[0]
+        try:
+            version = y[i]['mods'].split('@')[1]
+        except:
+            version = ' '    #no version in output
+        down = name.split('[down]')
+        # ip of current checked game is in the list of waiting games already ( so it's know and not new )
+        if ( ip in IP_LIST.keys() ):
+            if ( state == '2' ):
+                # game in IP_LIST but already started , remove from this list
+                IP_LIST.pop(ip)
+                # we do not need this game in list of CURRENT games either
+                CURRENT_LIST.pop(ip)
+                # next db code is needed for (last game) command to show lately started games
+                sql = """INSERT INTO games
+                        (game,players,date_time,version)
+                        VALUES
+                        (
+                        '"""+name.replace("'","''")+"""','"""+players+"""',strftime('%Y-%m-%d-%H-%M-%S'),'"""+version+"""'
+                        )
+                """
+                cur.execute(sql)
+                conn.commit()
+            # we know that game is in waiting list already so it's not new
+            # but we also notify user if he requested to notify him only if a certain amount of players appeared on server
+            elif ( state == '1' ):
+                # amount of players from list of waiting games ( IP_LIST )
+                # and amount of players form list of current games ( CURRENT_LIST)
+                # maybe different so we check changes
+                if ( len(down) > 1 ):  # game is [down]: we do not show [down] games
+                    continue
+                sql = """SELECT user,date,mod,version,timeout,num_players FROM notify
+                """
+                cur.execute(sql)
+                records = cur.fetchall()
+                conn.commit()
+                if ( len(records) == 0 ):
+                    continue
+                for i in range(len(records)):
+                    db_user = records[i][0]
+                    db_date = records[i][1]
+                    db_mod = records[i][2]
+                    db_version = records[i][3]
+                    db_timeout = records[i][4]
+                    db_num_players = records[i][5]
+                    # if user specified mod distinct from 'any', check if it matches mod of current checked game
+                    if not ( db_mod.lower() == mod or db_mod.lower() == 'any' ):
+                        continue
+                    # version pattern found?
+                    if not ( re.search(db_version, version) or db_version.lower() == 'any' ):
+                        continue
+                    try:
+                        db_num_players = int(db_num_players)
+                        # if requested min amount of players to be shown is more then amount of players of current game from previous check:
+                        # waiting games ( IP_LIST ) and
+                        # less or equal then amount of players in CURRENT_LIST of same game
+                        # ex:
+                        #       requestd min 3 players on server
+                        #       last time there were 2 players on server
+                        #       now server has 4 ppl which is already more then requested
+                        #       == in that case: notify user ==
+                        if db_num_players > int(IP_LIST[ip]) and db_num_players <= int(CURRENT_LIST[ip]):
+                            check_cond = True
+                        else:
+                            check_cond = False
+                    except:
+                        #default
+                        check_cond = False
+                    if ( check_cond ):
+                        check_and_notify(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn)
+        # current checked game is not in a list of previous games ( IP_LIST )
+        # if it's waiting game : it's a new game
+        else:
+            # if game is not in list of previous games - we only need to check waiting games - do not care about started at all now
+            if ( state == '1' ):
+                # totally new game
+                # previous list of games gets new record for next iteration
+                IP_LIST[ip] = players
+                if ( len(down) > 1 ):  #game is [down]
+                    continue
+                sql = """SELECT user,date,mod,version,timeout,num_players FROM notify
+                """
+                cur.execute(sql)
+                records = cur.fetchall()
+                conn.commit()
+                if ( len(records) == 0 ):
+                    continue
+                for i in range(len(records)):
+                    db_user = records[i][0]
+                    db_date = records[i][1]
+                    db_mod = records[i][2]
+                    db_version = records[i][3]
+                    db_timeout = records[i][4]
+                    db_num_players = records[i][5]
+                    if not ( db_mod.lower() == mod or db_mod.lower() == 'any' ):
+                        continue
+                    if not ( re.search(db_version, version) or db_version.lower() == 'any' ):
+                        continue
+                    try:
+                        db_num_players = int(db_num_players)
+                        # if no exception happend yet, user requested specified amount of players to be on server to notify
+                        # check if there are already more or equal players on server then user requested
+                        # if it's still less, we will check again in next iteration in block of code above ( where ip is in IP_LIST already )
+                        if db_num_players <= int(players):
+                            check_cond = True
+                        else:
+                            check_cond = False
+                    except:
+                        #default
+                        check_cond = True
+                    if ( check_cond ):
+                        check_and_notify(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn)
+    cur.close()
+    keys = []
+    for key in IP_LIST.keys():
+        # if key aka IP is not in current list, it's already outdated: remove it to prepare IP_LIST for next check of master server
+        if key not in CURRENT_LIST.keys():
+            keys.append(key)
+    for key in keys:
+        IP_LIST.pop(key)
+    return IP_LIST
 
-            name = " ".join(split_games[i].split('\n\t')[2].split()[1:])
-            mod = split_games[i].split('\n\t')[7].split()[1].split('@')[0]
-            try:
-                version = " - version: " + split_games[i].split('\n\t')[7].split()[1].split('@')[1]
-            except:
-                version = ''    #no version in output
-            down = name.split('[down]')
-            if ( ip in notify_ip_list ):
-                if ( state == 'State: 2' ):
-                    #game in list but started, remove from `notify_ip_list`
-                    ip_index = notify_ip_list.index(ip)
-                    del notify_ip_list[ip_index]
-                    del notify_players_list[ip_index]
-                    ip_index = ip_current_games.index(ip)
-                    del ip_current_games[ip_index]
-                    del players_current_games[ip_index]
-                    conn, cur = self.db_data()
-                    sql = """INSERT INTO games
-                            (game,players,date_time,version)
-                            VALUES
-                            (
-                            '"""+name.replace("'","''")+"""','"""+players+"""',strftime('%Y-%m-%d-%H-%M-%S'),'"""+version+"""'
-                            )
-                    """
-                    cur.execute(sql)
-                    conn.commit()
-                    cur.close()
-                elif ( state == 'State: 1' ):   #needed to check if amount of player is increased to number, users are subscribed for
-                    ip_index_previous = notify_ip_list.index(ip)
-                    ip_index_current = ip_current_games.index(ip)
-                    if ( len(down) == 1 ):  #game is not [down]
-                        conn, cur = self.db_data()
-                        sql = """SELECT user,date,mod,version,timeout,num_players FROM notify
-                        """
-                        cur.execute(sql)
-                        conn.commit()
-                        row = []
-                        data = []
-                        for row in cur:
-                            data.append(row)
-                        if ( data != [] ):
-                            length_data = len(data)
-                            for i in range(int(length_data)):
-                                db_user = data[i][0]
-                                db_date = data[i][1]
-                                db_mod = data[i][2]
-                                db_version = data[i][3]
-                                db_timeout = data[i][4]
-                                db_num_players = data[i][5]
-                                if ( db_mod.lower() == mod or db_mod.lower() == 'all' ):
-                                    if ( re.search(db_version, version) or db_version.lower() == 'all' ):
-                                        try:
-                                            db_num_players = int(db_num_players)
-                                            if db_num_players > int(notify_players_list[ip_index_previous]) and db_num_players <= int(players_current_games[ip_index_current]):
-                                                check_num_players = True
-                                            else:
-                                                check_num_players = False
-                                        except:
-                                            check_num_players = False
-                                        if ( check_num_players == True ):
-                                            check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn)
-                        cur.close()
-            else:   #ip is not in a list
-                if ( state == 'State: 1' ):
-                    notify_ip_list.append(ip)
-                    notify_players_list.append(players)
-                    if ( len(down) == 1 ):  #game is not [down]
-                        conn, cur = self.db_data()
-                        sql = """SELECT user,date,mod,version,timeout,num_players FROM notify
-                        """
-                        cur.execute(sql)
-                        conn.commit()
-                        row = []
-                        data = []
-                        for row in cur:
-                            data.append(row)
-                        if ( data != [] ):
-                            length_data = len(data)
-                            for i in range(int(length_data)):
-                                db_user = data[i][0]
-                                db_date = data[i][1]
-                                db_mod = data[i][2]
-                                db_version = data[i][3]
-                                db_timeout = data[i][4]
-                                db_num_players = data[i][5]
-                                if ( db_mod.lower() == mod or db_mod.lower() == 'all' ):
-                                    if ( re.search(db_version, version) or db_version.lower() == 'all' ):
-                                        try:
-                                            db_num_players = int(db_num_players)
-                                            if db_num_players <= int(players):
-                                                check_num_players = True
-                                            else:
-                                                check_num_players = False
-                                        except:
-                                            check_num_players = True
-                                        if ( check_num_players == True ):
-                                            check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn)
-                        cur.close()
-        length = len(notify_ip_list)
-        indexes = []
-        for i in range(int(length)):
-            if ( notify_ip_list[i] not in ip_current_games ):
-                indexes.append(i)   #indexes to remove from notify_ip_list
-            else:
-                index_for_players = ip_current_games.index(notify_ip_list[i])
-                notify_players_list[i] = players_current_games[index_for_players]
-        for i in indexes:
-            del notify_ip_list[i]
-            del notify_players_list[i]
-
-def check_timeout_send(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn):
-    notify_message = "New game: "+name+" - mod: "+mod+version+" - Already "+players+" players in"
-    if ( db_timeout.lower() == 'all' ):
+def check_and_notify(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn):
+    if (players == '0'):
+        players =''
+    else:
+        players = "{ Players:01,16 "+players+" }"
+    if (version != ' '):
+        version = " { "+version[:-4]+"00,10 "+version[-4:]+" } "
+    notify_message = "New game:04,01 "+name+" {01,09 "+mod.upper()+" }"+version+players
+    if ( db_timeout.lower() == 'none' ):
         self.send_reply( (notify_message), db_user, db_user )
+    # till_quit is actually default
     elif ( db_timeout.lower() == 'till_quit' ):
         self.send_reply( (notify_message), db_user, db_user )
+    # `f` or `forever` option means that user will be always notified when he is online unless he send (unnotify) command
     elif ( db_timeout.lower() == 'f' or db_timeout.lower() == 'forever' ):
         sql = """SELECT state FROM users
                 WHERE user = '"""+db_user+"""'
@@ -171,12 +193,13 @@ def check_timeout_send(self, name, mod, version, players, db_timeout, db_date, d
         records = cur.fetchall()
         conn.commit()
         if ( len(records) != 0 ):
+            # we are sure that user is online now so we can notify him
             if ( str(records[0][0]) == '1' ):
                 self.send_reply( (notify_message), db_user, db_user )
+    # there is a timeout
     else:
         date_of_adding_seconds = time.mktime(time.strptime( db_date, '%Y-%m-%d-%H-%M-%S'))
-        localtime = time.strftime('%Y-%m-%d-%H-%M-%S')
-        localtime = time.mktime(time.strptime( localtime, '%Y-%m-%d-%H-%M-%S'))
+        localtime = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
         difference = localtime - date_of_adding_seconds     #in result - must be less then timeout
         if ( db_timeout[-1] == 's' ):
             timeout = db_timeout[0:-1]
