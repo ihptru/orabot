@@ -29,7 +29,14 @@ def notify(self, user, channel):
     try:
         optlist,  args = getopt.getopt(command[1:], 'm:n:t:v:')
     except getopt.GetoptError as err:
+        message = "Fail: incorrect option!"
+        self.send_notice( message, user )
         print (err)
+        return
+    if (len(args) != 0 ):
+        message = "Fail: incorrect arguments!"
+        self.send_notice( message, user )
+        return
     conn, cur = self.db_data()
     if ( optlist == [] ):
         sql = """SELECT user FROM notify
@@ -63,19 +70,19 @@ def notify(self, user, channel):
         timeout = "none"
         version = "any"
         
-        mods = ['ra','cnc','yf','all']
+        mods = ['ra','cnc','yf','any']
         timeouts = ['s','m','h','d']
         chars=['*','.','$','^','@','{','}','+','?'] # chars to ignore
 
         for  i in range(len(optlist)):
             if optlist[i][0] == "-m":
-                mod = optlist[i][1]
+                mod = optlist[i][1].strip()
             if optlist[i][0] == "-n":
-                players = optlist[i][1]
+                players = optlist[i][1].strip()
             if optlist[i][0] == "-t":
-                timeout = optlist[i][1]
+                timeout = optlist[i][1].strip()
             if optlist[i][0] == "-v":
-                version = optlist[i][1]
+                version = optlist[i][1].strip()
 
         if ( mod.lower() not in mods ):
             message = "Fail: unknown mod!"
@@ -99,10 +106,11 @@ def notify(self, user, channel):
         except:
             playersOK = False
         if ( playersOK == False ):
-            message = "Fail: players must be int!"
-            self.send_notice( message, user )
-            cur.close()
-            return
+            if players != "no limit":
+                message = "Fail: players must be int!"
+                self.send_notice( message, user )
+                cur.close()
+                return
         
         if not ( (timeout == 'forever') or (timeout == 'f') or (timeout == 'till_quit') or (timeout == 'none') or ( timeout[-1] in timeouts and type(int(timeout[0:-1])) is int ) ):
             message = "Fail: error in timeout!"
