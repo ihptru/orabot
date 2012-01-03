@@ -21,11 +21,16 @@ import json
 def start(self):
     # IP_LIST contains  all waiting games ( ex: {ip: amount_of_players} )
     IP_LIST = {}
+    conn, cur = self.db_data()
+    sql = """DELETE FROM user_notified
+    """
+    cur.execute(sql)
+    conn.commit()
     while True:
         time.sleep(15)
-        IP_LIST = parse_list(self, IP_LIST)
+        IP_LIST = parse_list(self, IP_LIST,  conn,  cur)
         
-def parse_list(self, IP_LIST):
+def parse_list(self, IP_LIST,  conn,  cur):
     # CURRENT_LIST contains all games ( ex: {ip: amount_of_players } )
     CURRENT_LIST = {}
     timeouts = ['s','m','h','d']
@@ -40,7 +45,6 @@ def parse_list(self, IP_LIST):
     # get JSON object
     y = json.loads(stream)
 
-    conn, cur = self.db_data()
     # take one game from server list per iteration
     for i in range(len(y)):
         ip = y[i]['address'].split(':')[0]
@@ -240,6 +244,11 @@ def check_and_notify(self, name, mod, version, players, db_timeout, db_date, db_
             self.send_reply( (notify_message), db_user, db_user )
         else:   # timeout is over
             sql = """DELETE from notify
+                    WHERE user = '"""+db_user+"""'
+            """
+            cur.execute(sql)
+            conn.commit()
+            sql = """DELETE FROM user_notified
                     WHERE user = '"""+db_user+"""'
             """
             cur.execute(sql)
