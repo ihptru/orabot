@@ -35,6 +35,8 @@ def module_check(item):
         return False
     if re.search('show\..*', item):
         return False
+    if re.search('__pycache__', item):
+        return False
     return True
 
 for item in _commands:
