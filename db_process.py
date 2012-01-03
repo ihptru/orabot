@@ -24,13 +24,14 @@ def start(self):
     later(conn, cur)
     pickup(conn, cur)
     notify(conn, cur)
+    user_notified(conn,  cur)
     faq(conn, cur)
     pingme(conn, cur)
     commits(conn, cur)
     activity(conn, cur)
     messages(conn, cur)
     games(conn, cur)
-    
+
     cur.close()
     print(("[%s] Creating databases completed.\tOK") % (self.irc_host))
     
@@ -233,11 +234,21 @@ def notify(conn, cur):
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
         "user" VARCHAR NOT NULL,
         "date" DATETIME NOT NULL,
-        "mod" VARCHAR NOT NULL DEFAULT "all",
-        "version" VARCHAR NOT NULL DEFAULT "all",
-        "timeout" VARCHAR NOT NULL DEFAULT "all",
-        "num_players" VARCHAR NOT NULL DEFAULT "all"
+        "mod" VARCHAR NOT NULL DEFAULT "any"
+        "version" VARCHAR NOT NULL DEFAULT "any",
+        "timeout" VARCHAR NOT NULL DEFAULT "none",
+        "num_players" VARCHAR NOT NULL DEFAULT "no limit"
         )                
+    """
+    cur.execute(sql)
+    conn.commit()
+
+def user_notified(conn,  cur):
+    sql = """CREATE TABLE "user_notified" (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
+        "user" VARCHAR NOT NULL,
+        "ip" VARCHAR NOT NULL
+        )
     """
     cur.execute(sql)
     conn.commit()

@@ -62,6 +62,12 @@ def parse_list(self, IP_LIST):
                 IP_LIST.pop(ip)
                 # we do not need this game in list of CURRENT games either
                 CURRENT_LIST.pop(ip)
+                # remove record if exists from `user_notifed` db table
+                sql = """DELETE FROM user_notified
+                            WHERE ip = '"""+ip+"""'
+                """
+                cur.execute(sql)
+                conn.commit()
                 # next db code is needed for (last game) command to show lately started games
                 sql = """INSERT INTO games
                         (game,players,date_time,version)
@@ -118,7 +124,23 @@ def parse_list(self, IP_LIST):
                         #default
                         check_cond = False
                     if ( check_cond ):
-                        check_and_notify(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn)
+                        sql = """SELECT user,ip FROM user_notified
+                                WHERE user = '"""+db_user+"""' AND ip = '"""+ip+"""'
+                        """
+                        cur.execute(sql)
+                        records = cur.fetchall()
+                        conn.commit()
+                        if ( len(records) == 0 ):
+                            check_and_notify(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn)
+                            sql = """INSERT INTO user_notified
+                                    (user,ip)
+                                    VALUES
+                                    (
+                                    '"""+db_user+"""','"""+ip+"""'
+                                    )
+                            """
+                            cur.execute(sql)
+                            conn.commit()
         # current checked game is not in a list of previous games ( IP_LIST )
         # if it's waiting game : it's a new game
         else:
@@ -161,7 +183,6 @@ def parse_list(self, IP_LIST):
                         check_cond = True
                     if ( check_cond ):
                         check_and_notify(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn)
-    cur.close()
     keys = []
     for key in IP_LIST.keys():
         # if key aka IP is not in current list, it's already outdated: remove it to prepare IP_LIST for next check of master server
@@ -169,6 +190,12 @@ def parse_list(self, IP_LIST):
             keys.append(key)
     for key in keys:
         IP_LIST.pop(key)
+        sql = """DELETE FROM user_notified
+                WHERE ip = '"""+key+"""'
+        """
+        cur.execute(sql)
+        conn.commit()
+    cur.close()
     return IP_LIST
 
 def check_and_notify(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn):
