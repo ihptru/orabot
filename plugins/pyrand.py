@@ -23,7 +23,7 @@ import random
 output_file = ''
 
 def start(self, user, channel, players):
-    output_name='/var/sites/lv-vl/randomteam/'+strftime('%y%m%d%H%M%S',localtime())+'.txt'
+    output_name='/data/sites/local/randomteam/'+strftime('%y%m%d%H%M%S',localtime())+'.txt'
     global output_file
     output_file=output_name
     output_name = output_name.split('randomteam/')[1]

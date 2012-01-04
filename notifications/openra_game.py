@@ -29,6 +29,7 @@ def start(self):
     while True:
         time.sleep(15)
         IP_LIST = parse_list(self, IP_LIST,  conn,  cur)
+    cur.close()
         
 def parse_list(self, IP_LIST,  conn,  cur):
     # CURRENT_LIST contains all games ( ex: {ip: amount_of_players } )
@@ -199,7 +200,6 @@ def parse_list(self, IP_LIST,  conn,  cur):
         """
         cur.execute(sql)
         conn.commit()
-    cur.close()
     return IP_LIST
 
 def check_and_notify(self, name, mod, version, players, db_timeout, db_date, db_user, cur, conn):

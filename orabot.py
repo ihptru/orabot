@@ -476,7 +476,7 @@ class IRC_Server:
                             print(e)    #probably socket error or http 404 error in title_from_url() or title not found
 
     def parse_bug_num(self, channel, message):
-        matches = re.findall("#([0-9]*)", message)
+        matches = re.findall("^|\s#([0-9]*)", message)
         if ( matches != [] ):
             if re.search("^#", channel):
                 for bug_report in matches:

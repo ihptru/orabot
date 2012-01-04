@@ -36,7 +36,7 @@ def randomserver(self, user, channel):
                     if ( int(len(arguments)) >= max_positions ):
                         if ( (max_positions == 2) or (max_positions == 4) or (max_positions == 8) or (max_positions == 16) or (max_positions == 32) ):
                             round_list = []
-                            output_name = '/var/sites/lv-vl/randomserver/'+time.strftime('%y%m%d%H%M%S',time.localtime())+'.txt'
+                            output_name = '/data/sites/local/randomserver/'+time.strftime('%y%m%d%H%M%S',time.localtime())+'.txt'
                             output_file = output_name
                             output_name = output_name.split('randomserver/')[1]
                             result = "http://lv-vl.net/randomserver/"+output_name+"   "
