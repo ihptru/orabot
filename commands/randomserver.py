@@ -19,6 +19,7 @@ Randomize servers or maps for single elimination tournaments in media wiki forma
 
 import random
 import time
+import config
 
 def randomserver(self, user, channel):
     command = (self.command).split()
@@ -36,10 +37,9 @@ def randomserver(self, user, channel):
                     if ( int(len(arguments)) >= max_positions ):
                         if ( (max_positions == 2) or (max_positions == 4) or (max_positions == 8) or (max_positions == 16) or (max_positions == 32) ):
                             round_list = []
-                            output_name = '/data/sites/local/randomserver/'+time.strftime('%y%m%d%H%M%S',time.localtime())+'.txt'
-                            output_file = output_name
-                            output_name = output_name.split('randomserver/')[1]
-                            result = "http://lv-vl.net/randomserver/"+output_name+"   "
+                            name = time.strftime('%y%m%d%H%M%S',time.localtime())+'.txt'
+                            output_name = config.randomserver_dir+name
+                            result = config.randomserver_url+name+"   "
                             result_to_file = ''
                             round_number = 1
                             while (max_positions != 0 ):
@@ -60,7 +60,7 @@ def randomserver(self, user, channel):
                                 round_list = []
                                 max_positions = int(max_positions / 2)
                                 round_number = round_number + 1
-                            f = open(output_file, 'a')
+                            f = open(output_name, 'a')
                             f.write(result_to_file)
                             f.close()
                             self.send_reply( (result), user, channel )

@@ -19,15 +19,15 @@ from sys import stdout, argv
 from os import stat
 from time import sleep, strftime, gmtime, localtime
 import random
+import config
 
 output_file = ''
 
 def start(self, user, channel, players):
-    output_name='/data/sites/local/randomteam/'+strftime('%y%m%d%H%M%S',localtime())+'.txt'
+    name = strftime('%y%m%d%H%M%S',localtime())+'.txt'
     global output_file
-    output_file=output_name
-    output_name = output_name.split('randomteam/')[1]
-    rand(self, user, channel, players, output_name)
+    output_file = config.randomteam_dir+name
+    rand(self, user, channel, players, name)
     
 def o_writter(text):
     #stdout.write(text)
@@ -44,7 +44,7 @@ def qsortRange(a, b, start, end):
         qsortRange(a, pivotIndex + 1, end)
     return a
 
-def rand(self, user, channel, players, output_name):
+def rand(self, user, channel, players, name):
     # todo teams64=["01","64"]
     #       [1,02,3  4  5  6  7 8 9 10 11 12 13 14 15 1617 1819 20 21 22 23 242526 27 28 29 30 31 32]
     teams32=[1,32,17,16,9,24,25,8,5,28,21,12,13,20,29,4,3,30,19,14,11,22,27,6,7,26,23,10,15,18,31,2]
@@ -114,5 +114,5 @@ def rand(self, user, channel, players, output_name):
             else:
                 playerList=playerList+str(players2[i])+", "
             
-    result = "http://lv-vl.net/randomteam/"+output_name+"   "+playerList
+    result = config.randomteam_url+name+"   "+playerList
     self.send_reply( (result), user, channel )

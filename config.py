@@ -55,3 +55,10 @@ servers = ['server1']
 
 #log directory
 log_dir = 'logs/'
+
+# commands related:
+randomserver_dir = ''   # directory where files of (randomserver) command are saved (with / at the end)
+randomserver_url = ''   # url path to that directory    (with / at the end)
+
+randomteam_dir = '' #directory where files of (randomteam) command are saved (with / at the end
+randomteam_url = '' #url path to that directory (with / at the end)
