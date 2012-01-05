@@ -55,7 +55,7 @@ def notify(self, user, channel):
                     (user,date,mod,version,timeout,num_players)
                     VALUES
                     (
-                    '"""+user+"""',strftime('%Y-%m-%d-%H-%M-%S','now','localtime'),'any','any','none','no limit'
+                    '"""+user+"""',strftime('%Y-%m-%d-%H-%M-%S','now','localtime'),'any','any','none','1'
                     )
             """
             cur.execute(sql)
@@ -66,7 +66,7 @@ def notify(self, user, channel):
             return
     else:
         mod = "any"
-        players = "no limit"
+        players = "1"
         timeout = "none"
         version = "any"
         
@@ -103,14 +103,15 @@ def notify(self, user, channel):
         playersOK = True
         try:
             trash = int(players)
+            if not (int(players) >= 1):
+                raise ValueError('is less then 1')
         except:
             playersOK = False
         if ( playersOK == False ):
-            if players != "no limit":
-                message = "Fail: players must be int!"
-                self.send_notice( message, user )
-                cur.close()
-                return
+            message = "Fail: players must be int and more or equal 1!"
+            self.send_notice( message, user )
+            cur.close()
+            return
         
         if not ( (timeout == 'forever') or (timeout == 'f') or (timeout == 'till_quit') or (timeout == 'none') or ( timeout[-1] in timeouts and type(int(timeout[0:-1])) is int ) ):
             message = "Fail: error in timeout!"
