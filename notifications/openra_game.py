@@ -32,7 +32,7 @@ def start(self):
     cur.close()
         
 def parse_list(self, IP_LIST,  conn,  cur):
-    blacklist = ['85.17.23.105']
+    blacklist = ['']
     # CURRENT_LIST contains all games ( ex: {ip: amount_of_players } )
     CURRENT_LIST = {}
     timeouts = ['s','m','h','d']
