@@ -29,7 +29,6 @@ def start(self):
     while True:
         time.sleep(15)
         IP_LIST = parse_list(self, IP_LIST,  conn,  cur)
-    cur.close()
         
 def parse_list(self, IP_LIST,  conn,  cur):
     blacklist = ['']
@@ -42,7 +41,7 @@ def parse_list(self, IP_LIST,  conn,  cur):
     except:
         return
     if ( stream == '' ):
-        return
+        return {}
 
     # get JSON object
     y = json.loads(stream)
@@ -63,7 +62,6 @@ def parse_list(self, IP_LIST,  conn,  cur):
         down = name.split('[down]')
         if (state == '2'):
             # ip of current checked game is in the list of waiting games already ( so it's known and not new )
-            print(IP_LIST)
             if ( ip in IP_LIST.keys() ):
                 # game in IP_LIST but already started , remove from this list
                 IP_LIST.pop(ip)
@@ -89,7 +87,6 @@ def parse_list(self, IP_LIST,  conn,  cur):
             cur.execute(sql)
             conn.commit()
         elif (state == '1'):
-            print(IP_LIST)
             if ( ip not in IP_LIST.keys() ):
                 # totally new game
                 # previous list of games gets new record for next iteration
