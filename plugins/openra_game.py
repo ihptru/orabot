@@ -68,13 +68,22 @@ def parse_list(self, IP_LIST,  conn,  cur):
                 # we do not need this game in list of CURRENT games either
                 CURRENT_LIST.pop(ip)
                 # next db code is needed for (last game) command to show lately started games
+                name_no_quotes = name.replace("'","''")
+                address = y[i]['address']
+                map = y[i]['map']
                 sql = """INSERT INTO games
-                        (game,players,date_time,version)
+                        (name,address,players,version,mod,map,date_time)
                         VALUES
                         (
-                        '"""+name.replace("'","''")+"""','"""+players+"""',strftime('%Y-%m-%d-%H-%M-%S'),'"""+version+"""'
+                        '{0}',
+                        '{1}',
+                        '{2}',
+                        '{3}',
+                        '{4}',
+                        '{5}',
+                        strftime('%Y-%m-%d-%H-%M-%S')
                         )
-                """
+                """.format(name_no_quotes,  address,  players,  version,  mod,  map)
                 cur.execute(sql)
                 conn.commit()
             else:

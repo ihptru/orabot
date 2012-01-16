@@ -17,7 +17,7 @@
 Shows weather of a specific location
 """
 
-from plugins import pywapi
+from libs import pywapi
 
 def weather(self, user, channel):
     def weather_usage():

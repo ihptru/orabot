@@ -29,7 +29,7 @@ import process_commands
 ### irc events in 'irc' directory
 from irc import *
 ### notifications package
-from notifications import *
+from plugins import *
 
 # Defining a class to run the server. One per connection. This class will do most of our work.
 class IRC_Server:
@@ -71,6 +71,7 @@ class IRC_Server:
             proc_2 = multiprocessing.Process(target=openra_bugs.start, args=(self,))
             proc_3 = multiprocessing.Process(target=github_commits.start, args=(self,))
             proc_4 = multiprocessing.Process(target=openra_game.start, args=(self,))
+            proc_5 = multiprocessing.Process(target=openra_stats.start, args=(self, ))
 
             conn, cur = self.db_data()
             sql = """UPDATE users
@@ -83,33 +84,35 @@ class IRC_Server:
             if ( self.notifications_support == True ):
                 # run notifications
                 print(("[%s] Notifications support...\t\tOK") % (self.irc_host))
-                self.notifications('start', proc_1, proc_2, proc_3, proc_4)
+                self.notifications('start', proc_1, proc_2, proc_3, proc_4, proc_5)
             
             if self.connect():
                 if ( self.connect_return == 'Excess Flood' ):
-                    self.notifications('terminate', proc_1, proc_2, proc_3, proc_4)
+                    self.notifications('terminate', proc_1, proc_2, proc_3, proc_4,  proc_5)
                     print("[%s] Terminated child processes" % self.irc_host)
                     print("[%s] Restarting the bot" % self.irc_host)
                     time.sleep(5)
                     self.irc_sock.close()
                     continue
                 elif ( self.connect_return == 'Manual Quit' ):
-                    self.notifications('terminate', proc_1, proc_2, proc_3, proc_4)
+                    self.notifications('terminate', proc_1, proc_2, proc_3, proc_4,  proc_5)
                     print("[%s] Terminated child processes" % self.irc_host)
                     print("[%s] Exit" % self.irc_host)
                     break
 
-    def notifications(self, action, proc_1, proc_2, proc_3, proc_4):
+    def notifications(self, action, proc_1, proc_2, proc_3, proc_4,  proc_5):
         if ( action == 'start' ):
             proc_1.start()
             proc_2.start()
             proc_3.start()
             proc_4.start()
+            proc_5.start()
         elif ( action == 'terminate' ):
             proc_1.terminate()
             proc_2.terminate()
             proc_3.terminate()
             proc_4.terminate()
+            proc_5.terminate()
 
     # This is the bit that controls connection to a server & channel.
     def connect(self):

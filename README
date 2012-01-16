@@ -1,6 +1,6 @@
 orabot is an official irc bot of #openra channel on freenode.
 
-More info: https://github.com/ihptru/orabot/wiki
+More info: http://wiki.lv-vl.net/index.php/IRC_orabot
 
 
 Before starting the bot, edit `config.py`
@@ -10,4 +10,4 @@ To start:
 
 ###
 python3 dependences:
-yaml, pygeoip
+pygeoip

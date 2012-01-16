@@ -312,9 +312,12 @@ def messages(conn, cur):
 def games(conn, cur):
     sql = """CREATE TABLE games (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "game" VARCHAR NOT NULL,
+        "name" VARCHAR NOT NULL,
+        "address" VARCHAR NOT NULL,
         "players" VARCHAR NOT NULL,
         "version" VARCHAR NOT NULL,
+        "mod" VARCHAR NOT NULL,
+        "map" VARCHAR NOT NULL,
         "date_time" date NOT NULL
         )
     """

@@ -308,7 +308,7 @@ def game(self, user, channel, command_request):
             return
     if ( int(amount_records) > 30 ):
         amount_records = '30'
-    sql = """SELECT game,players,date_time,version FROM games
+    sql = """SELECT name,players,date_time,version FROM games
             ORDER BY uid DESC
             LIMIT """ + amount_records + """
     """
