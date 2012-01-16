@@ -88,7 +88,7 @@ def prepare(self, conn, cur):
         </tr>
     """ % (stats_started, time.strftime('%Y-%m-%d'), )
 
-    sql = """SELECT map,count(map) as counts FROM games
+    sql = """SELECT map,count(map) as counts, avg(players) as players FROM games
             GROUP BY map
             ORDER BY counts DESC LIMIT 50
     """
@@ -115,8 +115,8 @@ def prepare(self, conn, cur):
         else:
             desc = y[0]['description']
         content += """
-            <td>title: {0}<br>description: {1}<br>author: {2}<br>mod: {3}<br><a href="{4}">download</a></td>
-        """.format(y[0]['title'], desc, y[0]['author'], y[0]['mod'], link)
+            <td>title: {0}<br>description: {1}<br>author: {2}<br>mod: {3}<br>This map is played on an average with {4} players<br><a href="{5}">download</a></td>
+        """.format(y[0]['title'], desc, y[0]['author'], y[0]['mod'], round(float(records[i][2])), link)
         content += """
             <td>{0}</td></tr>
         """.format(records[i][1])
