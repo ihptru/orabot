@@ -67,25 +67,28 @@ def parse_list(self, IP_LIST,  conn,  cur):
                 IP_LIST.pop(ip)
                 # we do not need this game in list of CURRENT games either
                 CURRENT_LIST.pop(ip)
-                # next db code is needed for (last game) command to show lately started games
-                name_no_quotes = name.replace("'","''")
-                address = y[i]['address']
-                map = y[i]['map']
-                sql = """INSERT INTO games
-                        (name,address,players,version,mod,map,date_time)
-                        VALUES
-                        (
-                        '{0}',
-                        '{1}',
-                        '{2}',
-                        '{3}',
-                        '{4}',
-                        '{5}',
-                        strftime('%Y-%m-%d-%H-%M-%S')
-                        )
-                """.format(name_no_quotes,  address,  players,  version,  mod,  map)
-                cur.execute(sql)
-                conn.commit()
+                # blacklist is global, we do not notify user as long as do not save started game
+                # this is because of spamming of dedicated servers which just ruin statistics
+                if ( ip not in blacklist ):
+                    # next db code is needed for (last game) command to show lately started games
+                    name_no_quotes = name.replace("'","''")
+                    address = y[i]['address']
+                    map = y[i]['map']
+                    sql = """INSERT INTO games
+                            (name,address,players,version,mod,map,date_time)
+                            VALUES
+                            (
+                            '{0}',
+                            '{1}',
+                            '{2}',
+                            '{3}',
+                            '{4}',
+                            '{5}',
+                            strftime('%Y-%m-%d-%H-%M-%S')
+                            )
+                    """.format(name_no_quotes,  address,  players,  version,  mod,  map)
+                    cur.execute(sql)
+                    conn.commit()
             else:
                 # we do not need this game in list of CURRENT games anyway
                 CURRENT_LIST.pop(ip)
@@ -179,7 +182,7 @@ def check_and_notify(self, name, mod, version, players, db_timeout, db_date, db_
         players = "{ Players:01,16 "+players+" }"
     if (version != ' '):
         version = " { "+version[:-4]+"00,10 "+version[-4:]+" } "
-    notify_message = "New game:04,01 "+name+" {01,09 "+mod.upper()+" }"+version+players
+    notify_message = "New game:01,08 "+name+" {01,09 "+mod.upper()+" }"+version+players
     if ( db_timeout.lower() == 'none' ):
         self.send_reply( (notify_message), db_user, db_user )
     # till_quit is actually default
