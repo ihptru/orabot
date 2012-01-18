@@ -234,11 +234,12 @@ def notify(conn, cur):
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
         "user" VARCHAR NOT NULL,
         "date" DATETIME NOT NULL,
-        "mod" VARCHAR NOT NULL DEFAULT "any"
+        "mod" VARCHAR NOT NULL DEFAULT "any",
         "version" VARCHAR NOT NULL DEFAULT "any",
         "timeout" VARCHAR NOT NULL DEFAULT "none",
-        "num_players" VARCHAR NOT NULL DEFAULT "no limit"
-        )                
+        "num_players" VARCHAR NOT NULL DEFAULT "no limit",
+        "other_options" VARCHAR NOT NULL DEFAULT "NULL" 
+        )
     """
     cur.execute(sql)
     conn.commit()

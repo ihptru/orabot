@@ -27,7 +27,7 @@ def notify(self, user, channel):
         return
     command = (self.command).split()
     try:
-        optlist,  args = getopt.getopt(command[1:], 'm:n:t:v:')
+        optlist,  args = getopt.getopt(command[1:], 'm:n:t:v:e')
     except getopt.GetoptError as err:
         message = "Fail: incorrect option!"
         self.send_notice( message, user )
@@ -69,6 +69,7 @@ def notify(self, user, channel):
         players = "1"
         timeout = "none"
         version = "any"
+        other_options = "NULL"
         
         mods = ['ra','cnc','yf','any']
         timeouts = ['s','m','h','d']
@@ -83,6 +84,8 @@ def notify(self, user, channel):
                 timeout = optlist[i][1].strip()
             if optlist[i][0] == "-v":
                 version = optlist[i][1].strip()
+            if optlist[i][0] == "-e":
+                other_options = "-e"
 
         if ( mod.lower() not in mods ):
             message = "Fail: unknown mod!"
@@ -132,17 +135,21 @@ def notify(self, user, channel):
             return
         else:
             sql = """INSERT INTO notify
-                    (user,date,mod,version,timeout,num_players)
+                    (user,date,mod,version,timeout,num_players,other_options)
                     VALUES
                     (
-                    '"""+user+"',strftime('%Y-%m-%d-%H-%M-%S','now','localtime'),'"+mod+"""','"""+version+"""','"""+timeout+"""','"""+players+"""'
+                    '"""+user+"',strftime('%Y-%m-%d-%H-%M-%S','now','localtime'),'"+mod+"""','"""+version+"""','"""+timeout+"""','"""+players+"""','"""+other_options+"""'
                     )
             """
             cur.execute(sql)
             conn.commit()
             if timeout == 'f':
                 timeout = 'forever'
-            message = "You are subscribed! {mod: "+mod+"} {version contains: "+version+"} {min players: "+players+"} {timeout: "+timeout+"}"
+            if other_options == "-e":
+                other_options = " ping only to equalize the teams"
+            else:
+                other_options = ""
+            message = "You are subscribed! {mod: "+mod+"} {version contains: "+version+"} {min players: "+players+"} {timeout: "+timeout+"}"+other_options
             self.send_notice( message, user )
             cur.close()
             return

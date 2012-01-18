@@ -107,7 +107,7 @@ def parse_list(self, IP_LIST,  conn,  cur):
                 continue    # forbid showing games from blacklist
             if ( len(down) > 1 ):  #game is [down]
                 continue
-            sql = """SELECT user,date,mod,version,timeout,num_players FROM notify
+            sql = """SELECT user,date,mod,version,timeout,num_players,other_options FROM notify
             """
             cur.execute(sql)
             records = cur.fetchall()
@@ -121,12 +121,16 @@ def parse_list(self, IP_LIST,  conn,  cur):
                 db_version = records[i][3]
                 db_timeout = records[i][4]
                 db_num_players = records[i][5]
+                db_other = records[i][6]
                 # if user specified mod distinct from 'any', check if it matches mod of current checked game
                 if not ( db_mod.lower() == mod or db_mod.lower() == 'any' ):
                     continue
                 # version pattern found?
                 if not ( re.search(db_version, version) or db_version.lower() == 'any' ):
                     continue
+                if (db_other == "-e"):
+                    if (int(players) % 2 == 0 or int(players) <= 2):
+                        continue
                 # both lists contain waiting games but:
                 #   CURRENT_LIST contains current waiting games
                 #   IP_LIST by now contain as games from prefious check as new games
