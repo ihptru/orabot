@@ -89,6 +89,7 @@ def prepare(self, conn, cur):
     """ % (stats_started, time.strftime('%Y-%m-%d'), )
 
     sql = """SELECT map,count(map) as counts, avg(players) as players FROM games
+                WHERE players > 1
             GROUP BY map
             ORDER BY counts DESC LIMIT 50
     """
