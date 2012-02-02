@@ -23,7 +23,7 @@ def start(self):
     conn, cur = self.db_data()
     while True:
         prepare(self, conn, cur)
-        time.sleep(86400)   #24 hours
+        time.sleep(43200)   #24 hours
 
 def prepare(self, conn, cur):
     sql = """SELECT date_time FROM games

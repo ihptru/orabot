@@ -65,10 +65,10 @@ def games(self, user, channel):
     conn, cur = self.db_data()
     if ( len(command) == 1 ):
         content = urllib.request.urlopen(url).read().decode('utf-8')
-        if ( len(content) == 0 ):
+        y = json.loads(content)
+        if ( len(y) == 0 ):
             self.send_reply( ("No games found"), user, channel )
             return
-        y = json.loads(content)
         count='0'
         for game in y:
             if ( game['state'] == '1' ):
@@ -91,10 +91,10 @@ def games(self, user, channel):
             self.send_reply( ("No games waiting for players found"), user, channel )
     elif ( len(command) == 2 ):   # ]games with args
         content = urllib.request.urlopen(url).read().decode('utf-8')
-        if ( len(content) == 0 ):
+        y = json.loads(content)
+        if ( len(y) == 0 ):
             self.send_reply( ("No games found"), user, channel )
             return
-        y = json.loads(content)
         if ( command[1] == "-w" ):   #request games in State = 1
             count='0'
             for game in y:
@@ -268,10 +268,10 @@ def games(self, user, channel):
     elif ( len(command) > 2 ):
         if ( command[1] == "-r" ):  #patter request
             content = urllib.request.urlopen(url).read().decode('utf-8')
-            if ( len(content) == 0 ):
+            y = json.loads(content)
+            if ( len(y) == 0 ):
                 self.send_reply( ("No games found"), user, channel )
                 return
-            y = json.loads(content)
             chars=['*','.','$','^','@','{','}','+','?'] # chars to ignore
             request_pattern = " ".join(command[2:])
             for i in range(len(chars)):
