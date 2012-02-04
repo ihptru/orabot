@@ -23,7 +23,7 @@ def start(self):
     conn, cur = self.db_data()
     while True:
         prepare(self, conn, cur)
-        time.sleep(43200)   #24 hours
+        time.sleep(43200)   #12 hours
 
 def prepare(self, conn, cur):
     sql = """SELECT date_time FROM games
@@ -50,6 +50,7 @@ def prepare(self, conn, cur):
             margin: auto;
             padding:auto;
             text-align: center;
+            max-width:700px;
         }
 
         a:visited {
@@ -72,6 +73,23 @@ def prepare(self, conn, cur):
             border: 2px solid #0000FF;
             padding: 2px 2px 2px 2px;
         }
+        
+        .players {
+            color: #0000FF;
+            text-decoration: underline;
+        }
+        
+        .title {
+            color: #ff7800;
+        }
+        
+        .info {
+            text-decoration: underline;
+        }
+        
+        img {
+            border: 0px;
+        }
     </style>
     </head>
     <body>
@@ -91,7 +109,7 @@ def prepare(self, conn, cur):
     sql = """SELECT map,count(map) as counts, avg(players) as players FROM games
                 WHERE players > 1
             GROUP BY map
-            ORDER BY counts DESC LIMIT 50
+            ORDER BY counts DESC LIMIT 100
     """
     cur.execute(sql)
     records = cur.fetchall()
@@ -104,19 +122,20 @@ def prepare(self, conn, cur):
         y = json.loads(data)
         link = y[0]['url']
         minimap = os.path.dirname(y[0]['url']) + "/minimap.bmp"
-        content += """
-            <tr><td><img src="{0}" /></td>
-        """.format(minimap)
 
         url = "http://oramod.lv-vl.net/api/map_data.php?hash=%s" % records[i][0]
         data = urllib.request.urlopen(url).read().decode('utf-8')
         y = json.loads(data)
+
         if ( y[0]['description'].strip() == "" ):
             desc = "none"
         else:
             desc = y[0]['description']
         content += """
-            <td>title: {0}<br>description: {1}<br>author: {2}<br>mod: {3}<br>This map is played on an average with {4} players<br><a href="{5}">download</a></td>
+            <tr><td><a href="http://oramod.lv-vl.net/index.php?p=detail&table=maps&id={0}"><img src="{1}" /></a></td>
+        """.format(y[0]['id'], minimap)
+        content += """
+            <td><span class="title">title:</span> {0}<br><span class="title">description:</span> {1}<br><span class="title">author:</span> {2}<br><span class="title">mod:</span> {3}<br><span class="info">This map is played on an average with <span class="players">{4}</span> players</span><br><a href="{5}">download</a></td>
         """.format(y[0]['title'], desc, y[0]['author'], y[0]['mod'], round(float(records[i][2])), link)
         content += """
             <td>{0}</td></tr>
