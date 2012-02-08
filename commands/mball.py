@@ -32,4 +32,4 @@ def mball(self, user, channel):
                 ]
         self.send_reply( (random.choice(answers)), user, channel)
     else:
-        self.send_reply( ('error, at least 3 arguments required'), user, channel)
+        self.send_notice( ('error, at least 3 arguments required'), user )
