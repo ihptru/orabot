@@ -463,8 +463,10 @@ class IRC_Server:
                 pre = http_link.split('http')[1].split('//')[0]
                 link = 'http'+pre+'//'+link
                 if re.search("^#", channel):
-                    if re.search('http.*youtube.com/watch.*', link):
-                        link = link.split('&')[0]
+                    youtube_match = re.findall('.*youtube.*v=(.+)', http_link)
+                    if len(youtube_match) != 0:
+                        v = youtube_match[0].split('&')[0]
+                        link = 'http://www.youtube.com/watch?v='+v
                         try:
                             title = self.title_from_url(link).split('- YouTube')[0]
                             if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
