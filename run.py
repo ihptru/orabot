@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+#
 # Copyright 2011 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify

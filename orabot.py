@@ -161,9 +161,9 @@ class IRC_Server:
     def listen(self):
         while self.is_connected:
             recv = self.irc_sock.recv( 4096 )
-            recv=self.decode_stream(recv)
+            recv = self.decode_stream( recv )
 
-            data = self.handle_recv(str(recv))
+            data = self.handle_recv( recv )
             for recv in data:
                 if recv.find ( "PING" ) != -1:
                     self.irc_sock.send ( ("PONG "+ recv.split() [ 1 ] + "\r\n").encode() )
@@ -267,7 +267,7 @@ class IRC_Server:
     #another helper
     def decode_stream(self, stream):
         try:
-            return stream.decode("utf8")
+            return stream.decode("utf-8")
         except:
             return stream.decode("CP1252")
 

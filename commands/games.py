@@ -15,19 +15,10 @@
 
 """
 Shows current games.\n
-Options:\n
-\t(-w)
-\t(-p)
-\t(--all | -wp)
-\t(-s)
-\t(-l)
-\t(-r)
-\t(-v)
-\t(-vw | -wv)
-\t(-vp | -pv)
+More info at  http://wiki.lv-vl.net/index.php/IRC_orabot
 """
 
-import pygeoip
+from libs import pygeoip
 import sqlite3
 import re
 import urllib.request
@@ -76,7 +67,7 @@ def games(self, user, channel):
                 state = '(W)'
                 ### for location
                 ip = " ".join(game['address'].split(':')[0:-1])    # ip address
-                gi = pygeoip.GeoIP('GeoIP.dat')
+                gi = pygeoip.GeoIP('libs/pygeoip/GeoIP.dat')
                 country = gi.country_code_by_addr(ip).upper()   #got country name
                 ###
                 sname = game['name']
@@ -103,7 +94,7 @@ def games(self, user, channel):
                     state = '(W)'
                     ### for location
                     ip = " ".join(game['address'].split(':')[0:-1])    # ip address
-                    gi = pygeoip.GeoIP('GeoIP.dat')
+                    gi = pygeoip.GeoIP('libs/pygeoip/GeoIP.dat')
                     country = gi.country_code_by_addr(ip).upper()   #got country name
                     ###
                     sname = game['name']
@@ -124,7 +115,7 @@ def games(self, user, channel):
                     state = '(P)'
                     ### for location
                     ip = " ".join(game['address'].split(':')[0:-1])    # ip address
-                    gi = pygeoip.GeoIP('GeoIP.dat')
+                    gi = pygeoip.GeoIP('libs/pygeoip/GeoIP.dat')
                     country = gi.country_code_by_addr(ip).upper()   #got country name
                     ###
                     sname = game['name']
@@ -145,7 +136,7 @@ def games(self, user, channel):
                     state = '(P)'
                 ### for location
                 ip = " ".join(game['address'].split(':')[0:-1])    # ip address
-                gi = pygeoip.GeoIP('GeoIP.dat')
+                gi = pygeoip.GeoIP('libs/pygeoip/GeoIP.dat')
                 country = gi.country_code_by_addr(ip).upper()   #got country name
                 ###
                 sname = game['name']
@@ -293,7 +284,7 @@ def games(self, user, channel):
                             state = '(P)'
                         ### for location
                         ip = " ".join(game['address'].split(':')[0:-1])    # ip address
-                        gi = pygeoip.GeoIP('GeoIP.dat')
+                        gi = pygeoip.GeoIP('libs/pygeoip/GeoIP.dat')
                         country = gi.country_code_by_addr(ip).upper()   #got country name
                         ###
                         if ( len(sname) == 0 ):
