@@ -26,7 +26,7 @@ import time
 import json
 
 def get_map_info( sha ):
-    url = "http://oramod.lv-vl.net/api/map_data.php?hash=%s" % sha
+    url = "http://content.open-ra.org/api/map_data.php?hash=%s" % sha
     data = urllib.request.urlopen(url).read().decode('utf-8')
     try:
         y = json.loads(data)
