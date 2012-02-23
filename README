@@ -7,7 +7,3 @@ Before starting the bot, edit `config.py`
  
 To start:
 ./run.py
-
-###
-python3 dependences:
-pygeoip
