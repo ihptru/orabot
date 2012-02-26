@@ -39,9 +39,9 @@ def parse_list(self, IP_LIST,  conn,  cur):
     try:
         stream = self.data_from_url(url, None)
     except:
-        return
+        return IP_LIST
     if ( stream == '' ):
-        return {}
+        return IP_LIST
 
     # get JSON object
     y = json.loads(stream)
