@@ -50,6 +50,8 @@ class Tee(io.TextIOWrapper):
         self.buffered1=False
         self.buffered2=False
     def write(self, text):
+        if (text.strip() != ''):
+            text = time.strftime('[%Y-%m-%d %H:%M:%S] ')+text
         self.f1.write(text)
         self.f2.write(text)
         if not self.buffered1:
@@ -57,17 +59,8 @@ class Tee(io.TextIOWrapper):
         if not self.buffered2:
             self.f2.flush()
 
-# a class for flushed output
-class FlushFile(io.TextIOWrapper):
-    def __init__(self, f):
-        io.TextIOWrapper.__init__(self, f)
-        self.f=f
-    def write(self, text):
-        self.f.write(text)
-        self.f.flush()
-
 sys.stdout=Tee(sys.stdout, log)
-sys.stderr=FlushFile(sys.stderr)    #Allways flush stderr
+sys.stderr=Tee(sys.stderr, log)
 print("Starting bot. Press ctrl+c to exit.")
 
 while(True):
