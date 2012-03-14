@@ -26,7 +26,7 @@ def mapinfo(self, user, channel):
         self.send_reply( ("Part of map's name required!"), user, channel )
     else:
         map_pattern = " ".join(command[1:])
-        url = "http://oramod.lv-vl.net/api/map_data.php?title=%s" % map_pattern
+        url = "http://content.open-ra.org/api/map_data.php?title=%s" % map_pattern
         data = urllib.request.urlopen(url).read().decode('utf-8')
         y = json.loads(data)
         if ( not len(y) ):

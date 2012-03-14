@@ -7,3 +7,4 @@
 *.e4p
 .eric4project/
 .eric4project/*
+__init__.py

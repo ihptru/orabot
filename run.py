@@ -19,6 +19,8 @@ import io
 import sys
 import time
 import os
+import gzip
+import shutil
 import orabot
 
 try:
@@ -38,29 +40,57 @@ except OSError as e:
     else:
         raise e #Raise exception again
 
-logfile="var/botlog.txt"
-log=io.open(logfile,"a")
+logfile = "var/botlog.txt"
+log = io.open(logfile, "a")
 
 # a class which works like the shell command "tee"
 class Tee(io.TextIOWrapper):
-    def __init__(self, f1, f2):
+
+    def __init__(self, f1, f2, fd):
         io.TextIOWrapper.__init__(self, f1)
-        self.f1=f1
-        self.f2=f2
-        self.buffered1=False
-        self.buffered2=False
+        self.f1 = f1
+        self.f2 = f2
+        self.fd = fd
+
     def write(self, text):
         if (text.strip() != ''):
-            text = time.strftime('[%Y-%m-%d %H:%M:%S] ')+text
+            text = time.strftime('[%Y-%m-%d %H:%M:%S] ') + text
         self.f1.write(text)
         self.f2.write(text)
-        if not self.buffered1:
-            self.f1.flush()
-        if not self.buffered2:
-            self.f2.flush()
+        self.f1.flush()
+        self.f2.flush()
+        if self.fd == "stdout":
+            log_f = open('var/botlog.txt')
+            log_f_lines = log_f.readlines()
+            if len(log_f_lines) > 10000:
+                _files = []
+                _dir = os.listdir('var/')
+                for fn in _dir:
+                    if fn[0:6] == "botlog":
+                        _files.append(fn)
+                _nums = []
+                for file in _files:
+                    _nums.append(file.split("botlog")[1].split(".")[0])
+                _nums.sort()
+                _nums.reverse()
+                #gzip
+                for num in _nums:
+                    if num != "":
+                        source = "var/botlog"+num+".txt.gz"
+                        dest = "var/botlog"+str(int(num)+1)+".txt.gz"
+                        shutil.move(source, dest)
+                    else:
+                        f_in = open('var/botlog.txt', 'rb')
+                        f_out = gzip.open('var/botlog1.txt.gz', 'wb')
+                        f_out.writelines(f_in)
+                        f_out.close()
+                        f_in.close()
+                        self.f2.close()
+                        open('var/botlog.txt', 'w').close()
+                        self.f2 = io.open('var/botlog.txt', 'a')
 
-sys.stdout=Tee(sys.stdout, log)
-sys.stderr=Tee(sys.stderr, log)
+sys.stdout=Tee(sys.stdout, log, "stdout")
+sys.stderr=Tee(sys.stderr, log, "stderr")
 print("Starting bot. Press ctrl+c to exit.")
 
 while(True):
