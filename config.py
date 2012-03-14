@@ -63,4 +63,4 @@ randomserver_url = ''   # url path to that directory    (with / at the end)
 randomteam_dir = '' #directory where files of (randomteam) command are saved (with / at the end
 randomteam_url = '' #url path to that directory (with / at the end)
 
-save_stats_path = ''    #directory where index.html file of OpenRA games statistics will be saved
+save_stats_path = ''    #directory where mapstats/index.html and serverstats/index.html files of OpenRA games statistics will be saved
