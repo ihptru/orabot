@@ -35,7 +35,7 @@ def prepare(self):
         url = 'http://master.open-ra.org/db/openra.db'
         remoteFile = subprocess.Popen(['wget', url, '-P', 'db/', '-o', 'var/wget_log']).wait()
     except:
-        print("Could not fetch a remote database")
+        print("Could not fetch a remote database (openra_stats)")
         return
     
     conn = sqlite3.connect('db/openra.db')
@@ -137,7 +137,7 @@ def prepare(self):
         else:
             desc = y[0]['description']
         content_maps += """
-            <tr><td><a href="http://oramod.lv-vl.net/index.php?p=detail&table=maps&id={0}"><img src="{1}" /></a></td>
+            <tr><td><a href="http://content.open-ra.org/?p=detail&table=maps&id={0}"><img src="{1}" /></a></td>
         """.format(y[0]['id'], minimap)
         content_maps += """
             <td><span class="title">title:</span> {0}<br><span class="title">description:</span> {1}<br><span class="title">author:</span> {2}<br><span class="title">mod:</span> {3}<br><span class="info">This map is played on an average with <span class="players">{4}</span> players</span><br><a href="{5}">download</a></td>

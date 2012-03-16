@@ -1,5 +1,5 @@
 ####################
-## IRC Bot Config ##
+#####  IRC Bot Config  #####
 ####################
 
 server1 = {
@@ -33,8 +33,8 @@ server1 = {
             # channel to write logs of (space as delimiter)
             'log_channels' : '#change_channel1 #change_channel2',
 
-            # support notifications? ( True or False )
-            'notifications' : False,
+            # support plugins? ( True or False )
+            'plugins_support' : False,
 
             # write bug reports to (space as delimiter)
             'write_bug_notifications_to' : '',
@@ -64,3 +64,10 @@ randomteam_dir = '' #directory where files of (randomteam) command are saved (wi
 randomteam_url = '' #url path to that directory (with / at the end)
 
 save_stats_path = ''    #directory where mapstats/index.html and serverstats/index.html files of OpenRA games statistics will be saved
+
+# config for orabot_to_oracontent plugin
+content_my_host = ""
+content_my_username = ""
+content_my_password = ""
+content_my_database = ""
+content_sqlite3_path = ""

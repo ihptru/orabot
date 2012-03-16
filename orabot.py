@@ -35,7 +35,7 @@ from plugins import *
 class IRC_Server:
 
     # The default constructor - declaring our global variables
-    def __init__(self, host, port, nick, channels, nickserv, nickserv_password, command_prefix, command_timeout, write_logs, log_channels, notifications_support, write_bug_notifications_to, write_commit_notifications_to, git_repos, change_topic_channel):
+    def __init__(self, host, port, nick, channels, nickserv, nickserv_password, command_prefix, command_timeout, write_logs, log_channels, plugins_support, write_bug_notifications_to, write_commit_notifications_to, git_repos, change_topic_channel):
         self.irc_host = host
         self.irc_port = port
         self.irc_nick = nick
@@ -46,7 +46,7 @@ class IRC_Server:
         self.command_timeout = command_timeout
         self.write_logs = write_logs
         self.log_channels = log_channels
-        self.notifications_support = notifications_support
+        self.plugins_support = plugins_support
         self.write_bug_notifications_to = write_bug_notifications_to
         self.write_commit_notifications_to = write_commit_notifications_to
         self.git_repos = git_repos
@@ -67,12 +67,6 @@ class IRC_Server:
         if not os.path.exists('db/'+self.irc_host+'.sqlite'):
             db_process.start(self)
         while True:
-            proc_1 = multiprocessing.Process(target=openra_topic.start, args=(self,))
-            proc_2 = multiprocessing.Process(target=openra_bugs.start, args=(self,))
-            proc_3 = multiprocessing.Process(target=github_commits.start, args=(self,))
-            proc_4 = multiprocessing.Process(target=openra_game.start, args=(self,))
-            proc_5 = multiprocessing.Process(target=openra_stats.start, args=(self, ))
-
             conn, cur = self.db_data()
             sql = """UPDATE users
                     SET state = 0;
@@ -81,38 +75,48 @@ class IRC_Server:
             cur.executescript(sql)
             conn.commit()
             cur.close()
-            if ( self.notifications_support == True ):
-                # run notifications
-                print(("[%s] Notifications support...\t\tOK") % (self.irc_host))
-                self.notifications('start', proc_1, proc_2, proc_3, proc_4, proc_5)
+            if self.plugins_support:
+                # run plugins
+                proc_1 = multiprocessing.Process(target=openra_topic.start, args=(self,))
+                proc_2 = multiprocessing.Process(target=openra_bugs.start, args=(self,))
+                proc_3 = multiprocessing.Process(target=github_commits.start, args=(self,))
+                proc_4 = multiprocessing.Process(target=openra_game.start, args=(self,))
+                proc_5 = multiprocessing.Process(target=openra_stats.start, args=(self, ))
+                proc_6 = multiprocessing.Process(target=orabot_to_oracontent.start, args=(self, ))
+                print(("[%s] Plugins support...\t\tOK") % (self.irc_host))
+                self.plugins('start', proc_1, proc_2, proc_3, proc_4, proc_5, proc_6)
             
             if self.connect():
                 if ( self.connect_return == 'Excess Flood' ):
-                    self.notifications('terminate', proc_1, proc_2, proc_3, proc_4,  proc_5)
-                    print("[%s] Terminated child processes" % self.irc_host)
+                    if self.plugins_support:
+                        self.plugins('terminate', proc_1, proc_2, proc_3, proc_4,  proc_5, proc_6)
+                        print("[%s] Terminated child processes" % self.irc_host)
                     print("[%s] Restarting the bot" % self.irc_host)
                     time.sleep(5)
                     self.irc_sock.close()
                     continue
                 elif ( self.connect_return == 'Manual Quit' ):
-                    self.notifications('terminate', proc_1, proc_2, proc_3, proc_4,  proc_5)
-                    print("[%s] Terminated child processes" % self.irc_host)
+                    if self.plugins_support:
+                        self.plugins('terminate', proc_1, proc_2, proc_3, proc_4,  proc_5, proc_6)
+                        print("[%s] Terminated child processes" % self.irc_host)
                     print("[%s] Exit" % self.irc_host)
                     break
 
-    def notifications(self, action, proc_1, proc_2, proc_3, proc_4,  proc_5):
+    def plugins(self, action, proc_1, proc_2, proc_3, proc_4,  proc_5, proc_6):
         if ( action == 'start' ):
             proc_1.start()
             proc_2.start()
             proc_3.start()
             proc_4.start()
             proc_5.start()
+            proc_6.start()
         elif ( action == 'terminate' ):
             proc_1.terminate()
             proc_2.terminate()
             proc_3.terminate()
             proc_4.terminate()
             proc_5.terminate()
+            proc_6.terminate()
 
     # This is the bit that controls connection to a server & channel.
     def connect(self):
@@ -539,6 +543,6 @@ def main():
     # Here begins the main programs flow:
     for irc_server in config.servers:
         server_data = eval('config.'+irc_server)
-        ircserver = IRC_Server(server_data['host'], server_data['port'], server_data['bot_nick'], server_data['channels'].split(), server_data['nickserv'], server_data['nickserv_password'], server_data['command_prefix'], server_data['command_timeout'], server_data['write_logs'], server_data['log_channels'], server_data['notifications'], server_data['write_bug_notifications_to'], server_data['write_commit_notifications_to'], server_data['git_repos'], server_data['change_topic_channel'])
+        ircserver = IRC_Server(server_data['host'], server_data['port'], server_data['bot_nick'], server_data['channels'].split(), server_data['nickserv'], server_data['nickserv_password'], server_data['command_prefix'], server_data['command_timeout'], server_data['write_logs'], server_data['log_channels'], server_data['plugins_support'], server_data['write_bug_notifications_to'], server_data['write_commit_notifications_to'], server_data['git_repos'], server_data['change_topic_channel'])
         ircserver_process = multiprocessing.Process(None,ircserver.ircbot,name="IRC Server" )
         ircserver_process.start()

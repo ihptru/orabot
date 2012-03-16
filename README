@@ -1,4 +1,4 @@
-orabot is an official irc bot of #openra channel on freenode.
+orabot is an official irc bot of #openra channel on freenode which includes additional OpenRA related tools
 
 More info: http://wiki.lv-vl.net/index.php/IRC_orabot
 
@@ -7,3 +7,6 @@ Before starting the bot, edit `config.py`
  
 To start:
 ./run.py
+
+Requirements:
+    `oursql py3k` : https://launchpad.net/oursql/py3k 
