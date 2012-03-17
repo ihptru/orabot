@@ -21,7 +21,7 @@ import sqlite3
 import getopt
 
 def notify(self, user, channel):
-    if self.notifications_support == False:
+    if self.plugins_support == False:
         message = "The bot is run without notifications support!"
         self.send_notice( message, user )
         return
