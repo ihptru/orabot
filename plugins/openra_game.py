@@ -74,8 +74,9 @@ def parse_list(self, IP_LIST,  conn,  cur):
                     name_no_quotes = name.replace("'","''")
                     address = y[i]['address']
                     map = y[i]['map']
-                    sql = """INSERT INTO games
-                            (name,address,players,version,mod,map,date_time)
+                    sql = """DELETE FROM games WHERE id = '"""+y[i]['id']+"""';
+                            INSERT INTO games
+                            (name,address,players,version,mod,map,date_time,id)
                             VALUES
                             (
                             '{0}',
@@ -84,10 +85,11 @@ def parse_list(self, IP_LIST,  conn,  cur):
                             '{3}',
                             '{4}',
                             '{5}',
-                            strftime('%Y-%m-%d-%H-%M-%S')
+                            strftime('%Y-%m-%d-%H-%M-%S'),
+                            {6}
                             )
-                    """.format(name_no_quotes,  address,  players,  version,  mod,  map)
-                    cur.execute(sql)
+                    """.format(name_no_quotes,  address,  players,  version,  mod,  map, y[i]['id'])
+                    cur.executescript(sql)
                     conn.commit()
             else:
                 # we do not need this game in list of CURRENT games anyway

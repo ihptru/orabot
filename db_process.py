@@ -319,7 +319,8 @@ def games(conn, cur):
         "version" VARCHAR NOT NULL,
         "mod" VARCHAR NOT NULL,
         "map" VARCHAR NOT NULL,
-        "date_time" date NOT NULL
+        "date_time" date NOT NULL,
+        "id" INTEGER NOT NULL DEFAULT 0
         )
     """
     cur.execute(sql)

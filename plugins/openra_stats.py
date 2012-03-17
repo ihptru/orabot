@@ -120,8 +120,11 @@ def prepare(self):
     records = cur.fetchall()
     conn.commit()
     for i in range(len(records)):
-        url = "http://content.open-ra.org/api/map_data.php?load=%s" % records[i][0]
-        data = urllib.request.urlopen(url).read().decode('utf-8')
+        try:
+            url = "http://content.open-ra.org/api/map_data.php?load=%s" % records[i][0]
+            data = urllib.request.urlopen(url).read().decode('utf-8')
+        except:
+            continue
         if ( data.strip() == "-1" ):
             continue
         y = json.loads(data)

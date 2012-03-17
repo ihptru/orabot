@@ -23,6 +23,7 @@ import sqlite3
 import re
 import urllib.request
 import time
+import datetime
 import json
 
 def get_map_info( sha ):
@@ -36,6 +37,22 @@ def get_map_info( sha ):
         return (y[0]['title'], '/' + y[0]['players'])
     else:
         return ('unknown', '')
+
+def get_duration(id, conn, cur):
+    sql = """SELECT date_time FROM games
+                    WHERE id = {0}
+    """.format(id)
+    cur.execute(sql)
+    rec = cur.fetchall()
+    conn.commit()
+    if len(rec):
+        current = time.strftime('%Y-%m-%d-%H-%M-%S')
+        current_s = time.mktime(time.strptime( current, '%Y-%m-%d-%H-%M-%S'))
+        game_started_s = time.mktime(time.strptime( rec[0][0], '%Y-%m-%d-%H-%M-%S'))
+        difference = current_s - game_started_s
+        return str(datetime.timedelta(seconds = difference))
+    else:
+        return "~"
 
 def modinfo( mod ):
     mod_split = mod.split('@')
@@ -115,7 +132,7 @@ def games(self, user, channel):
             for game in y:
                 if ( game['state'] == '2' ):
                     count='1'   # lock - there are games in State: 2
-                    state = '(P)'
+                    state = '('+get_duration(game['id'], conn, cur)+')'
                     ### for location
                     ip = " ".join(game['address'].split(':')[0:-1])    # ip address
                     gi = pygeoip.GeoIP('libs/pygeoip/GeoIP.dat')
@@ -136,7 +153,7 @@ def games(self, user, channel):
                 if ( game['state'] == '1' ):
                     state = '(W)'
                 elif ( game['state'] == '2' ):
-                    state = '(P)'
+                    state = '('+get_duration(game['id'], conn, cur)+')'
                 ### for location
                 ip = " ".join(game['address'].split(':')[0:-1])    # ip address
                 gi = pygeoip.GeoIP('libs/pygeoip/GeoIP.dat')
@@ -284,7 +301,7 @@ def games(self, user, channel):
                         if ( game['state'] == '1' ):
                             state = '(W)'
                         elif ( game['state'] == '2' ):
-                            state = '(P)'
+                            state = '('+get_duration(game['id'], conn, cur)+')'
                         ### for location
                         ip = " ".join(game['address'].split(':')[0:-1])    # ip address
                         gi = pygeoip.GeoIP('libs/pygeoip/GeoIP.dat')
