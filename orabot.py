@@ -83,7 +83,7 @@ class IRC_Server:
                 proc_5 = multiprocessing.Process(target=openra_stats.start, args=(self, ))
                 proc_6 = multiprocessing.Process(target=orabot_to_oracontent.start, args=(self, ))
                 print(("[%s] Plugins support...\t\tOK") % (self.irc_host))
-                self.plugins('start', proc_1, proc_2, proc_3, proc_4, proc_5, proc_6)
+                self.plugins('start', proc_1, proc_3, proc_4, proc_5, proc_6)
             
             if self.connect():
                 if ( self.connect_return == 'Excess Flood' ):
