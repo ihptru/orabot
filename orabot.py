@@ -21,6 +21,7 @@ import sqlite3
 import urllib.request
 import imp
 import html.parser
+import json
 
 import db_process
 import config
@@ -488,10 +489,11 @@ class IRC_Server:
                 for bug_report in matches:
                     if ( bug_report == '' ):
                         return
-                    url = 'http://bugs.open-ra.org/issues/'+bug_report
+                    url = 'http://github.com/api/v2/json/issues/show/OpenRA/OpenRA/'+bug_report
                     try:
-                        fetched = self.title_from_url(url).split('OpenRA - ')[1].split(' - open-ra')[0]
-                        self.send_message_to_channel( (fetched+" | "+url), channel )
+                        data = urllib.request.urlopen(url).read().decode()
+                        y = json.loads(data)
+                        self.send_message_to_channel( ("Issue #" + bug_report+": " + y['issue']['title'] + " | " + y['issue']['html_url']), channel )
                     except Exception as e:
                         print(e)
 
