@@ -28,6 +28,7 @@ def start(self):
     faq(conn, cur)
     pingme(conn, cur)
     commits(conn, cur)
+    bugs(conn, cur)
     activity(conn, cur)
     messages(conn, cur)
     games(conn, cur)
@@ -281,6 +282,16 @@ def commits(conn, cur):
         "title" VARCHAR NOT NULL,
         "repo" VARCHAR NOT NULL,
         "branch" VARCHAR NOT NULL
+        )
+    """
+    cur.execute(sql)
+    conn.commit()
+
+def bugs(conn, cur):
+    sql = """CREATE TABLE "bugs" (
+        "uid" INTEGER PRIMARY KEY AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "title" VARCHAR NOT NULL,
+        "num" VARCHAR NOT NULL
         )
     """
     cur.execute(sql)

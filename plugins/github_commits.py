@@ -15,7 +15,6 @@
 
 import time
 import re
-import sqlite3
 import urllib.request
 
 def start(self):
