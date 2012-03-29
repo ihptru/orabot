@@ -18,7 +18,7 @@ import re
 
 def start(self):
     while  True:
-        time.sleep(18000)   # 5 hours
+        time.sleep(3600)  # 1 hours
         change_topic(self)
 
 def change_topic(self):

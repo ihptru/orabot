@@ -15,7 +15,7 @@
 
 def start(self):
     conn, cur = self.db_data()
-    print(("[%s] Creating databases") % (self.irc_host))
+    print(("[%s] Creating database") % (self.irc_host))
     
     black_list(conn, cur)
     commands(conn, cur)
@@ -34,7 +34,7 @@ def start(self):
     games(conn, cur)
 
     cur.close()
-    print(("[%s] Creating databases completed.\tOK") % (self.irc_host))
+    print(("[%s] Creating database completed.\tOK") % (self.irc_host))
     
 def black_list(conn, cur):
     sql = """CREATE TABLE black_list (

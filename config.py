@@ -53,6 +53,8 @@ server1 = {
 
 servers = ['server1']
 
+# Next configs are global for all bot instances
+
 #log directory
 log_dir = 'logs/'
 
