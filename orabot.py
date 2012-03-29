@@ -78,19 +78,16 @@ class IRC_Server:
             cur.close()
             if self.plugins_support:
                 # run plugins
-                proc_1 = multiprocessing.Process(target=openra_topic.start, args=(self,))
-                proc_2 = multiprocessing.Process(target=openra_bugs.start, args=(self,))
-                proc_3 = multiprocessing.Process(target=github_commits.start, args=(self,))
-                proc_4 = multiprocessing.Process(target=openra_game.start, args=(self,))
-                proc_5 = multiprocessing.Process(target=openra_stats.start, args=(self, ))
-                proc_6 = multiprocessing.Process(target=orabot_to_oracontent.start, args=(self, ))
+                fns = [openra_topic.start, openra_bugs.start, github_commits.start,
+                       openra_game.start, openra_stats.start, orabot_to_oracontent.start]
+                procs = [multiprocessing.Process(target=f, args=(self,)) for f in fns]
                 print(("[%s] Plugins support...\t\tOK") % (self.irc_host))
-                self.plugins('start', proc_1, proc_2, proc_3, proc_4, proc_5, proc_6)
+                self.plugins('start', procs)
             
             if self.connect():
                 if ( self.connect_return == 'Excess Flood' ):
                     if self.plugins_support:
-                        self.plugins('terminate', proc_1, proc_2, proc_3, proc_4,  proc_5, proc_6)
+                        self.plugins('terminate', procs)
                         print("[%s] Terminated child processes" % self.irc_host)
                     print("[%s] Restarting the bot" % self.irc_host)
                     time.sleep(5)
@@ -98,26 +95,18 @@ class IRC_Server:
                     continue
                 elif ( self.connect_return == 'Manual Quit' ):
                     if self.plugins_support:
-                        self.plugins('terminate', proc_1, proc_2, proc_3, proc_4,  proc_5, proc_6)
+                        self.plugins('terminate', procs)
                         print("[%s] Terminated child processes" % self.irc_host)
                     print("[%s] Exit" % self.irc_host)
                     break
 
-    def plugins(self, action, proc_1, proc_2, proc_3, proc_4,  proc_5, proc_6):
+    def plugins(self, action, procs):
         if ( action == 'start' ):
-            proc_1.start()
-            proc_2.start()
-            proc_3.start()
-            proc_4.start()
-            proc_5.start()
-            proc_6.start()
+            for p in procs:
+                p.start()
         elif ( action == 'terminate' ):
-            proc_1.terminate()
-            proc_2.terminate()
-            proc_3.terminate()
-            proc_4.terminate()
-            proc_5.terminate()
-            proc_6.terminate()
+            for p in procs:
+                p.terminate()
 
     # This is the bit that controls connection to a server & channel.
     def connect(self):
