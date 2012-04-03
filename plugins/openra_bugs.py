@@ -62,13 +62,13 @@ def detect_bugs(self, conn, cur, e_bugs):
                     VALUES
                     (
                     '{0}',
-                    '{1}',
+                    '{1}'
                     )
             """.format(y['issues'][remote_bugs.index(bug)]['title'].replace("'", "\\'"), bug)
             cur.execute(sql)
             conn.commit()
             e_bugs.append(bug)
-            self.send_message_to_channel( ("New issue #" + bug + " by " + y['issues'][remote_bugs.index(bug)]['user'] + ": " + y['issues'][remote_bugs.index(bug)]['title'] + " | " + y['issues'][remote_bugs.index(bug)]['html_url']), self.write_bug_notifications_to.split()[0] )
+            self.send_message_to_channel( ("New issue #" + str(bug) + " by " + y['issues'][remote_bugs.index(bug)]['user'] + ": " + y['issues'][remote_bugs.index(bug)]['title'] + " | http://bugs.open-ra.org/" + str(bug)), self.write_bug_notifications_to.split()[0] )
 
     return e_bugs
 
