@@ -41,7 +41,7 @@ def start(self):
                     '{0}',
                     '{1}'
                     )
-            """.format(y['issues'][remote_bugs.index(bug)]['title'].replace("'", "\\'"), bug)
+            """.format(y['issues'][remote_bugs.index(bug)]['title'].replace("'", "''"), bug)
             cur.execute(sql)
             conn.commit()
             e_bugs.append(bug)
@@ -64,7 +64,7 @@ def detect_bugs(self, conn, cur, e_bugs):
                     '{0}',
                     '{1}'
                     )
-            """.format(y['issues'][remote_bugs.index(bug)]['title'].replace("'", "\\'"), bug)
+            """.format(y['issues'][remote_bugs.index(bug)]['title'].replace("'", "''"), bug)
             cur.execute(sql)
             conn.commit()
             e_bugs.append(bug)
