@@ -125,7 +125,7 @@ def prepare(self):
             data = urllib.request.urlopen(url).read().decode('utf-8')
         except:
             continue
-        if ( data.strip() == "-1" ):
+        if ( data.strip() == "[]" ):
             continue
         y = json.loads(data)
         link = y[0]['url']

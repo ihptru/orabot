@@ -78,5 +78,6 @@ def bugs_list(self):
         data = urllib.request.urlopen(url).read().decode()
         return json.loads(data)
     except:
+        print("*** Error: could not fetch a list of OpenRA bugs ***")
         time.sleep(900)
         bugs_list(self)

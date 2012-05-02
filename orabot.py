@@ -476,11 +476,15 @@ class IRC_Server:
 
     def parse_bug_num(self, channel, message):
         matches = re.findall(r"\B"+"#([0-9]*)", message)
+        mentioned = []
         if ( matches != [] ):
             if re.search("^#", channel):
                 for bug_report in matches:
                     if ( bug_report == '' ):
                         return
+                    if ( bug_report in mentioned):
+                        continue
+                    mentioned.append(bug_report)
                     url = 'http://github.com/api/v2/json/issues/show/OpenRA/OpenRA/'+bug_report
                     try:
                         data = urllib.request.urlopen(url).read().decode()

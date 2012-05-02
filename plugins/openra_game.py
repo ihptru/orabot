@@ -27,7 +27,10 @@ def start(self):
     conn.commit()
     while True:
         time.sleep(15)
-        IP_LIST = parse_list(self, IP_LIST,  conn,  cur)
+        try:
+            IP_LIST = parse_list(self, IP_LIST,  conn,  cur)
+        except:
+            continue
         
 def parse_list(self, IP_LIST,  conn,  cur):
     blacklist = ['']
