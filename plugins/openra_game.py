@@ -16,6 +16,7 @@
 import time
 import re
 import json
+import threading
 
 def start(self):
     # IP_LIST contains  all waiting games ( ex: {ip: amount_of_players} )
@@ -37,16 +38,13 @@ def parse_list(self, IP_LIST,  conn,  cur):
     # CURRENT_LIST contains all games ( ex: {ip: amount_of_players } )
     CURRENT_LIST = {}
     timeouts = ['s','m','h','d']
-    url = 'http://master.open-ra.org/list_json.php'
-    try:
-        stream = self.data_from_url(url, None)
-    except:
+    
+    #it's different process so there will be no any interference with main namespace
+    threading.Thread(target=self.stream_server).start()
+    
+    y = self.games[:]
+    if ( y == [] ):
         return IP_LIST
-    if ( stream == '' ):
-        return IP_LIST
-
-    # get JSON object
-    y = json.loads(stream)
 
     # take one game from server list per iteration
     for i in range(len(y)):

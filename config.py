@@ -73,3 +73,7 @@ content_my_username = ""
 content_my_password = ""
 content_my_database = ""
 content_sqlite3_path = ""
+
+# Stream Server
+stream_server_address = ""
+stream_server_port = 0

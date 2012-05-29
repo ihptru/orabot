@@ -24,11 +24,9 @@ def calc(self, user, channel):
     if ( len(command) > 1 ):
         expr = " ".join(command[1:])
         expr = expr.replace('^','**')
-        def safe_eval(expr, symbols={}):
-            return eval(expr, dict(__builtins__=None), symbols)
-        
+
         def calc(expr):
-            return safe_eval(expr, vars(math))
+            return self.safe_eval(expr, vars(math))
 
         try:
             result = calc(expr)

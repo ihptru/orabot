@@ -70,13 +70,22 @@ def modinfo( mod ):
                 result_version = version
         return (mod_split[0].upper() + '@' + result_version).ljust(16)
 
+def updated(self, user, channel):
+    last_updated = self.games_last_updated[0]
+    current_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
+    difference = current_time - last_updated
+    if (difference > 600):
+        diff_result = str(datetime.timedelta(seconds = difference))
+        self.send_reply( ("== list was updated "+diff_result+" ago =="), user, channel)
+
 def games(self, user, channel):
     command = (self.command).split()
-    url = 'http://master.open-ra.org/list_json.php'
     conn, cur = self.db_data()
     if ( len(command) == 1 ):
-        content = urllib.request.urlopen(url).read().decode('utf-8')
-        y = json.loads(content)
+        y = self.games[:]
+        
+        updated(self, user, channel)
+        
         if ( len(y) == 0 ):
             self.send_reply( ("No games found"), user, channel )
             return
@@ -101,8 +110,10 @@ def games(self, user, channel):
         if ( count == "0" ):    #appeared no games in State: 1
             self.send_reply( ("No games waiting for players found"), user, channel )
     elif ( len(command) == 2 ):   # ]games with args
-        content = urllib.request.urlopen(url).read().decode('utf-8')
-        y = json.loads(content)
+        y = self.games[:]
+        
+        updated(self, user, channel)
+        
         if ( len(y) == 0 ):
             self.send_reply( ("No games found"), user, channel )
             return
@@ -278,8 +289,10 @@ def games(self, user, channel):
             self.send_reply( ("Incorrect option!"), user, channel )
     elif ( len(command) > 2 ):
         if ( command[1] == "-r" ):  #patter request
-            content = urllib.request.urlopen(url).read().decode('utf-8')
-            y = json.loads(content)
+            y = self.games[:]
+            
+            updated(self, user, channel)
+            
             if ( len(y) == 0 ):
                 self.send_reply( ("No games found"), user, channel )
                 return

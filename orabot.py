@@ -22,6 +22,7 @@ import urllib.request
 import imp
 import html.parser
 import json
+import threading
 
 import db_process
 import config
@@ -58,6 +59,11 @@ class IRC_Server:
         self.connect_return = ''
         self.command = ""
         self.start_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
+        
+        self.close_threads = [0]
+        #is used to share games from stream server
+        self.games = []
+        self.games_last_updated = [time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))]
 
     ## The destructor - Close socket.
     def __del__(self):
@@ -67,38 +73,46 @@ class IRC_Server:
         # Create database at first run
         if not os.path.exists('db/'+self.irc_host+'.sqlite'):
             db_process.start(self)
-        while True:
-            conn, cur = self.db_data()
-            sql = """UPDATE users
-                    SET state = 0;
-                    DELETE FROM user_channel;
-            """
-            cur.executescript(sql)
-            conn.commit()
-            cur.close()
-            if self.plugins_support:
-                # run plugins
-                fns = [openra_topic.start, openra_bugs.start, github_commits.start,
-                       openra_game.start, openra_stats.start, orabot_to_oracontent.start]
-                procs = [multiprocessing.Process(target=f, args=(self,)) for f in fns]
-                print(("[%s] Plugins support...\t\tOK") % (self.irc_host))
-                self.plugins('start', procs)
-            
-            if self.connect():
-                if ( self.connect_return == 'Excess Flood' ):
-                    if self.plugins_support:
-                        self.plugins('terminate', procs)
-                        print("[%s] Terminated child processes" % self.irc_host)
-                    print("[%s] Restarting the bot" % self.irc_host)
-                    time.sleep(5)
-                    self.irc_sock.close()
-                    continue
-                elif ( self.connect_return == 'Manual Quit' ):
-                    if self.plugins_support:
-                        self.plugins('terminate', procs)
-                        print("[%s] Terminated child processes" % self.irc_host)
-                    print("[%s] Exit" % self.irc_host)
-                    break
+        # Connect to Stream Server
+        threading.Thread(target=self.stream_server).start()
+
+        try:
+            while True:
+                conn, cur = self.db_data()
+                sql = """UPDATE users
+                        SET state = 0;
+                        DELETE FROM user_channel;
+                """
+                cur.executescript(sql)
+                conn.commit()
+                cur.close()
+                if self.plugins_support:
+                    # run plugins
+                    fns = [openra_topic.start, openra_bugs.start, github_commits.start,
+                        openra_game.start, openra_stats.start, orabot_to_oracontent.start]
+                    procs = [multiprocessing.Process(target=f, args=(self,)) for f in fns]
+                    print(("[%s] Plugins support...\t\tOK") % (self.irc_host))
+                    self.plugins('start', procs)
+
+                if self.connect():
+                    if ( self.connect_return == 'Excess Flood' ):
+                        if self.plugins_support:
+                            self.plugins('terminate', procs)
+                            print("[%s] Terminated child processes" % self.irc_host)
+                        print("[%s] Restarting the bot" % self.irc_host)
+                        time.sleep(5)
+                        self.irc_sock.close()
+                        continue
+                    elif ( self.connect_return == 'Manual Quit' ):
+                        if self.plugins_support:
+                            self.plugins('terminate', procs)
+                            print("[%s] Terminated child processes" % self.irc_host)
+                        print("[%s] Exit" % self.irc_host)
+                        break
+                self.close_threads = [1]
+        except KeyboardInterrupt:
+            self.close_threads = [1]
+            raise KeyboardInterrupt
 
     def plugins(self, action, procs):
         if ( action == 'start' ):
@@ -492,6 +506,42 @@ class IRC_Server:
                         self.send_message_to_channel( ("Issue #" + bug_report+": " + y['issue']['title'] + " | " + y['issue']['html_url']), channel )
                     except Exception as e:
                         print(e)
+
+    def stream_server(self):
+        stream = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
+        while True:
+            try:
+                stream.connect((config.stream_server_address,  config.stream_server_port))
+                break
+            except socket.error:
+                time.sleep(10) #sleep and try to reconnect
+                continue
+        while True:
+            if self.close_threads == [1]:
+                break
+            try:
+                data = stream.recv(16024)
+                try:
+                    y = self.safe_eval(data.decode())
+                    if (self.games != y):
+                        self.games = y
+                        self.games_last_updated = [time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))]
+                except Exception as e:
+                    print(str(e))
+                    time.sleep(10)
+                    continue
+            except socket.error:
+                while True:
+                    try:
+                        stream.connect((config.stream_server_address,  config.stream_server_port))
+                        break
+                    except socket.error:
+                        time.sleep(10)
+                        continue
+                continue
+
+    def safe_eval(self, expr, symbols={}):
+            return eval(expr, dict(__builtins__=None), symbols)
 
     # This function is for pickup matches code
     def players_for_mode(self, mode):
