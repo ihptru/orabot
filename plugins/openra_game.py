@@ -26,6 +26,9 @@ def start(self):
     """
     cur.execute(sql)
     conn.commit()
+    
+    threading.Thread(target=self.stream_server).start()
+    
     while True:
         time.sleep(15)
         try:
@@ -40,7 +43,6 @@ def parse_list(self, IP_LIST,  conn,  cur):
     timeouts = ['s','m','h','d']
     
     #it's different process so there will be no any interference with main namespace
-    threading.Thread(target=self.stream_server).start()
     
     y = self.games[:]
     if ( y == [] ):
