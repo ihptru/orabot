@@ -89,7 +89,7 @@ class IRC_Server:
                 if self.plugins_support:
                     # run plugins
                     fns = [openra_topic.start, openra_bugs.start, github_commits.start,
-                        openra_game.start, openra_stats.start, orabot_to_oracontent.start]
+                        openra_game.start]
                     procs = [multiprocessing.Process(target=f, args=(self,)) for f in fns]
                     print(("[%s] Plugins support...\t\tOK") % (self.irc_host))
                     self.plugins('start', procs)
@@ -499,11 +499,11 @@ class IRC_Server:
                     if ( bug_report in mentioned):
                         continue
                     mentioned.append(bug_report)
-                    url = 'http://github.com/api/v2/json/issues/show/OpenRA/OpenRA/'+bug_report
+                    url = 'https://api.github.com/repos/OpenRA/OpenRA/issues/'+bug_report
                     try:
                         data = urllib.request.urlopen(url).read().decode()
                         y = json.loads(data)
-                        self.send_message_to_channel( ("Issue #" + bug_report+": " + y['issue']['title'] + " | " + y['issue']['html_url']), channel )
+                        self.send_message_to_channel( ("Issue #" + bug_report+": " + y['title'] + " | " + "http://bugs.open-ra.org/" + bug_report), channel )
                     except Exception as e:
                         print(e)
 

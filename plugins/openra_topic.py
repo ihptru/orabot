@@ -28,7 +28,7 @@ def change_topic(self):
         file.write(release + "\n" + playtest + "\n")
         file.close()
 
-    url = 'http://github.com/api/v2/json/repos/show/OpenRA/OpenRA/tags'
+    url = 'https://api.github.com/repos/OpenRA/OpenRA/tags'
     try:
         stream = self.data_from_url(url, None)
     except Exception as e:

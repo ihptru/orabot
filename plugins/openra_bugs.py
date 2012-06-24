@@ -29,8 +29,8 @@ def start(self):
     
     y = bugs_list(self) # new list from a remote server
     
-    remote_bugs = [n['number'] for n in y['issues']]
-    remote_titles = [t['title'] for t in y['issues']]
+    remote_bugs = [n['number'] for n in y]
+    remote_titles = [t['title'] for t in y]
 
     for bug in remote_bugs:
         if bug not in e_bugs:   # remote bug is not found in existing bugs
@@ -41,7 +41,7 @@ def start(self):
                     '{0}',
                     '{1}'
                     )
-            """.format(y['issues'][remote_bugs.index(bug)]['title'].replace("'", "''"), bug)
+            """.format(y[remote_bugs.index(bug)]['title'].replace("'", "''"), bug)
             cur.execute(sql)
             conn.commit()
             e_bugs.append(bug)
@@ -52,8 +52,8 @@ def start(self):
 
 def detect_bugs(self, conn, cur, e_bugs):
     y = bugs_list(self)
-    remote_bugs = [n['number'] for n in y['issues']]
-    remote_titles = [t['title'] for t in y['issues']]
+    remote_bugs = [n['number'] for n in y]
+    remote_titles = [t['title'] for t in y]
     
     for bug in remote_bugs:
         if bug not in e_bugs:   # it's a new bug
@@ -64,16 +64,16 @@ def detect_bugs(self, conn, cur, e_bugs):
                     '{0}',
                     '{1}'
                     )
-            """.format(y['issues'][remote_bugs.index(bug)]['title'].replace("'", "''"), bug)
+            """.format(y[remote_bugs.index(bug)]['title'].replace("'", "''"), bug)
             cur.execute(sql)
             conn.commit()
             e_bugs.append(bug)
-            self.send_message_to_channel( ("New issue #" + str(bug) + " by " + y['issues'][remote_bugs.index(bug)]['user'] + ": " + y['issues'][remote_bugs.index(bug)]['title'] + " | http://bugs.open-ra.org/" + str(bug)), self.write_bug_notifications_to.split()[0] )
+            self.send_message_to_channel( ("New issue #" + str(bug) + " by " + y[remote_bugs.index(bug)]['user']['login'] + ": " + y[remote_bugs.index(bug)]['title'] + " | http://bugs.open-ra.org/" + str(bug)), self.write_bug_notifications_to.split()[0] )
 
     return e_bugs
 
 def bugs_list(self):
-    url = 'http://github.com/api/v2/json/issues/list/OpenRA/OpenRA/open'
+    url = 'https://api.github.com/repos/OpenRA/OpenRA/issues'
     try:
         data = urllib.request.urlopen(url).read().decode()
         return json.loads(data)

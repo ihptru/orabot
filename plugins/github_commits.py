@@ -61,8 +61,7 @@ def start(self):
             print(("[%s] Error fetching list of branches from repo: " + repo) % (self.irc_host))
         else:
             for branch in branches:
-                url = repo + branch
-                titles = get_commits(self, url)
+                titles = get_commits(self, branch, repo)
                 if ( len(titles) == 0 ):
                     print(("[%s] ### Something went wrong fetching commits info! ###") % (self.irc_host))
                     conn, cur = self.db_data()
@@ -93,7 +92,6 @@ def detect_commits(self):
             print(("[%s] Error fetching list of branches from repo: " + repo) % (self.irc_host))
             return
         for branch in branches:
-            url = repo + branch
             conn, cur = self.db_data()
             sql = """SELECT title FROM commits
                     WHERE repo = '"""+repo+"""' AND branch = '"""+branch+"""'
@@ -101,7 +99,7 @@ def detect_commits(self):
             cur.execute(sql)
             records = cur.fetchall()
             conn.commit()
-            titles = get_commits(self, url)
+            titles = get_commits(self, branch, repo)
             if ( len(titles) == 0 ):
                 print(("[%s] ### Something went wrong fetching commits info! ###") % (self.irc_host))
                 return
@@ -151,17 +149,17 @@ def detect_commits(self):
             cur.close()
 
 def branch_list(self, repo):
-    repo = 'http://github.com/api/v2/json/repos/show' + repo.split('https://github.com')[1] + 'branches'
+    repo = 'https://api.github.com/repos' + repo.split('https://github.com')[1] + 'branches'
     try:
         stream = self.data_from_url(repo, None)
     except Exception as e:
         print(e)
         return []
-    branches = re.findall('"(.*?)":".*?"',stream[12:-1])
+    branches = re.findall('.*?"name":"(.*?)"',stream)
     return branches
 
-def get_commits(self, url):   #this functions must get url of Branch
-    url = 'http://github.com/api/v2/json/commits/list' + url.split('https://github.com')[1]
+def get_commits(self, branch, repo):   #this functions must get branch name (returns the latest commit for a branch
+    url = 'https://api.github.com/repos' + repo.split('https://github.com')[1] + 'commits/' + branch
     titles = []
     try:
         stream = self.data_from_url(url, None)
