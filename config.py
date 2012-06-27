@@ -65,15 +65,6 @@ randomserver_url = ''   # url path to that directory    (with / at the end)
 randomteam_dir = '' #directory where files of (randomteam) command are saved (with / at the end
 randomteam_url = '' #url path to that directory (with / at the end)
 
-save_stats_path = ''    #directory where mapstats/index.html and serverstats/index.html files of OpenRA games statistics will be saved
-
-# config for orabot_to_oracontent plugin
-content_my_host = ""
-content_my_username = ""
-content_my_password = ""
-content_my_database = ""
-content_sqlite3_path = ""
-
 # Stream Server
 stream_server_address = ""
 stream_server_port = 0
