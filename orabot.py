@@ -13,16 +13,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import socket, multiprocessing, time
+import socket
+import multiprocessing
+import time
 import os
 import re
-from datetime import date
 import sqlite3
 import urllib.request
 import imp
 import html.parser
 import json
 import threading
+from datetime import date
 
 import db_process
 import config
@@ -419,7 +421,7 @@ class IRC_Server:
                     file.write(time_prefix + row)
                     file.close()
                 except:
-                    print('####### ERROR !!! ###### Probably no write permissions to logs directory!')
+                    print('####### ERROR !!! ###### Probably no write permissions to logs directory! (or ascii coding error)')
 
     def parse_html(self, string):
         h = html.parser.HTMLParser()
@@ -428,7 +430,7 @@ class IRC_Server:
 
     def data_from_url(self, url, bytes):
         opener = urllib.request.build_opener()
-        opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+        opener.addheaders = [('User-agent', 'Mozilla/5.0')] # fake our user-agent
         data = opener.open(url).read(bytes)
         try:
             encoding = str(data).lower().split('charset=')[1].split('"')[0]
@@ -438,8 +440,6 @@ class IRC_Server:
         return data
 
     def title_from_url(self, url):
-        # todo: security: can force the bot to output anything we like into
-        #                 the channel.
         data = self.data_from_url(url, 8192)
         rx_title = re.compile(r'<title>(.*?)</title>', re.IGNORECASE)
         titles = rx_title.findall(data.replace('\n',' '))
@@ -499,7 +499,7 @@ class IRC_Server:
                     if ( bug_report in mentioned):
                         continue
                     mentioned.append(bug_report)
-                    url = 'https://api.github.com/repos/OpenRA/OpenRA/issues/'+bug_report
+                    url = 'https://api.github.com/repos/OpenRA/OpenRA/issues/'+bug_report   #api v3
                     try:
                         data = urllib.request.urlopen(url).read().decode()
                         y = json.loads(data)

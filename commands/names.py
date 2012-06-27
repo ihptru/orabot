@@ -31,7 +31,7 @@ def names(self, user, channel):
         conn.commit()
         cur.close()
         if ( len(records) == 0 ):
-            self.send_reply( ("Nothing found"), user, channel )
+            self.send_notice("Nothing found", user)
         else:
             string = ''
             amount_names = len(records)
@@ -41,6 +41,6 @@ def names(self, user, channel):
                 if status == None:
                     status = ''
                 string = string + status+username + ", "
-            self.send_reply( ("Names["+str(amount_names)+"]: " + string), user, channel )
+            self.send_notice("Names["+str(amount_names)+"]: " + string, user)
     else:
         self.send_notice( "Argument required: channel", user )

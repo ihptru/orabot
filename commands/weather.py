@@ -95,6 +95,7 @@ def weather(self, user, channel):
                 current = data.get("current_conditions")
                 message = "Current weather for "+city+" | Temperature: "+current.get("temp_c")+"°C; "+current.get("humidity")+"; Conditions: "+current.get("condition")+"; "+current.get("wind_condition")
                 self.send_reply( (message), user, channel )
-            except:
+            except Exception as e:
+                print(str(e))
                 message = "Error: No such location could be found."
                 self.send_notice( message, user )
