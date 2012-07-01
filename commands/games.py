@@ -66,6 +66,8 @@ def modinfo( mod ):
         else:
             if ( version_split[0] in ['release','playtest'] ):
                 result_version = version_split[0] + '-' + version_split[1][4:]
+                if ( len(version_split) == 3):
+                    result_version += "-" + version_split[2]
             else:
                 result_version = version
         return (mod_split[0].upper() + '@' + result_version).ljust(16)
