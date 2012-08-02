@@ -7,6 +7,3 @@ Before starting the bot, edit `config.py`
  
 To start:
 ./run.py
-
-Requirements:
-    `oursql py3k` : https://launchpad.net/oursql/py3k
