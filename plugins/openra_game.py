@@ -1,4 +1,4 @@
-# Copyright 2011 orabot Developers
+# Copyright 2011-2013 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -43,7 +43,6 @@ def parse_list(self, IP_LIST,  conn,  cur):
     timeouts = ['s','m','h','d']
     
     #it's different process so there will be no any interference with main namespace
-    
     y = self.games[:]
     if ( y == [] ):
         return IP_LIST
@@ -140,7 +139,7 @@ def parse_list(self, IP_LIST,  conn,  cur):
                 #   IP_LIST by now contain as games from prefious check as new games
                 # if requested min amount of players to be shown is less or equal then amount of players of current game:
                 # ex:
-                #       requestd min 3 players on server
+                #       requested min 3 players on server
                 #       now server has 4 ppl which is already more then requested
                 #       == in that case: notify user ==
                 #       *** default is 1 ***
@@ -189,7 +188,7 @@ def check_and_notify(self, name, mod, version, players, db_timeout, db_date, db_
     else:
         players = "{ Players:01,16 "+players+" }"
     if (version != ' '):
-        version = " { "+version[:-4]+"00,10 "+version[-4:]+" } "
+        version = " "+version[:-4]+"00,10 "+version[-4:]+"  "
     notify_message = "New game:01,08 "+name+" {01,09 "+mod.upper()+" }"+version+players
     if ( db_timeout.lower() == 'none' ):
         self.send_reply( (notify_message), db_user, db_user )

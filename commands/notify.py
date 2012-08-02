@@ -1,4 +1,4 @@
-# Copyright 2011 orabot Developers
+# Copyright 2011-2013 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ def notify(self, user, channel):
         version = "any"
         other_options = "NULL"
         
-        mods = ['ra','cnc','yf','any']
+        mods = ['ra','cnc','yf','d2k','any']
         timeouts = ['s','m','h','d']
         chars=['*','.','$','^','@','{','}','+','?'] # chars to ignore
 
