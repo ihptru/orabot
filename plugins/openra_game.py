@@ -189,7 +189,7 @@ def check_and_notify(self, name, mod, version, players, db_timeout, db_date, db_
         players = "{ Players:01,16 "+players+" }"
     if (version != ' '):
         version = " "+version[:-4]+"00,10 "+version[-4:]+"  "
-    notify_message = "New game:01,08 "+name+" {01,09 "+mod.upper()+" }"+version+players
+    notify_message = "New game:08,02 "+name+" {01,09 "+mod.upper()+" }"+version+players
     if ( db_timeout.lower() == 'none' ):
         self.send_reply( (notify_message), db_user, db_user )
     # till_quit is actually default

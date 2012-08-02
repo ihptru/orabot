@@ -62,6 +62,21 @@ def notify(self, user, channel):
             conn.commit()
             message = "You will be notified of new games!"
             self.send_notice( message, user )
+            
+            #we do not want user to be notified of existing games immediately
+            games = self.games[:]
+            if ( len(games) != 0 ):
+                for game in games:
+                    if game['state'] == '1':
+                        sql = """INSERT INTO user_notified
+                                (user,ip)
+                                VALUES
+                                (
+                                '"""+user+"""','"""+game['address'].split(':')[0]+"""'
+                                )
+                        """
+                        cur.execute(sql)
+                        conn.commit()
             cur.close()
             return
     else:
@@ -143,6 +158,21 @@ def notify(self, user, channel):
             """
             cur.execute(sql)
             conn.commit()
+
+            #we do not want user to be notified of existing games immediately
+            games = self.games[:]
+            if ( len(games) != 0 ):
+                for game in games:
+                    if game['state'] == '1':
+                        sql = """INSERT INTO user_notified
+                                (user,ip)
+                                VALUES
+                                (
+                                '"""+user+"""','"""+game['address'].split(':')[0]+"""'
+                                )
+                        """
+                        cur.execute(sql)
+                        conn.commit()
             if timeout == 'f':
                 timeout = 'forever'
             if other_options == "-e":
