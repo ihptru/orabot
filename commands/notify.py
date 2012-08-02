@@ -21,6 +21,23 @@ import sqlite3
 import getopt
 
 def notify(self, user, channel):
+    
+    def existing_to_notified(conn, cur, user):
+        #we do not want user to be notified of existing games immediately
+        games = self.games[:]
+        if ( len(games) != 0 ):
+            for game in games:
+                if game['state'] == '1':
+                    sql = """INSERT INTO user_notified
+                            (user,ip)
+                            VALUES
+                            (
+                            '"""+user+"""','"""+game['address'].split(':')[0]+"""'
+                            )
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+
     if self.plugins_support == False:
         message = "The bot is run without notifications support!"
         self.send_notice( message, user )
@@ -63,20 +80,7 @@ def notify(self, user, channel):
             message = "You will be notified of new games!"
             self.send_notice( message, user )
             
-            #we do not want user to be notified of existing games immediately
-            games = self.games[:]
-            if ( len(games) != 0 ):
-                for game in games:
-                    if game['state'] == '1':
-                        sql = """INSERT INTO user_notified
-                                (user,ip)
-                                VALUES
-                                (
-                                '"""+user+"""','"""+game['address'].split(':')[0]+"""'
-                                )
-                        """
-                        cur.execute(sql)
-                        conn.commit()
+            existing_to_notified(conn, cur, user)
             cur.close()
             return
     else:
@@ -159,20 +163,8 @@ def notify(self, user, channel):
             cur.execute(sql)
             conn.commit()
 
-            #we do not want user to be notified of existing games immediately
-            games = self.games[:]
-            if ( len(games) != 0 ):
-                for game in games:
-                    if game['state'] == '1':
-                        sql = """INSERT INTO user_notified
-                                (user,ip)
-                                VALUES
-                                (
-                                '"""+user+"""','"""+game['address'].split(':')[0]+"""'
-                                )
-                        """
-                        cur.execute(sql)
-                        conn.commit()
+            existing_to_notified(conn, cur, user)
+
             if timeout == 'f':
                 timeout = 'forever'
             if other_options == "-e":
