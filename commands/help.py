@@ -69,14 +69,6 @@ def help(self, user, channel):
     elif ( len(command) == 3 ):
         module = command[1]
         function = command[2]
-        if ( command[1] == 'calc' ):
-            available = vars(math).keys()
-            if ( function in available ):
-                desc = eval("math."+function).__doc__
-                self.send_reply( (desc.replace('\n', ' ')), user, channel )
-            else:
-                self.send_reply( (no_desc), user, channel )
-            return
         if ( module in ___all___ ):
             function = getattr(eval(module), function, None)
             if ( function != None ):

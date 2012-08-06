@@ -50,7 +50,7 @@ def change_topic(self):
     if ( (release + '\n' not in lines) or (playtest + '\n' not in lines) ):
         if ( self.change_topic_channel == '' ):
             return
-        topic = "open-source RTS | latest: "+release+" | testing: "+playtest+" | http://open-ra.org | http://bugs.open-ra.org | http://logs.open-ra.org"
+        topic = "open-source RTS | latest: "+release+" | testing: "+playtest+" | http://open-ra.org | http://bugs.open-ra.org"
         self.topic(self.change_topic_channel, topic)
         print("["+self.irc_host+"] ### DEBUG: made an attempt to change the TOPIC of " + self.change_topic_channel + " ###")
         write_version(release, playtest)
