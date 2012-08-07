@@ -24,6 +24,7 @@ import random
 import time
 import subprocess
 import os
+import random
 
 import config
 
@@ -196,8 +197,14 @@ def add(self, user, channel):
                     """
                     cur.execute(sql)
                     conn.commit()
+                    
+                    ports = random.sample(range(0, 100), 100)
+                    random_port = str(random.choice(ports))
+                    port = "12"+random_port
+                    if len(random_port) == 1:
+                        port = port + "4"
                     os.chdir(config.openra_path)
-                    subprocess.Popen(["mono", "OpenRA.Game.exe", "Game.Mods=ra", "Server.Map="+hash, "Server.Name=pickupID "+server_id+" | "+mode+" | do not enter if you are not supposed to play here", "Server.AdvertiseOnline=true", "Server.ListenPort=1234", "Server.ExternalPort=1234", "Server.Dedicated=true", "Server.DedicatedLoop=false", "Server.DedicatedMOTD=Team1: "+",\ ".join(team1)+" | Team2: "+", ".join(team2)+"  ||  If you are not in a team, you can spectate or substitute"])
+                    subprocess.Popen(["mono", "OpenRA.Game.exe", "Game.Mods=ra", "Server.Map="+hash, "Server.Name=pickupID "+server_id+" | "+mode+" | do not enter if you are not supposed to play here", "Server.AdvertiseOnline=true", "Server.ListenPort="+port, "Server.ExternalPort="+port, "Server.Dedicated=true", "Server.DedicatedLoop=false", "Server.DedicatedMOTD=Team1: "+",\ ".join(team1)+" | Team2: "+", ".join(team2)+"  ||  If you are not in a team, you can spectate or substitute"])
                 else:
                     sql = """INSERT INTO pickup_"""+mode+"""
                             (name,timeout)
