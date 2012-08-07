@@ -25,7 +25,7 @@ def pickup_remove(self, user, channel):
     command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) == 2 ):
-        modes = ['1v1','2v2','3v3','4v4','5v5']
+        modes = ['1v1','2v2','3v3','4v4','5v5', '6v6']
         for temp_mode in modes:
             sql = """SELECT name FROM pickup_"""+temp_mode+"""
                     WHERE name = '"""+command[1]+"""'
@@ -39,7 +39,7 @@ def pickup_remove(self, user, channel):
                 """
                 cur.execute(sql)
                 conn.commit()
-                message = "You removed "+command[1]+" from :: "+temp_mode+" ::"
+                message = "You removed "+command[1]+" from |"+temp_mode+"|"
                 self.send_notice( message, user )
                 cur.close()
                 return

@@ -23,7 +23,7 @@ def promote(self, user, channel):
     command = (self.command).split()
     conn, cur = self.db_data()
     if ( len(command) == 2 ):
-        modes = ['1v1','2v2','3v3','4v4','5v5']
+        modes = ['1v1','2v2','3v3','4v4','5v5', '6v6']
         mode = command[1]
         if mode in modes:
             amount_players_required = self.players_for_mode( mode )
@@ -36,7 +36,7 @@ def promote(self, user, channel):
                 message = "Promote Error, no players added for "+mode
                 self.send_notice( message, user )
             else:
-                message = "Please add up for :: "+mode+" :: ! "+ str(amount_players_required-int(len(records))) + " more people needed! (Type "+self.command_prefix+"add "+mode+"  or  "+self.command_prefix+"add "+mode+" host  ,if you can host)"
+                message = "Please add up for |"+mode+"|! "+ str(amount_players_required-int(len(records))) + " more people needed! (Type "+self.command_prefix+"add "+mode+")"
                 self.send_reply( (message), user, channel )
         else:
             self.send_reply( ("Invalid game mode! Try again"), user, channel )
@@ -44,6 +44,6 @@ def promote(self, user, channel):
     elif ( len(command) > 2 ):
         self.send_reply( ("Error, wrong request"), user, channel )
     else:
-        message = "Specify mode type to promote! 1v1, 2v2, 3v3, 4v4 or 5v5"
+        message = "Specify mode type to promote! 1v1, 2v2, 3v3, 4v4, 5v5 or 6v6"
         self.send_notice( message, user )
     cur.close()

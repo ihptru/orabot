@@ -107,7 +107,6 @@ def pickup(conn, cur):
     sql = """CREATE TABLE "pickup_1v1" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "name" VARCHAR NOT NULL ,
-        "host" BOOL NOT NULL  DEFAULT 0,
         "timeout" DATETIME NOT NULL
         )
     """
@@ -116,7 +115,6 @@ def pickup(conn, cur):
     sql = """CREATE TABLE "pickup_2v2" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "name" VARCHAR NOT NULL ,
-        "host" BOOL NOT NULL  DEFAULT 0,
         "timeout" DATETIME NOT NULL
         )
     """
@@ -125,7 +123,6 @@ def pickup(conn, cur):
     sql = """CREATE TABLE "pickup_3v3" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "name" VARCHAR NOT NULL ,
-        "host" BOOL NOT NULL  DEFAULT 0,
         "timeout" DATETIME NOT NULL
         )
     """
@@ -134,7 +131,6 @@ def pickup(conn, cur):
     sql = """CREATE TABLE "pickup_4v4" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "name" VARCHAR NOT NULL ,
-        "host" BOOL NOT NULL  DEFAULT 0,
         "timeout" DATETIME NOT NULL
         )
     """
@@ -143,7 +139,14 @@ def pickup(conn, cur):
     sql = """CREATE TABLE "pickup_5v5" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "name" VARCHAR NOT NULL ,
-        "host" BOOL NOT NULL  DEFAULT 0,
+        "timeout" DATETIME NOT NULL
+        )
+    """
+    cur.execute(sql)
+    conn.commit()
+    sql = """CREATE TABLE "pickup_6v6" (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "name" VARCHAR NOT NULL ,
         "timeout" DATETIME NOT NULL
         )
     """
@@ -154,8 +157,8 @@ def pickup(conn, cur):
         "team1" VARCHAR NOT NULL ,
         "team2" VARCHAR NOT NULL ,
         "type" VARCHAR NOT NULL ,
-        "host" VARCHAR NOT NULL ,
         "map" VARCHAR NOT NULL ,
+        "maphash" VARCHAR NOT NULL,
         "time" DATETIME NOT NULL
         )
     """
@@ -164,11 +167,13 @@ def pickup(conn, cur):
     sql = """CREATE TABLE "pickup_maps" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "name" VARCHAR NOT NULL ,
+        "hash" VARCHAR NOT NULL ,
         "1v1" BOOL NOT NULL ,
         "2v2" BOOL NOT NULL ,
         "3v3" BOOL NOT NULL ,
         "4v4" BOOL NOT NULL ,
-        "5v5" BOOL NOT NULL
+        "5v5" BOOL NOT NULL ,
+        "6v6" BOOL NOT NULL
         )
     """
     cur.execute(sql)
@@ -176,44 +181,14 @@ def pickup(conn, cur):
     
     ###
     sql = """
-        INSERT INTO "pickup_maps" VALUES(1,'East vs West',1,1,0,0,0);
-        INSERT INTO "pickup_maps" VALUES(2,'Seaside',1,1,0,0,0);
-        INSERT INTO "pickup_maps" VALUES(3,'Marooned 2',1,1,1,0,0);
-        INSERT INTO "pickup_maps" VALUES(4,'A Path Beyond',1,1,1,1,0);
-        INSERT INTO "pickup_maps" VALUES(5,'Caffeinated',1,1,1,1,0);
-        INSERT INTO "pickup_maps" VALUES(6,'Central Conflict',1,1,1,1,0);
-        INSERT INTO "pickup_maps" VALUES(7,'Coastal Influence',1,1,1,1,0);
-        INSERT INTO "pickup_maps" VALUES(8,'High & Low',0,1,1,1,0);
-        INSERT INTO "pickup_maps" VALUES(9,'Mjolnir',0,1,1,1,0);
-        INSERT INTO "pickup_maps" VALUES(10,'North by NorthWest',0,1,1,1,0);
-        INSERT INTO "pickup_maps" VALUES(11,'Pressure',1,1,1,1,0);
-        INSERT INTO "pickup_maps" VALUES(12,'Raraku',1,1,1,1,0);
-        INSERT INTO "pickup_maps" VALUES(13,'Regeneration Basin',0,1,1,1,0);
-        INSERT INTO "pickup_maps" VALUES(14,'Ring of Fire',0,1,1,1,0);
-        INSERT INTO "pickup_maps" VALUES(15,'Keep Off The Grass 2',1,0,0,0,0);
-        INSERT INTO "pickup_maps" VALUES(16,'Styrian Mountains',1,0,0,0,0);
-        INSERT INTO "pickup_maps" VALUES(17,'Snowy Ridge',1,0,0,0,0);
-        INSERT INTO "pickup_maps" VALUES(18,'Bavarian Redux',1,1,0,0,0);
-        INSERT INTO "pickup_maps" VALUES(19,'Crossing the River',1,1,0,0,0);
-        INSERT INTO "pickup_maps" VALUES(20,'Equal Opportunity',1,1,0,0,0);
-        INSERT INTO "pickup_maps" VALUES(21,'First Come, First Served',1,1,0,0,0);
-        INSERT INTO "pickup_maps" VALUES(22,'Island Hoppers',1,1,0,0,0);
-        INSERT INTO "pickup_maps" VALUES(23,'Middle Mayhem',1,1,0,0,0);
-        INSERT INTO "pickup_maps" VALUES(24,'Pearly Wastelands',1,1,0,0,0);
-        INSERT INTO "pickup_maps" VALUES(25,'Puddles Redux',1,1,0,0,0);
-        INSERT INTO "pickup_maps" VALUES(26,'River War 2',1,1,0,0,0);
-        INSERT INTO "pickup_maps" VALUES(27,'Haos Ridges',1,1,1,0,0);
-        INSERT INTO "pickup_maps" VALUES(28,'Island Wars III',1,1,1,0,0);
-        INSERT INTO "pickup_maps" VALUES(29,'Snowy Island',1,1,1,0,0);
-        INSERT INTO "pickup_maps" VALUES(30,'All Connected',0,1,1,1,0);
-        INSERT INTO "pickup_maps" VALUES(31,'Center of Attention',0,1,1,1,0);
-        INSERT INTO "pickup_maps" VALUES(32,'Ore Isle',0,1,1,1,0);
-        INSERT INTO "pickup_maps" VALUES(33,'Alaska Anarchy Redux ',0,1,1,1,1);
-        INSERT INTO "pickup_maps" VALUES(34,'Daejeon',0,1,1,1,1);
-        INSERT INTO "pickup_maps" VALUES(35,'Fire Alley',0,1,1,1,1);
-        INSERT INTO "pickup_maps" VALUES(36,'High & Low Extended',0,0,1,1,1);
-        INSERT INTO "pickup_maps" VALUES(37,'Mjolnir 2',0,1,1,1,0);
-        INSERT INTO "pickup_maps" VALUES(38,'Doughnut',0,1,1,0,0);
+        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Keep Off The Grass 2','a3088b0857f20742b8ebcf78210f2812ae28532e',1,0,0,0,0,0);
+        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Man to Man','11fd2f8a4a8b54d62ed076287c183c46fe9b2b44',1,0,0,0,0,0);
+        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Styrian Mountains','5d357387bb7463c59cf9a6eaf8cba455f6e8ed34',1,0,0,0,0,0);
+        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Artic Triangle Affair','e2725037c92830933641e98d43625f2a8d576210',1,0,0,0,0,0);
+        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Baywatch','2a60ed2929aef1f75478aba0b9386006ac0e596c',1,0,0,0,0,0);
+        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Snowy Ridge','938993e56bbe5add578f60d8c2bc6523289b5602',1,0,0,0,0,0);
+        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Winter Warzone','b5f87f7efb964e57614d22422ff442645357eb2c',1,0,0,0,0,0);
+        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Ares','0233a8939d91b2370e878167ef65844add8388ae',1,1,0,0,0,0);
     """
     cur.executescript(sql)
     conn.commit()
@@ -223,7 +198,6 @@ def pickup(conn, cur):
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "name" VARCHAR NOT NULL ,
         "games" INTEGER NOT NULL  DEFAULT 0,
-        "hosts" INTEGER NOT NULL  DEFAULT 0,
         "complaints" INTEGER NOT NULL  DEFAULT 0
         )
     """

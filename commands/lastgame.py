@@ -24,7 +24,7 @@ def lastgame(self, user, channel):
     conn, cur = self.db_data()
     if ( len(command) >= 1 ) and ( len(command) < 3 ):
         if ( len(command) == 1 ):
-            sql = """SELECT team1,team2,type,host,map,time FROM pickup_game_start
+            sql = """SELECT team1,team2,type,map,time FROM pickup_game_start
                     ORDER BY uid DESC LIMIT 1
             """
             cur.execute(sql)
@@ -35,13 +35,13 @@ def lastgame(self, user, channel):
                 return
             last_date = "-".join(records[0][5].split('-')[0:3])
             last_time = ":".join(records[0][5].split('-')[3:5])
-            message = "@ "+records[0][2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+records[0][3]+" || Map: "+records[0][4]+" || Team 1: "+records[0][0]+" || Team 2: "+records[0][1]
+            message = "@ Server: pickupID "+records[0][0]+" || "+records[0][3]+" || Time: "+last_date+" "+last_time+" GMT || Map: "+records[0][4]+" || Team 1: "+records[0][1]+" || Team 2: "+records[0][2]
             self.send_notice( message, user )
         else:
-            modes = ['1v1','2v2','3v3','4v4','5v5']
+            modes = ['1v1','2v2','3v3','4v4','5v5', '6v6']
             if command[1] in modes:
                 mode = command[1]
-                sql = """SELECT team1,team2,type,host,map,time FROM pickup_game_start
+                sql = """SELECT uid,team1,team2,type,map,time FROM pickup_game_start
                     WHERE type = '"""+mode+"""'
                     ORDER BY uid DESC LIMIT 1
                 """
@@ -51,7 +51,7 @@ def lastgame(self, user, channel):
                 if ( len(records) != 0 ):
                     last_date = "-".join(records[0][5].split('-')[0:3])
                     last_time = ":".join(records[0][5].split('-')[3:5])
-                    message = "@ "+records[0][2]+" || Time: "+last_date+" "+last_time+" GMT || Hoster: "+records[0][3]+" || Map: "+records[0][4]+" || Team 1: "+records[0][0]+" || Team 2: "+records[0][1]
+                    message = "@ Server: pickupID "+records[0][0]+" || "+records[0][3]+" || Time: "+last_date+" "+last_time+" GMT || Map: "+records[0][4]+" || Team 1: "+records[0][1]+" || Team 2: "+records[0][2]
                     self.send_notice( message, user )
                 else:
                     message = "No "+mode+" games played"

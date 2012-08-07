@@ -68,3 +68,6 @@ randomteam_url = '' #url path to that directory (with / at the end)
 # Stream Server
 stream_server_address = ""
 stream_server_port = 0
+
+# Path to OpenRA game (pickup system)
+openra_path = ""

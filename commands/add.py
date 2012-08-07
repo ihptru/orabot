@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Add yourself for a pickup game
+Add yourself for a pickup game (add {1v1|2v2|3v3|4v4|5v5|6v6}
 """
 
 import sqlite3
@@ -22,24 +22,21 @@ import re
 from datetime import date
 import random
 import time
+import subprocess
+import os
+
+import config
 
 def add(self, user, channel):        
     command = (self.command).split()
     conn, cur = self.db_data()
     if re.search("^#", channel):
         if ( len(command) > 1 ) and ( len(command) < 4 ):   #normal about of arguments
-            modes = ['1v1','2v2','3v3','4v4','5v5']
+            modes = ['1v1','2v2','3v3','4v4','5v5','6v6']
             if ( command[1] not in modes ):
                 self.send_reply( ("Invalid game mode! Try again"), user, channel )
                 return
             else:
-                host = '0'
-                if ( len(command) == 3 ):
-                    if ( command[2] == 'host' ):
-                        host = '1'  #user can host a game
-                    else:
-                        self.send_reply( ("What is '"+command[2]+"'? Try again"), user, channel )
-                        return
 
                 amount_players_required = self.players_for_mode(command[1])
 
@@ -53,7 +50,7 @@ def add(self, user, channel):
                 if ( len(records) != 0 ):
                     num_complaints = records[0][0]
                     if ( int(num_complaints) > 10 ):
-                        self.send_reply( ("You have too many complaints, please contact more privileged user to figure out this issue"), user, channel )
+                        self.send_reply( (user+", you have too many complaints, please contact more privileged user to figure out this issue"), user, channel )
                         return
                 mode = command[1]
                 sql = """SELECT name FROM pickup_"""+mode+"""
@@ -63,7 +60,7 @@ def add(self, user, channel):
                 records = cur.fetchall()
                 conn.commit()
                 if ( len(records) != 0 ):
-                    self.send_reply( ("You are already added for :: "+mode+" :: - Operation failed"), user, channel )
+                    self.send_reply( (user+" is already added for |"+mode+"| - Operation failed"), user, channel )
                     return
                 modes.remove(mode)
                 for diff_mode in modes:
@@ -74,7 +71,7 @@ def add(self, user, channel):
                     records = cur.fetchall()
                     conn.commit()
                     if ( len(records) != 0 ):
-                        self.send_reply( ("You are already added for :: "+diff_mode+" :: - Operation failed"), user, channel )
+                        self.send_reply( (user+" is already added for |"+diff_mode+"| - Operation failed"), user, channel )
                         return
                 ### timeout check
                 sql = """SELECT name,timeout FROM pickup_"""+mode+"""
@@ -93,7 +90,7 @@ def add(self, user, channel):
                             """
                             cur.execute(sql)
                             conn.commit()
-                            self.send_reply( ("@ "+records[i][0]+" was removed. Reason: Time Out"), user, channel )
+                            self.send_reply( ("@ "+records[i][0]+" was removed. Reason: Timed Out (> 3 hours)"), user, channel )
                 #generating match
                 sql = """SELECT name FROM pickup_"""+mode+"""
                 """
@@ -101,227 +98,116 @@ def add(self, user, channel):
                 records = cur.fetchall()
                 conn.commit()
                 amount_players_left = int(amount_players_required) - len(records)
-                if ( amount_players_left == 1 ):    # this player is last, check hosts and generate match
-                    if ( host == '1' ):
-                        sql = """INSERT INTO pickup_"""+mode+"""
-                                (name,host,timeout)
-                                VALUES
-                                (
-                                '"""+user+"""',"""+host+""",strftime('%Y-%m-%d-%H-%M-%S')
-                                )
-                        """
-                        cur.execute(sql)
-                        conn.commit()
-                        self.send_reply( ("@ "+user+" is successfully added for :: "+mode+" ::"), user, channel )
-                        self.send_reply( ("@ Enough player detected for :: "+mode+" ::"), user, channel )
-                        sql = """SELECT name FROM pickup_"""+mode+"""
-                                WHERE host = 1
-                        """
-                        cur.execute(sql)
-                        records = cur.fetchall()
-                        conn.commit()
-                        random_host = []
-                        for i in range(len(records)):
-                            random_host.append(records[i][0])
-                        hoster = random.choice(random_host)
-                        sql = """SELECT name FROM pickup_"""+mode+"""
-                        """
-                        cur.execute(sql)
-                        records = cur.fetchall()
-                        conn.commit()
-                        name = []
-                        for i in range(len(records)):
-                            name.append(records[i][0])
-                        team1 = []
-                        team2 = []
-                        while ( len(name) > amount_players_required/2  ):
-                            temp_name = random.choice(name)
-                            team1.append(temp_name)
-                            name.remove(temp_name)
-                        team2 = name
-                        sql = """SELECT name FROM pickup_maps
-                                 WHERE """+"\""+mode+"\""+""" = 1
-                        """
-                        cur.execute(sql)
-                        records = cur.fetchall()
-                        conn.commit()
-                        name = []
-                        for i in range(len(records)):
-                            name.append(records[i][0])
-                        map_to_play = random.choice(name)
-                        message = "@ "+mode+" || Hoster: "+hoster+" || Map: "+map_to_play+" || Team 1: "+", ".join(team1)+" || Team 2: "+", ".join(team2)
-                        self.send_reply( (message), user, channel )
-                        team = team1+team2
-                        for name in team:
-                            self.send_message_to_channel( (message), name )
-                            if ( hoster == name ):
-                                host = 1
-                            else:
-                                host = 0
-                            sql = """SELECT name FROM pickup_stats
-                                    WHERE name = '"""+name+"""'
-                            """
-                            cur.execute(sql)
-                            records = cur.fetchall()
-                            conn.commit()
-                            if ( len(records) == 0 ):
-                                sql = """INSERT INTO pickup_stats
-                                        (name,games,hosts,complaints)
-                                        VALUES
-                                        (
-                                        '"""+name+"""',1,"""+str(host)+""",0
-                                        )
-                                """
-                                cur.execute(sql)
-                                conn.commit()
-                            else:
-                                sql = """SELECT games,hosts FROM pickup_stats
-                                        WHERE name = '"""+name+"""'
-                                """
-                                cur.execute(sql)
-                                records = cur.fetchall()
-                                conn.commit()
-                                games = records[0][0]
-                                hosts = records[0][1]
-                                games = str(int(games) + 1)
-                                hosts = str(int(hosts) + int(host))
-                                sql = """UPDATE pickup_stats
-                                        SET games = """+games+""", hosts = """+hosts+"""
-                                        WHERE name = '"""+name+"""'
-                                """
-                                cur.execute(sql)
-                                conn.commit()
-                        sql = """DELETE FROM pickup_"""+mode+"""
-                        """
-                        cur.execute(sql)
-                        conn.commit()
-                        sql = """INSERT INTO pickup_game_start
-                                (team1,team2,type,host,map,time)
-                                VALUES
-                                (
-                                '"""+", ".join(team1)+"""','"""+", ".join(team2)+"""','"""+mode+"""','"""+hoster+"""','"""+map_to_play+"""',strftime('%Y-%m-%d-%H-%M-%S')
-                                )
-                        """
-                        cur.execute(sql)
-                        conn.commit()
-                    else:
-                        sql = """SELECT name FROM pickup_"""+mode+"""
-                                WHERE host = 1
+                if ( amount_players_left == 1 ):    # this player is last, generate match
+                    sql = """INSERT INTO pickup_"""+mode+"""
+                            (name,timeout)
+                            VALUES
+                            (
+                            '"""+user+"""',strftime('%Y-%m-%d-%H-%M-%S')
+                            )
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                    self.send_reply( ("@ "+user+" is added for |"+mode+"|"), user, channel )
+                    self.send_reply( ("@ Enough players for |"+mode+"|"), user, channel )
+                    sql = """SELECT name FROM pickup_"""+mode+"""
+                    """
+                    cur.execute(sql)
+                    records = cur.fetchall()
+                    conn.commit()
+                    name = []
+                    for i in range(len(records)):
+                        name.append(records[i][0])
+                    team1 = []
+                    team2 = []
+                    while ( len(name) > amount_players_required/2  ):
+                        temp_name = random.choice(name)
+                        team1.append(temp_name)
+                        name.remove(temp_name)
+                    team2 = name
+                    sql = """SELECT name,hash FROM pickup_maps
+                             WHERE """+"\""+mode+"\""+""" = 1
+                    """
+                    cur.execute(sql)
+                    records = cur.fetchall()
+                    conn.commit()
+                    map_name = []
+                    map_hash = []
+                    for i in range(len(records)):
+                        map_name.append(records[i][0])
+                        map_hash.append(records[i][1])
+                    map_to_play = random.choice(map_name)
+                    hash = map_hash[map_name.index(map_to_play)]
+                    sql = """SELECT uid FROM pickup_game_start
+                            ORDER BY uid DESC LIMIT 1
+                    """
+                    cur.execute(sql)
+                    records = cur.fetchall()
+                    conn.commit()
+                    server_id = "1"
+                    for i in range(len(records)):
+                        server_id = str(int(records[i][0])+1)
+                    message = "@ Server: pickupID "+server_id+" || "+mode+" || Map: "+map_to_play+" || Team 1: "+", ".join(team1)+" || Team 2: "+", ".join(team2)
+                    self.send_reply( (message), user, channel )
+                    team = team1+team2
+                    for name in team:
+                        self.send_message_to_channel( (message), name )
+                        sql = """SELECT name FROM pickup_stats
+                                WHERE name = '"""+name+"""'
                         """
                         cur.execute(sql)
                         records = cur.fetchall()
                         conn.commit()
                         if ( len(records) == 0 ):
-                            self.send_reply( ("@ No any players added, want to be hosters and you are last. You can play only if you can host. Try again"), user, channel )
-                            return
-                        sql = """INSERT INTO pickup_"""+mode+"""
-                            (name,host,timeout)
-                            VALUES
-                            ('"""+user+"""',"""+host+""",strftime('%Y-%m-%d-%H-%M-%S')
-                            )
-                        """
-                        cur.execute(sql)
-                        conn.commit()
-                        self.send_reply( ("@ "+user+" is successfully added for :: "+mode+" ::"), user, channel )
-                        self.send_reply( ("@ Enough player detected for :: "+mode+" ::"), user, channel )
-                        sql = """SELECT name FROM pickup_"""+mode+"""
-                                WHERE host = 1
-                        """
-                        cur.execute(sql)
-                        records = cur.fetchall()
-                        conn.commit()
-                        random_host = []
-                        for i in range(len(records)):
-                            random_host.append(records[i][0])
-                        hoster = random.choice(random_host)
-                        sql = """SELECT name FROM pickup_"""+mode+"""
-                        """
-                        cur.execute(sql)
-                        records = cur.fetchall()
-                        conn.commit()
-                        name = []
-                        for i in range(len(records)):
-                            name.append(records[i][0])
-                        team1 = []
-                        team2 = []
-                        while ( len(name) > amount_players_required/2  ):
-                            temp_name = random.choice(name)
-                            team1.append(temp_name)
-                            name.remove(temp_name)
-                        team2 = name
-                        sql = """SELECT name FROM pickup_maps
-                                WHERE """+"\""+mode+"\""+""" = 1
-                        """
-                        cur.execute(sql)
-                        records = cur.fetchall()
-                        conn.commit()
-                        name = []
-                        for i in range(len(records)):
-                            name.append(records[i][0])
-                        map_to_play = random.choice(name)
-                        message = "@ "+mode+" || Hoster: "+hoster+" || Map: "+map_to_play+" || Team 1: "+", ".join(team1)+" || Team 2: "+", ".join(team2)
-                        self.send_reply( (message), user, channel )
-                        team = team1+team2
-                        for name in team:
-                            self.send_message_to_channel( (message), name )
-                            if ( hoster == name ):
-                                host = 1
-                            else:
-                                host = 0
-                            sql = """SELECT name FROM pickup_stats
+                            sql = """INSERT INTO pickup_stats
+                                    (name,games,complaints)
+                                    VALUES
+                                    (
+                                    '"""+name+"""',1,0
+                                    )
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                        else:
+                            sql = """SELECT games FROM pickup_stats
                                     WHERE name = '"""+name+"""'
                             """
                             cur.execute(sql)
                             records = cur.fetchall()
                             conn.commit()
-                            if ( len(records) == 0 ):
-                                sql = """INSERT INTO pickup_stats
-                                        (name,games,hosts,complaints)
-                                        VALUES
-                                        ('"""+name+"""',1,"""+str(host)+""",0
-                                        )
-                                """
-                                cur.execute(sql)
-                                conn.commit()
-                            else:
-                                sql = """SELECT games,hosts FROM pickup_stats
-                                        WHERE name = '"""+name+"""'
-                                """
-                                cur.execute(sql)
-                                conn.commit()
-                                games = records[0][0]
-                                hosts = records[0][1]
-                                games = str(int(games) + 1)
-                                hosts = str(int(hosts) + int(host))
-                                sql = """UPDATE pickup_stats
-                                        SET games = """+games+""", hosts = """+hosts+"""
-                                        WHERE name = '"""+name+"""'
-                                """
-                                cur.execute(sql)
-                                conn.commit()
-                        sql = """DELETE FROM pickup_"""+mode+"""
-                        """
-                        cur.execute(sql)
-                        conn.commit()
-                        sql = """INSERT INTO pickup_game_start
-                            (team1,team2,type,host,map,time)
+                            games = records[0][0]
+                            games = str(int(games) + 1)
+                            sql = """UPDATE pickup_stats
+                                    SET games = """+games+"""
+                                    WHERE name = '"""+name+"""'
+                            """
+                            cur.execute(sql)
+                            conn.commit()
+                    sql = """DELETE FROM pickup_"""+mode+"""
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                    sql = """INSERT INTO pickup_game_start
+                            (team1,team2,type,map,maphash,time)
                             VALUES
                             (
-                            '"""+", ".join(team1)+"""','"""+", ".join(team2)+"""','"""+mode+"""','"""+hoster+"""','"""+map_to_play+"""',strftime('%Y-%m-%d-%H-%M-%S')
-                            )
-                        """
-                        cur.execute(sql)
-                        conn.commit()
-                else:
-                    sql = """INSERT INTO pickup_"""+mode+"""
-                            (name,host,timeout)
-                            VALUES
-                            ('"""+user+"""',"""+host+""",strftime('%Y-%m-%d-%H-%M-%S')
+                            '"""+", ".join(team1)+"""','"""+", ".join(team2)+"""','"""+mode+"""','"""+map_to_play+"""','"""+hash+"""',strftime('%Y-%m-%d-%H-%M-%S')
                             )
                     """
                     cur.execute(sql)
                     conn.commit()
-                    self.send_reply( ("@ "+user+" is successfully added for :: "+mode+" ::"), user, channel )
+                    os.chdir(config.openra_path)
+                    subprocess.Popen(["mono", "OpenRA.Game.exe", "Game.Mods=ra", "Server.Map="+hash, "Server.Name=pickupID "+server_id+" | "+mode+" | do not enter if you are not supposed to play here", "Server.AdvertiseOnline=true", "Server.ListenPort=1234", "Server.ExternalPort=1234", "Server.Dedicated=true", "Server.DedicatedLoop=false", "Server.DedicatedMOTD=Team1: "+",\ ".join(team1)+" | Team2: "+", ".join(team2)+"  ||  If you are not in a team, you can spectate or substitute"])
+                else:
+                    sql = """INSERT INTO pickup_"""+mode+"""
+                            (name,timeout)
+                            VALUES
+                            ('"""+user+"""',strftime('%Y-%m-%d-%H-%M-%S')
+                            )
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                    self.send_reply( ("@ "+user+" is added for |"+mode+"|"), user, channel )
         else:
             self.send_reply( ("Error, wrong request"), user, channel )
     else:

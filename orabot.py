@@ -464,7 +464,11 @@ class IRC_Server:
                 return False
             
             matches = re.findall(r"http.?://[^\s]*", message)
+            mentioned = []
             for http_link in matches:
+                if http_link in mentioned:
+                    continue
+                mentioned.append(http_link)
                 link = http_link.split('://')[1]
                 if check_localnetwork(self, link):
                     return

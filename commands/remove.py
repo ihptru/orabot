@@ -25,7 +25,7 @@ def remove(self, user, channel):
     conn, cur = self.db_data()
     if re.search("^#", channel):
         if ( len(command) >= 1 ) and ( len(command) < 3 ):
-            modes = ['1v1','2v2','3v3','4v4','5v5']
+            modes = ['1v1','2v2','3v3','4v4','5v5', '6v6']
             if ( len(command) == 1 ):
                 for temp_mode in modes:
                     sql = """SELECT name FROM pickup_"""+temp_mode+"""
@@ -40,7 +40,7 @@ def remove(self, user, channel):
                         """
                         cur.execute(sql)
                         conn.commit()
-                        message = "You are removed from :: "+temp_mode+" ::"
+                        message = "You are removed from |"+temp_mode+"|"
                         self.send_notice( message, user )
                         return
                 message = "Error, you are not detected added to any game"
@@ -60,10 +60,10 @@ def remove(self, user, channel):
                         """
                         cur.execute(sql)
                         conn.commit()
-                        message = "You are removed from :: "+mode+" ::"
+                        message = "You are removed from |"+mode+"|"
                         self.send_notice( message, user )
                         return
-                    message = "Error, you are not detected added to :: "+mode+" ::"
+                    message = "Error, you are not detected added to |"+mode+"|"
                     self.send_notice( message, user )
                 else:
                     self.send_reply( ("Invalid game mode! Try again"), user, channel )
