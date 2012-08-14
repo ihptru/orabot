@@ -32,6 +32,7 @@ def start(self):
     activity(conn, cur)
     messages(conn, cur)
     games(conn, cur)
+    quiz(conn, cur)
 
     cur.close()
     print(("[%s] Creating database completed.\tOK") % (self.irc_host))
@@ -309,4 +310,33 @@ def games(conn, cur):
         )
     """
     cur.execute(sql)
+    conn.commit()
+
+def quiz(conn, cur):
+    sql = """CREATE TABLE quiz (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "question" VARCHAR NOT NULL,
+        "answer" VARCHAR NOT NULL,
+        "is_answered" INTEGER NOT NULL DEFAULT 1
+        )
+    """
+    cur.execute(sql)
+    conn.commit()
+    
+    sql = """CREATE TABLE quiz_users (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "user" VARCHAR NOT NULL,
+        "points" INTEGER NOT NULL
+        )
+    """
+    cur.execute(sql)
+    conn.commit()
+    
+    sql = """
+        INSERT INTO quiz (question,answer) VALUES ('When was OpenRA project started?','2007');
+        INSERT INTO quiz (question,answer) VALUES ('What\'s Tanya\'s last name?','Adams');
+        INSERT INTO quiz (question,answer) VALUES ('OpenRA was written in?','C#');
+        
+    """
+    cur.executescript(sql)
     conn.commit()
