@@ -123,7 +123,7 @@ def quiz(self, user, channel):
                     conn.commit()
                 self.send_reply(user+" skipped the question and lost -2 points.", user, channel)
         if command[1] == "scores":
-            sql = """SELECT user,points FROM quiz_users ORDER BY points LIMIT 10"""
+            sql = """SELECT user,points FROM quiz_users ORDER BY points DESC LIMIT 10"""
             cur.execute(sql)
             records = cur.fetchall()
             conn.commit()
