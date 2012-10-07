@@ -101,13 +101,41 @@ def parse_event(self, recv):
             """
             cur.execute(sql)
             conn.commit()
-    ### for ping me
+    # for ping me
     sql = """DELETE FROM pingme
             WHERE who = '"""+original_nick+"""'
     """
     cur.execute(sql)
     conn.commit()
-    ### for ]pick
+    sql = """SELECT who,users_back FROM pingme
+    """
+    cur.execute(sql)
+    records = cur.fetchall()
+    conn.commit()
+    if ( len(records) != 0 ):
+        for i in range(len(records)):
+            who = records[i][0]
+            users_back = records[i][1].split(',')
+            if ( new_nick in users_back ):
+                self.send_reply( (new_nick +' has joined IRC!'), who, who )
+                records_index = users_back.index(irc_join_nick)
+                del users_back[records_index]
+                users_back = ",".join(users_back)
+                if ( len(users_back) == 0 ):
+                    sql = """DELETE FROM pingme
+                            WHERE who = '"""+who+"""'
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+                else:
+                    sql = """UPDATE pingme
+                            SET users_back = '"""+users_back+"""'
+                            WHERE who = '"""+who+"""'
+                    """
+                    cur.execute(sql)
+                    conn.commit()
+    ###
+    # for ]pick
     modes = ['1v1','2v2','3v3','4v4','5v5']
     for diff_mode in modes:
         sql = """DELETE FROM pickup_"""+diff_mode+"""
@@ -115,13 +143,13 @@ def parse_event(self, recv):
         """
         cur.execute(sql)
         conn.commit()
-    ### for notify
+    # for notify
     sql = """DELETE FROM notify
             WHERE user = '"""+original_nick+"""' AND timeout <> 'f' AND timeout <> 'forever'
     """
     cur.execute(sql)
     conn.commit()
-    ## later
+    # later
     sql = """SELECT sender,channel,date,message FROM later
             WHERE reciever = '"""+new_nick+"""'
     """
