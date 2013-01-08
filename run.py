@@ -70,14 +70,17 @@ class Tee(io.TextIOWrapper):
                         _files.append(fn)
                 _nums = []
                 for file in _files:
-                    _nums.append(file.split("botlog")[1].split(".")[0])
+                    if file == "botlog.txt":
+                        _nums.append(0)
+                    else:
+                        _nums.append(int(file.split("botlog")[1].split(".")[0]))
                 _nums.sort()
                 _nums.reverse()
                 #gzip
                 for num in _nums:
-                    if num != "":
-                        source = "var/botlog"+num+".txt.gz"
-                        dest = "var/botlog"+str(int(num)+1)+".txt.gz"
+                    if num != 0:
+                        source = "var/botlog"+str(num)+".txt.gz"
+                        dest = "var/botlog"+str(num+1)+".txt.gz"
                         shutil.move(source, dest)
                     else:
                         f_in = open('var/botlog.txt', 'rb')

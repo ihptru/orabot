@@ -285,7 +285,6 @@ class IRC_Server:
     def send_message_to_channel(self, data, channel):
         print ( ( "[%s] %s: %s") % (self.irc_host, self.irc_nick, data) )
         self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (channel, data[0:512])).encode() )
-        time.sleep(1)
         ### logs
         self.logs(self.irc_nick, channel, 'privmsg', str(data), '')
 
