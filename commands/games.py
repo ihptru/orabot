@@ -79,9 +79,8 @@ def games(self, user, channel):
         self.send_reply( ("No games found"), user, channel )
         return
     # read keys
-    try:
-        optlist,  args = getopt.getopt(command[1:], 'parvls', ['show-empty', 'mods=', 'version='])
-    except getopt.GetoptError as err:
+    optlist,  args = getopt.getopt(command[1:], 'parvls', ['show-empty', 'mods=', 'version='])
+    if len(args) != 0:
         self.send_notice( ("Your input is inaccurate... use ]help games"), user)
         return
     arguments = [opt[0] for opt in optlist]
@@ -106,5 +105,7 @@ def games(self, user, channel):
             games = '@ '+sname.strip().ljust(15)[0:15]+' - '+(players+max_players).ljust(6)[0:5]+' - '+map_name.ljust(13)[0:12]+' - '+modinfo(game['mods'])+' - '+country
             self.send_reply( (games), user, channel )
             time.sleep(0.2)
+        return
 
+    self.send_notice( ("Your input is inaccurate... use ]help games"), user)
     cur.close()
