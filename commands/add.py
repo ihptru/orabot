@@ -38,10 +38,8 @@ def add(self, user, channel):
                 self.send_reply( ("Invalid game mode! Try again"), user, channel )
                 return
             else:
-
                 amount_players_required = self.players_for_mode(command[1])
-
-                #check complaints
+                # check complaints
                 sql = """SELECT complaints FROM pickup_stats
                         WHERE name = '"""+user+"""'
                 """
@@ -74,25 +72,25 @@ def add(self, user, channel):
                     if ( len(records) != 0 ):
                         self.send_reply( (user+" is already added for |"+diff_mode+"| - Operation failed"), user, channel )
                         return
-                ### timeout check
+                # timeout check
                 sql = """SELECT name,timeout FROM pickup_"""+mode+"""
                 """
                 cur.execute(sql)
                 records = cur.fetchall()
                 conn.commit()
-                if ( len(records) != 0 ):   #players exist
+                if ( len(records) != 0 ):   # players exist
                     current = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
                     for i in range(len(records)):
                         add_time = time.mktime(time.strptime( records[i][1], '%Y-%m-%d-%H-%M-%S'))
                         difference = current - add_time
-                        if ( difference > 10800 ):    #some player was added more then 3 hours ago, remove him
+                        if ( difference > 10800 ):    # some player was added more then 3 hours ago, remove him
                             sql = """DELETE FROM pickup_"""+mode+"""
                                     WHERE name = '"""+records[i][0]+"""'
                             """
                             cur.execute(sql)
                             conn.commit()
                             self.send_reply( ("@ "+records[i][0]+" was removed. Reason: Timed Out (> 3 hours)"), user, channel )
-                #generating match
+                # generating match
                 sql = """SELECT name FROM pickup_"""+mode+"""
                 """
                 cur.execute(sql)
@@ -218,5 +216,5 @@ def add(self, user, channel):
         else:
             self.send_reply( ("Error, wrong request"), user, channel )
     else:
-        self.send_message_to_channel( ("]add can be used only on a channel"), user )
+        self.send_message_to_channel( ("`add` can be used only on a channel"), user )
     cur.close()

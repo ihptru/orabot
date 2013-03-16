@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Module for QUIT event
+
 import sqlite3
 
 def parse_event(self, recv):
@@ -23,7 +25,7 @@ def parse_event(self, recv):
         reason = ' ('+recv.split('QUIT :')[1]+')'
     except:
         reason = ''
-    ### last activity
+    # last activity
     sql = """INSERT INTO activity
             (user,act,date_time)
             VALUES
@@ -33,7 +35,6 @@ def parse_event(self, recv):
     """
     cur.execute(sql)
     conn.commit()
-    ###
     sql = """UPDATE users
             SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
             WHERE user = '"""+irc_quit_nick+"""'
@@ -54,21 +55,21 @@ def parse_event(self, recv):
     """
     cur.execute(sql)
     conn.commit()
-    ### for ping me
+    # for pingme
     sql = """DELETE FROM pingme
             WHERE who = '"""+irc_quit_nick+"""'
     """
     cur.execute(sql)
     conn.commit()
-    ### for ]pick
-    modes = ['1v1','2v2','3v3','4v4','5v5']
+    # for pickup
+    modes = ['1v1', '2v2', '3v3', '4v4', '5v5', '6v6']
     for diff_mode in modes:
         sql = """DELETE FROM pickup_"""+diff_mode+"""
                 WHERE name = '"""+irc_quit_nick+"""'
         """
         cur.execute(sql)
         conn.commit()
-    ### for notify
+    # for notify
     sql = """DELETE FROM notify
             WHERE user = '"""+irc_quit_nick+"""' AND timeout <> 'f' AND timeout <> 'forever'
     """

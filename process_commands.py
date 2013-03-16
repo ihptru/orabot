@@ -42,7 +42,7 @@ def evalCommand(self, commandname, user, channel):
     try:
         imp.find_module('commands/'+commandname)
     except:
-        return  #no such command
+        return  # no such command
     imp.reload(eval(commandname))
     command_function = getattr(eval(commandname), commandname, None)
     if command_function != None:
@@ -56,7 +56,7 @@ def evalCommand(self, commandname, user, channel):
 
             signal.signal(signal.SIGALRM, signal_handler)
 
-            signal.alarm(self.command_timeout)    #Limit command execution time
+            signal.alarm(self.command_timeout)    # Limit command execution time
             try:
                 command_function(self, user, channel)
                 signal.alarm(0)

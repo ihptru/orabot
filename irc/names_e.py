@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Module for NAMES event
+
 import sqlite3
 
 def parse_event(self, recv):
@@ -36,7 +38,7 @@ def parse_event(self, recv):
         cur.execute(sql)
         records = cur.fetchall()
         conn.commit()
-        if ( len(records) == 0 ):       #no user found
+        if ( len(records) == 0 ):       # no user found
             sql = """INSERT INTO users
                     (user,state)
                     VALUES
@@ -62,29 +64,13 @@ def parse_event(self, recv):
             """
             cur.execute(sql)
             conn.commit()
-            sql = """SELECT status FROM user_channel
-                    WHERE user = '"""+user+"""' AND channel = '"""+channel+"""'
+            sql = """INSERT INTO user_channel
+                    (user, channel, status)
+                    VALUES
+                    (
+                    '"""+user+"""','"""+channel+"""','"""+status+"""'
+                    )
             """
             cur.execute(sql)
-            records = cur.fetchall()
             conn.commit()
-            if ( len(records) == 0 ):
-                sql = """INSERT INTO user_channel
-                        (user, channel, status)
-                        VALUES
-                        (
-                        '"""+user+"""','"""+channel+"""','"""+status+"""'
-                        )
-                """
-                cur.execute(sql)
-                conn.commit()
-            else:   #found record # since we delete all users related to current channel, NAMES made for, part below probably not needed
-                db_status = records[0][0]
-                if ( status != db_status ):
-                    sql = """UPDATE user_channel
-                            SET status = '"""+status+"""'
-                            WHERE user = '"""+user+"""' AND channel = '"""+channel+"""'
-                    """
-                    cur.execute(sql)
-                    conn.commit()
     cur.close()

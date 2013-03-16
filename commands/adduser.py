@@ -32,7 +32,7 @@ def adduser(self, user, channel):
         cur.execute(sql)
         records = cur.fetchall()
         conn.commit()
-        if ( len(records) != 0 ): #users exists in database already
+        if ( len(records) != 0 ): # users already exists in database
             self.send_reply( ("Error! User already exists"), user, channel )
         else:   
             sql = """INSERT INTO users

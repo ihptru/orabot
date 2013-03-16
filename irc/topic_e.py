@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Module for TOPIC event
+
 def parse_event(self, recv):
     nick = recv.split(':')[1].split('!')[0]
     topic = recv[recv.find(" :")+2:]

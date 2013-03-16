@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Module for PART channel event
+
 import sqlite3
 
 def parse_event(self, recv):
@@ -20,9 +22,8 @@ def parse_event(self, recv):
     irc_part_nick = recv.split( "!" )[ 0 ].split( ":" ) [ 1 ]
     irc_part_host = recv.split()[0].split('!')[1]
     chan = recv.split()[2].strip()
-    ###logs
+    # logs
     self.logs(irc_part_nick, chan, 'part', irc_part_host, '')
-    ###
     sql = """SELECT user FROM user_channel
             WHERE channel <> '"""+chan+"""'
     """
@@ -50,7 +51,7 @@ def parse_event(self, recv):
     """
     cur.execute(sql)
     conn.commit()
-    ### last activity
+    # last activity
     sql = """INSERT INTO activity
             (user,act,date_time,channel)
             VALUES
@@ -60,22 +61,21 @@ def parse_event(self, recv):
     """
     cur.execute(sql)
     conn.commit()
-    ###
-    ### for ping me
+    # for pingme
     sql = """DELETE FROM pingme
             WHERE who = '"""+irc_part_nick+"""'
     """
     cur.execute(sql)
     conn.commit()
-    ### for ]pick
-    modes = ['1v1','2v2','3v3','4v4','5v5']
+    # for pickup
+    modes = ['1v1', '2v2', '3v3', '4v4', '5v5', '6v6']
     for diff_mode in modes:
         sql = """DELETE FROM pickup_"""+diff_mode+"""
                 WHERE name = '"""+irc_part_nick+"""'
         """
         cur.execute(sql)
         conn.commit()
-    ### for notify
+    # for notify
     sql = """DELETE FROM notify
             WHERE user = '"""+irc_part_nick+"""' AND timeout <> 'f' AND timeout <> 'forever'
     """

@@ -13,13 +13,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Module for NICK event
+
 import sqlite3
 
 def parse_event(self, recv):
     original_nick = recv.split(':')[1].split('!')[0]
     new_nick = recv.split()[2].replace(':','').replace('\r\n','')
     conn, cur = self.db_data()
-    ### for logs
+    # for logs
     sql = """SELECT channel,status FROM user_channel
             WHERE user = '"""+original_nick+"""'
     """
@@ -41,7 +43,7 @@ def parse_event(self, recv):
     """
     cur.execute(sql)
     conn.commit()
-    ### last activity
+    # last activity
     sql = """INSERT INTO activity
             (user,act,date_time)
             VALUES
@@ -51,7 +53,6 @@ def parse_event(self, recv):
     """
     cur.execute(sql)
     conn.commit()
-    ###
     sql = """UPDATE users
             SET state = 0, date = strftime('%Y-%m-%d-%H-%M-%S')
             WHERE user = '"""+original_nick+"""'
@@ -101,7 +102,7 @@ def parse_event(self, recv):
             """
             cur.execute(sql)
             conn.commit()
-    # for ping me
+    # for pingme
     sql = """DELETE FROM pingme
             WHERE who = '"""+original_nick+"""'
     """
@@ -134,9 +135,8 @@ def parse_event(self, recv):
                     """
                     cur.execute(sql)
                     conn.commit()
-    ###
-    # for ]pick
-    modes = ['1v1','2v2','3v3','4v4','5v5']
+    # for pickup
+    modes = ['1v1', '2v2', '3v3', '4v4', '5v5', '6v6']
     for diff_mode in modes:
         sql = """DELETE FROM pickup_"""+diff_mode+"""
                 WHERE name = '"""+original_nick+"""'
@@ -156,8 +156,8 @@ def parse_event(self, recv):
     cur.execute(sql)
     records = cur.fetchall()
     conn.commit()
-    if ( len(records) != 0 ):    #he has messages in database, read it
-        messages_ = len(records) #number of messages for player
+    if ( len(records) != 0 ):    # he has messages in database, read it
+        messages_ = len(records) # number of messages for player
         self.send_message_to_channel( ("You have "+str(messages_)+" offline messages:"), new_nick )
         for i in range(messages_):
             date_l = "-".join(records[i][2].split('-')[0:3])

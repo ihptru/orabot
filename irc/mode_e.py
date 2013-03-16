@@ -13,14 +13,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Module for change MODE event
+
 def parse_event(self, recv):
     who_gives = recv.split('!')[0][1:]
     user = recv.split()[4]
     channel = recv.split()[2]
     option = recv.split()[3]
-    
     self.send_names(channel)
-    
     if ( option == '+o' ):
         row = who_gives + " gives channel operator status to " + user
     elif ( option == '-o' ):
@@ -33,6 +33,4 @@ def parse_event(self, recv):
         row = who_gives + " gives halfop to " + user
     elif ( option == '-h' ):
         row = who_gives + " removes halfop from " + user
-    
     self.logs('', channel, 'mode', row, '')
-    

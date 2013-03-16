@@ -13,26 +13,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# No such Nick/Channel module: 401 event
+
 import sqlite3
 
 def parse_event(self, recv):
     nick = recv.split()[3]
     conn, cur = self.db_data()
-    ### for ping me
+    # for pingme
     sql = """DELETE FROM pingme
             WHERE who = '"""+nick+"""'
     """
     cur.execute(sql)
     conn.commit()
-    ### for ]pick
-    modes = ['1v1','2v2','3v3','4v4','5v5']
+    # for pickup
+    modes = ['1v1', '2v2', '3v3', '4v4', '5v5', '6v6']
     for diff_mode in modes:
         sql = """DELETE FROM pickup_"""+diff_mode+"""
                 WHERE name = '"""+nick+"""'
         """
         cur.execute(sql)
         conn.commit()
-    ### for notify
+    # for notify
     sql = """DELETE FROM notify
             WHERE user = '"""+nick+"""' AND timeout <> 'f' AND timeout <> 'forever'
     """

@@ -15,6 +15,7 @@
 
 # This module is to randomize teams for tournament brackets in MediaWiki format
 # Important usage note:  no spaces in team names
+
 import re
 from sys import stdout, argv
 from os import stat

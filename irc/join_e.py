@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Module of JOIN event
+
 import sqlite3
 
 def parse_event(self, recv):
@@ -22,12 +24,9 @@ def parse_event(self, recv):
     chan = recv.split()[2].strip()
     if ( chan.startswith(':') ):
         chan = recv.split()[2][1:].strip()
-
-    ###logs
+    # logs
     self.logs(irc_join_nick, chan, 'join', irc_join_host, '')
-    ###
-    
-    ### last activity
+    # last activity
     sql = """INSERT INTO activity
             (user,act,date_time,channel)
             VALUES
@@ -37,9 +36,7 @@ def parse_event(self, recv):
     """
     cur.execute(sql)
     conn.commit()
-    ###
-
-    ### for pingme
+    # for pingme
     sql = """SELECT who,users_back FROM pingme
     """
     cur.execute(sql)
@@ -67,7 +64,6 @@ def parse_event(self, recv):
                     """
                     cur.execute(sql)
                     conn.commit()
-    ###
     sql = """SELECT user FROM users
             WHERE user = '"""+irc_join_nick+"""'
     """
@@ -116,22 +112,21 @@ def parse_event(self, recv):
             """
             cur.execute(sql)
             conn.commit()
-        else:   #found record
+        else:   # found record
             sql = """UPDATE user_channel
                     SET status = ''
                     WHERE user = '"""+irc_join_nick+"""' AND channel = '"""+chan+"""'
             """
             cur.execute(sql)
             conn.commit()
-        ###
         sql = """SELECT sender,channel,date,message FROM later
                 WHERE reciever = '"""+irc_join_nick+"""'
         """
         cur.execute(sql)
         records = cur.fetchall()
         conn.commit()
-        if ( len(records) != 0 ):    #he has messages in database, read it
-            messages_ = len(records) #number of messages for player
+        if ( len(records) != 0 ):    # he has messages in database, read it
+            messages_ = len(records) # number of messages for player
             self.send_message_to_channel( ("You have "+str(messages_)+" offline messages:"), irc_join_nick )
             for i in range(messages_):
                 date_l = "-".join(records[i][2].split('-')[0:3])
