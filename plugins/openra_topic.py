@@ -14,11 +14,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
-import re
+import json
 
 def start(self):
     while  True:
-        time.sleep(3600)  # 1 hours
+        time.sleep(3605)  # 1 hours
         change_topic(self)
 
 def change_topic(self):
@@ -56,6 +56,10 @@ def change_topic(self):
         write_version(release, playtest)
 
 def get_version(self, stream, version):
-    version = re.findall('.*?"'+version+'-(.*?)"', stream)
-    version.sort()
-    return version[-1]
+    result = ""
+    y = json.loads(stream)
+    for item in y:
+        result = item['name'].split('-')[1]
+        if item['name'].split('-')[0] == version:
+            break
+    return result

@@ -59,6 +59,7 @@ class Tee(io.TextIOWrapper):
         self.f2.write(text)
         self.f1.flush()
         self.f2.flush()
+        # next bit of code is for log rotation
         if self.fd == "stdout":
             log_f = open('var/botlog.txt')
             log_f_lines = log_f.readlines()
@@ -94,7 +95,7 @@ class Tee(io.TextIOWrapper):
 
 sys.stdout=Tee(sys.stdout, log, "stdout")
 sys.stderr=Tee(sys.stderr, log, "stderr")
-print("Starting bot. Press ctrl+c to exit.")
+print("Starting bot. Press CTRL+C to exit.")
 
 while(True):
     try:

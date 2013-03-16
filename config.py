@@ -49,7 +49,8 @@ server1 = {
             'change_topic_channel' : '',
 }
 
-### To add more server connections, simply create a new dictionary similar to previous one (`server1`) and do not forget to add it's name to a list below (`servers`) ###
+# To add more server connections, simply create a new dictionary similar to previous one (`server1`)
+# and do not forget to add it's name to a list below (`servers`) ###
 
 servers = ['server1']
 
@@ -65,7 +66,7 @@ randomserver_url = ''   # url path to that directory    (with / at the end)
 randomteam_dir = '' #directory where files of (randomteam) command are saved (with / at the end
 randomteam_url = '' #url path to that directory (with / at the end)
 
-# Stream Server
+# Stream Server (is used to get list of OpenRA games)
 stream_server_address = ""
 stream_server_port = 0
 

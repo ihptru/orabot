@@ -18,6 +18,7 @@ import urllib.request
 import json
 
 def start(self):
+    time.sleep(3605)    # wait 60 minutes
     conn, cur = self.db_data()
     sql = """SELECT num FROM bugs
     """
@@ -33,7 +34,7 @@ def start(self):
     remote_titles = [t['title'] for t in y]
 
     for bug in remote_bugs:
-        if bug not in e_bugs:   # remote bug is not found in existing bugs
+        if bug not in e_bugs:   # remote bug is not found in existing bugs, then update table
             sql = """INSERT INTO bugs
                     (title,num)
                     VALUES
@@ -47,7 +48,7 @@ def start(self):
             e_bugs.append(bug)
     
     while True:
-        time.sleep(120)
+        time.sleep(1200)    # wait 20 minutes
         e_bugs = detect_bugs(self, conn, cur, e_bugs)
 
 def detect_bugs(self, conn, cur, e_bugs):
@@ -74,10 +75,10 @@ def detect_bugs(self, conn, cur, e_bugs):
 
 def bugs_list(self):
     url = 'https://api.github.com/repos/OpenRA/OpenRA/issues'
-    try:
-        data = urllib.request.urlopen(url).read().decode()
-        return json.loads(data)
-    except:
-        print("*** Error: could not fetch a list of OpenRA bugs ***")
-        time.sleep(900)
-        bugs_list(self)
+    while 1:
+        try:
+            data = urllib.request.urlopen(url).read().decode()
+            return json.loads(data)
+        except:
+            print("*** Error: could not fetch a list of OpenRA bugs *** Probably Exceed Rate Limit")
+            time.sleep(7200)    # wait 2 hours
