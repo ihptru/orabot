@@ -18,7 +18,7 @@ import json
 
 def start(self):
     while  True:
-        time.sleep(3605)  # 1 hours
+        time.sleep(7200)  # wait 2 hours
         change_topic(self)
 
 def change_topic(self):

@@ -18,7 +18,7 @@ import urllib.request
 import json
 
 def start(self):
-    time.sleep(3605)    # wait 60 minutes
+    time.sleep(1800)    # wait 30 minutes
     conn, cur = self.db_data()
     sql = """SELECT num FROM bugs
     """
