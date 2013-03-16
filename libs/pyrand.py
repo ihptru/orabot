@@ -13,7 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#no spaces in team names
+# This module is to randomize teams for tournament brackets in MediaWiki format
+# Important usage note:  no spaces in team names
 import re
 from sys import stdout, argv
 from os import stat
@@ -30,8 +31,6 @@ def start(self, user, channel, players):
     rand(self, user, channel, players, name)
     
 def o_writter(text):
-    #stdout.write(text)
-    #stdout.flush()
     f = open(output_file, 'a')
     f.write(text)
     f.close()
@@ -45,8 +44,6 @@ def qsortRange(a, b, start, end):
     return a
 
 def rand(self, user, channel, players, name):
-    # todo teams64=["01","64"]
-    #       [1,02,3  4  5  6  7 8 9 10 11 12 13 14 15 1617 1819 20 21 22 23 242526 27 28 29 30 31 32]
     teams32=[1,32,17,16,9,24,25,8,5,28,21,12,13,20,29,4,3,30,19,14,11,22,27,6,7,26,23,10,15,18,31,2]
     teams16=[1,15,11,7,5,9,13,3,4,14,10,6,8,12,16,2]
     teams8=[1,7,5,3,4,6,8,2]
