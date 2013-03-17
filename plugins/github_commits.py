@@ -136,10 +136,8 @@ def detect_commits(self):
             commits_to_show.reverse()
             for i in range(len(commits_to_show)):
                 for channel in self.write_commit_notifications_to.split():
-                    commit = self.parse_html(commits_to_show[i]).split('\n')
-                    self.send_message_to_channel( ("News from "+repo.split('github.com/')[1]+branch+": "+commit[0]), channel )
-                    for z in range(1, len(commit)):
-                        self.send_message_to_channel( ("  -------  :  "+commit[z]), channel )
+                    commit = self.parse_html(commits_to_show[i])
+                    self.send_message_to_channel( ("News from "+repo.split('github.com/')[1]+branch+": "+commit), channel )
                 sql = """INSERT INTO commits
                         (title,repo,branch)
                         VALUES
