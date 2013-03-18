@@ -22,7 +22,7 @@ def parse_event(self, recv):
     users = " ".join(recv.split()[5:])[1:]
     conn, cur = self.db_data()
     sql = """DELETE FROM user_channel
-            WHERE channel = '"""+channel+""""'
+            WHERE channel = '"""+channel+"""'
     """
     cur.execute(sql)
     conn.commit()
