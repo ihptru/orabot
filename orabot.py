@@ -506,7 +506,7 @@ class IRC_Server:
                     try:
                         data = urllib.request.urlopen(url).read().decode()
                         y = json.loads(data)
-                        self.send_message_to_channel( ("Issue #" + bug_report+": " + y['title'] + " | " + "http://bugs.open-ra.org/" + bug_report), channel )
+                        self.send_message_to_channel( ("Issue #" + bug_report+"("+y['state']+") by "+y['user']['login']+": " + y['title'] + " | " + "http://bugs.open-ra.org/" + bug_report), channel )
                     except Exception as e:
                         print(e)
 
