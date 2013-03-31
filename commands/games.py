@@ -26,18 +26,6 @@ import datetime
 import json
 import getopt
 
-def get_map_info( sha ):
-    url = "http://content.open-ra.org/api/map_data.php?hash=%s" % sha
-    try:
-        data = urllib.request.urlopen(url).read().decode('utf-8')
-        y = json.loads(data)
-    except:
-        return ('unknown map', '')
-    if len(y):
-        return (y[0]['title'], '/' + y[0]['players'])
-    else:
-        return ('unknown map', '')
-
 def get_country( self, ip ):
     return self.data_from_url("http://api.hostip.info/country.php?ip="+ip, None)
 
@@ -100,11 +88,11 @@ def games(self, user, channel):
             sname = game['name']
             if ( len(sname) == 0 ):
                 sname = 'noname'
-            map_name, max_players = get_map_info(game['map'])
             players = game['players']
-            games = '@ '+sname.strip().ljust(15)[0:15]+' - '+(players+max_players).ljust(6)[0:5]+' - '+map_name.ljust(13)[0:12]+' - '+modinfo(game['mods'])+' - '+country
+            games = '@ '+sname.strip().ljust(15)[0:15]+' - '+players.ljust(3)[0:2]+' - '+modinfo(game['mods'])+' - '+country
             self.send_reply( (games), user, channel )
             time.sleep(0.2)
+        self.send_reply( ("Use http://mailaender.name/openra/  instead"), user, channel )
         return
 
     self.send_notice( ("Your input is inaccurate... use ]help games"), user)
