@@ -50,6 +50,9 @@ def modinfo( mod ):
 def copyRequired(dictlist, key, valuelist):
     return [dictio for dictio in dictlist if dictio[key] in valuelist]
 
+def copyRequiredRegex(dictlist, key, regexObject):
+    return [dictio for dictio in dictlist if regexObject.search(dictio[key])]
+
 def updated(self, user, channel):
     last_updated = self.games_last_updated[0]
     current_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
@@ -67,33 +70,66 @@ def games(self, user, channel):
         self.send_reply( ("No games found"), user, channel )
         return
     # read keys
-    optlist,  args = getopt.getopt(command[1:], 'parvls', ['show-empty', 'mods=', 'version='])
-    if len(args) != 0:
-        self.send_notice( ("Your input is inaccurate... use ]help games"), user)
-        return
+    optlist,  args = getopt.getopt(command[1:], 'sr', ['show-empty', 'mods=', 'version='])   # priority exists here
     arguments = [opt[0] for opt in optlist]
     # imply filters
-    if '--show-empty' not in arguments:
-        y = copyRequired(y, 'players', [str(l) for l in range(1,21)])   # show servers only with people
+    if '-r' not in arguments and '-s' not in arguments: #don't imply other filters if this 2 options are set
+        if '--show-empty' not in arguments:
+            y = copyRequired(y, 'players', [str(l) for l in range(1,31)])   # show servers only with people
+        if '--mods' in arguments:
+            pass
+        if '--version' in arguments:
+            pass
     # process orders
-    if len(arguments) == 0 or ( len(arguments) == 1 and '--show-empty' in arguments):
-        y = copyRequired(y, 'state', '1')
-        if len(y) == 0:
-            self.send_reply( ("Nothing to output"), user, channel )
-            return
-        y = sorted(y, key=lambda k: int(k['players']))   # always sort by amount of players in result
-        y.reverse()
-        for game in y:
-            country = get_country(self, " ".join(game['address'].rsplit(':',1)))
-            sname = game['name']
-            if ( len(sname) == 0 ):
-                sname = 'noname'
-            players = game['players']
-            games = '@ '+sname.strip().ljust(15)[0:15]+' - '+players.ljust(3)[0:2]+' - '+modinfo(game['mods'])+' - '+country
-            self.send_reply( (games), user, channel )
-            time.sleep(0.2)
-        self.send_reply( ("Use http://mailaender.name/openra/  instead"), user, channel )
+    if '-s' in arguments:
+        waiting = len(copyRequired(y, 'state', ['1']))
+        playing = len(copyRequired(y, 'state', ['2']))
+        games = "@ Games: waiting ["+str(waiting)+"] | playing ["+str(playing)+"]"
+        self.send_reply( (games), user, channel )
         return
-
-    self.send_notice( ("Your input is inaccurate... use ]help games"), user)
+    if '-r' in arguments:   # will search even among started games
+        chars=['*','.','$','^','@','{','}','+','?'] # chars to ignore
+        regex = " ".join(args)
+        if len(regex) == 0:
+            self.send_reply( ("'-r' requires a regex"), user, channel )
+            return
+        for i in range(len(chars)):
+            if chars[i] in regex:
+                check = 'true'
+                break
+            else:
+                check = 'false'
+        if check == 'false':
+            p = re.compile(regex, re.IGNORECASE)
+            listio = copyRequiredRegex(y, 'name', p)
+            if len(listio) > 3:
+                rk = 3
+            else:
+                rk = len(listio)
+            for z in range(0, rk):
+                country = get_country(self, " ".join(listio[z]['address'].rsplit(':',1)))
+                sname = listio[z]['name']
+                if ( len(sname) == 0 ):
+                    sname = 'noname'
+                players = listio[z]['players']
+                games = '@ '+sname.strip().ljust(15)[0:15]+' - '+players.ljust(3)[0:2]+' - '+modinfo(listio[z]['mods'])+' - '+country
+                self.send_reply( (games), user, channel )
+            if len(listio) > 3:
+                self.send_reply( ("I can't give you more then 3 results, but in sum, "+str(len(listio))+" servers match your request."), user, channel )
+        return
+    y = copyRequired(y, 'state', '1')
+    if len(y) == 0:
+        self.send_reply( ("Nothing to output"), user, channel )
+        return
+    y = sorted(y, key=lambda k: int(k['players']))   # always sort by amount of players in result
+    y.reverse()
+    for game in y:
+        country = get_country(self, " ".join(game['address'].rsplit(':',1)))
+        sname = game['name']
+        if ( len(sname) == 0 ):
+            sname = 'noname'
+        players = game['players']
+        games = '@ '+sname.strip().ljust(15)[0:15]+' - '+players.ljust(3)[0:2]+' - '+modinfo(game['mods'])+' - '+country
+        self.send_reply( (games), user, channel )
+        time.sleep(0.2)
     cur.close()
