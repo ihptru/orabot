@@ -30,12 +30,12 @@ import db_process
 import config
 import spam_filter
 import process_commands
-### irc events in 'irc' directory
+# IRC events in 'irc/' directory
 from irc import *
-### notifications package
+# load all plugins
 from plugins import *
 
-# Defining a class to run the server. One per connection. This class will do most of our work.
+# Defining a class to run the server. One per connection
 class IRC_Server:
 
     # The default constructor - declaring our global variables

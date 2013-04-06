@@ -160,7 +160,7 @@ def branch_list(self, repo):
             print(e+"  ===  Probably Exceed Rate Limit (branch_list function)")
             time.sleep(7200)    # wait 2 hours
 
-def get_commits(self, branch, repo):   #this functions must receive branch name (returns the latest commit for a branch
+def get_commits(self, branch, repo):   # this functions must receive branch name (returns the latest commit for a branch
     url = 'https://api.github.com/repos' + repo.split('https://github.com')[1] + 'commits/' + branch
     while 1:
         try:

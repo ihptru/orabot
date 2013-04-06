@@ -28,10 +28,10 @@ def start(self, user, channel):
     if ( len(records) != 0 ):
         ignore_minutes = str(records[0][1]) + '0'
         ignore_seconds = int(ignore_minutes) * 60
-        ignore_date = time.mktime(time.strptime( records[0][0], '%Y-%m-%d-%H-%M-%S'))  #in seconds
+        ignore_date = time.mktime(time.strptime( records[0][0], '%Y-%m-%d-%H-%M-%S'))  # in seconds
         current = time.strftime('%Y-%m-%d-%H-%M-%S')
-        current_date = time.mktime(time.strptime( current, '%Y-%m-%d-%H-%M-%S'))    #in seconds
-        difference = current_date - ignore_date  #how many seconds after last ignore
+        current_date = time.mktime(time.strptime( current, '%Y-%m-%d-%H-%M-%S'))    #i n seconds
+        difference = current_date - ignore_date  # how many seconds after last ignore
         if ( difference < ignore_seconds ):
             cur.close()
             # Ignore
@@ -42,13 +42,12 @@ def start(self, user, channel):
     cur.execute(sql)
     records = cur.fetchall()
     conn.commit()
-    #clear 'commands' table after each 1 000 record
+    # clear 'commands' table after each 1 000 record
     if ( len(records) >= 1000 ):
         sql = """DELETE FROM commands WHERE uid <= (SELECT max(uid)-30 FROM commands)"""
         cur.execute(sql)
         conn.commit()
-
-    #write each command into 'commands' table
+    # write each command into 'commands' table
     sql = """INSERT INTO commands
             (user,command,date_time)
             VALUES
@@ -58,8 +57,7 @@ def start(self, user, channel):
     """
     cur.execute(sql)
     conn.commit()
-
-    #extract last 30 records
+    # extract last 30 records
     sql = """SELECT user,date_time FROM commands
             ORDER BY uid DESC LIMIT 30
     """
@@ -73,12 +71,12 @@ def start(self, user, channel):
         if ( user in records[i][0] ):
             user_record.append(records[i][0:])
     if ( len(user_record) > 10 ):
-        first_date = user_record[-10:][0][1]    #date and time of last - 10 record
+        first_date = user_record[-10:][0][1]    # date and time of last - 10 record
         first_date = time.mktime(time.strptime( first_date, '%Y-%m-%d-%H-%M-%S'))
-        last_date = user_record[-1][1]  #current date/time (of last command by that user)
+        last_date = user_record[-1][1]  # current date/time (of last command by that user)
         last_date = time.mktime(time.strptime( last_date, '%Y-%m-%d-%H-%M-%S'))
-        seconds_range = last_date - first_date  #how many seconds between player's commands
-        if seconds_range < 60:  #more than 10 commands per minute. It is too quick, spam!
+        seconds_range = last_date - first_date  # how many seconds between player's commands
+        if seconds_range < 60:  # more than 10 commands per minute. It is too quick, spam!
             sql = """SELECT user,count FROM black_list
                     WHERE user = '"""+user+"""'
             """
@@ -96,7 +94,7 @@ def start(self, user, channel):
                 """
                 cur.execute(sql)
                 conn.commit()
-            else:   #in row : exists in 'black_table'
+            else:   # in row : exists in 'black_table'
                 count_ignore = int(records[0][1])
                 count_ignore = count_ignore + 6
                 sql = """UPDATE black_list

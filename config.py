@@ -1,7 +1,4 @@
-####################
 #####  IRC Bot Config  #####
-####################
-
 server1 = {
             # server to connect
             'host' : 'irc.freenode.net',

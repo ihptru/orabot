@@ -179,8 +179,7 @@ def pickup(conn, cur):
     """
     cur.execute(sql)
     conn.commit()
-    
-    ###
+
     sql = """
         INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Keep Off The Grass 2','a3088b0857f20742b8ebcf78210f2812ae28532e',1,0,0,0,0,0);
         INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Man to Man','11fd2f8a4a8b54d62ed076287c183c46fe9b2b44',1,0,0,0,0,0);
@@ -193,8 +192,7 @@ def pickup(conn, cur):
     """
     cur.executescript(sql)
     conn.commit()
-    ###
-    
+
     sql = """CREATE TABLE "pickup_stats" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "name" VARCHAR NOT NULL ,
@@ -336,7 +334,6 @@ def quiz(conn, cur):
         INSERT INTO quiz (question,answer) VALUES ('When was OpenRA project started?','2007');
         INSERT INTO quiz (question,answer) VALUES ('What\'s Tanya\'s last name?','Adams');
         INSERT INTO quiz (question,answer) VALUES ('OpenRA was written in?','C#');
-        
     """
     cur.executescript(sql)
     conn.commit()
