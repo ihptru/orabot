@@ -26,9 +26,6 @@ import datetime
 import json
 import getopt
 
-def get_country( self, ip ):
-    return self.data_from_url("http://api.hostip.info/country.php?ip="+ip, None)
-
 def modinfo( mod ):
     mod_split = mod.split('@')
     if ( len(mod_split) == 1 ):
@@ -107,12 +104,11 @@ def games(self, user, channel):
             else:
                 rk = len(listio)
             for z in range(0, rk):
-                country = get_country(self, " ".join(listio[z]['address'].rsplit(':',1)))
                 sname = listio[z]['name']
                 if ( len(sname) == 0 ):
                     sname = 'noname'
                 players = listio[z]['players']
-                games = '@ '+sname.strip().ljust(15)[0:15]+' - '+players.ljust(3)[0:2]+' - '+modinfo(listio[z]['mods'])+' - '+country
+                games = '@ '+sname.strip().ljust(15)[0:15]+' - '+players.ljust(3)[0:2]+' - '+modinfo(listio[z]['mods'])
                 self.send_reply( (games), user, channel )
             if len(listio) > 3:
                 self.send_reply( ("I can't give you more then 3 results, but in sum, "+str(len(listio))+" servers match your request."), user, channel )
@@ -124,12 +120,11 @@ def games(self, user, channel):
     y = sorted(y, key=lambda k: int(k['players']))   # always sort by amount of players in result
     y.reverse()
     for game in y:
-        country = get_country(self, " ".join(game['address'].rsplit(':',1)))
         sname = game['name']
         if ( len(sname) == 0 ):
             sname = 'noname'
         players = game['players']
-        games = '@ '+sname.strip().ljust(15)[0:15]+' - '+players.ljust(3)[0:2]+' - '+modinfo(game['mods'])+' - '+country
+        games = '@ '+sname.strip().ljust(15)[0:15]+' - '+players.ljust(3)[0:2]+' - '+modinfo(game['mods'])
         self.send_reply( (games), user, channel )
         time.sleep(0.2)
     cur.close()
