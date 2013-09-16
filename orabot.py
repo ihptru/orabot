@@ -23,7 +23,6 @@ import urllib.request
 import imp
 import html.parser
 import json
-import threading
 from datetime import date
 
 import db_process
@@ -63,11 +62,8 @@ class IRC_Server:
         self.start_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
         
         self.close_threads = [0]
-        #is used to share games from stream server
-        self.games = []
-        self.games_last_updated = [time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))]
 
-    ## The destructor - Close socket.
+    # The destructor - Close socket.
     def __del__(self):
         self.irc_sock.close()
 
@@ -75,9 +71,6 @@ class IRC_Server:
         # Create database at first run
         if not os.path.exists('db/'+self.irc_host+'.sqlite'):
             db_process.start(self)
-        # Connect to Stream Server
-        threading.Thread(target=self.stream_server).start()
-
         try:
             while True:
                 conn, cur = self.db_data()
@@ -90,8 +83,7 @@ class IRC_Server:
                 cur.close()
                 if self.plugins_support:
                     # run plugins
-                    fns = [openra_topic.start, openra_bugs.start, github_commits.start,
-                        openra_game.start]
+                    fns = [openra_topic.start, openra_bugs.start, github_commits.start]
                     procs = [multiprocessing.Process(target=f, args=(self,)) for f in fns]
                     print(("[%s] Plugins support...\t\tOK") % (self.irc_host))
                     self.plugins('start', procs)
@@ -510,39 +502,6 @@ class IRC_Server:
                     except Exception as e:
                         print(e)
 
-    def stream_server(self):
-        stream = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
-        while True:
-            try:
-                stream.connect((config.stream_server_address,  config.stream_server_port))
-                break
-            except socket.error:
-                time.sleep(10) #sleep and try to reconnect
-                continue
-        while True:
-            if self.close_threads == [1]:
-                break
-            try:
-                data = stream.recv(16024)
-                try:
-                    y = self.safe_eval(data.decode())
-                    if (self.games != y):
-                        self.games = y
-                        self.games_last_updated = [time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))]
-                except Exception as e:
-                    print(str(e))
-                    time.sleep(10)
-                    continue
-            except socket.error:
-                while True:
-                    try:
-                        stream.connect((config.stream_server_address,  config.stream_server_port))
-                        break
-                    except socket.error:
-                        time.sleep(10)
-                        continue
-                continue
-
     def safe_eval(self, expr, symbols={}):
             return eval(expr, dict(__builtins__=None), symbols)
 
@@ -571,9 +530,7 @@ class IRC_Server:
         command = (self.command)
         # Break the command into pieces, so we can interpret it with arguments
         command = command.split()
-
-############    COMMADS:
-        ### All public commands go here
+        # All public commands go here
         # The command isn't case sensitive
         if spam_filter.start(self, user, channel):
             # This line makes sure an actual command was sent, not a plain command prefix
@@ -583,9 +540,6 @@ class IRC_Server:
                 return
             imp.reload(process_commands)
             process_commands.evalCommand(self, command[0].lower(), user, channel)
-#####
-class BotCrashed(Exception): # Raised if the bot has crashed.
-    pass
 
 def main():
     # Here begins the main programs flow:

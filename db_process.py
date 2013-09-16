@@ -23,8 +23,6 @@ def start(self):
     user_channel(conn, cur)
     later(conn, cur)
     pickup(conn, cur)
-    notify(conn, cur)
-    user_notified(conn,  cur)
     faq(conn, cur)
     pingme(conn, cur)
     commits(conn, cur)
@@ -198,31 +196,6 @@ def pickup(conn, cur):
         "name" VARCHAR NOT NULL ,
         "games" INTEGER NOT NULL  DEFAULT 0,
         "complaints" INTEGER NOT NULL  DEFAULT 0
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-
-def notify(conn, cur):
-    sql = """CREATE TABLE "notify" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
-        "user" VARCHAR NOT NULL,
-        "date" DATETIME NOT NULL,
-        "mod" VARCHAR NOT NULL DEFAULT "any",
-        "version" VARCHAR NOT NULL DEFAULT "any",
-        "timeout" VARCHAR NOT NULL DEFAULT "none",
-        "num_players" VARCHAR NOT NULL DEFAULT "no limit",
-        "other_options" VARCHAR NOT NULL DEFAULT "NULL" 
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-
-def user_notified(conn,  cur):
-    sql = """CREATE TABLE "user_notified" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
-        "user" VARCHAR NOT NULL,
-        "ip" VARCHAR NOT NULL
         )
     """
     cur.execute(sql)

@@ -1,6 +1,6 @@
 orabot is an official irc bot of #openra channel on freenode which includes additional OpenRA related tools
 
-More info: http://wiki.lv-vl.net/index.php/IRC_orabot
+More info: http://wiki.ihptru.net/index.php/IRC_orabot
 
 
 Before starting the bot, edit `config.py`

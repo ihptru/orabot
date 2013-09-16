@@ -15,7 +15,7 @@
 
 """
 Shows current games.\n
-More info at  http://wiki.lv-vl.net/index.php/IRC_orabot
+More info at  http://wiki.ihptru.net/index.php/IRC_orabot
 """
 
 import sqlite3
@@ -50,19 +50,12 @@ def copyRequired(dictlist, key, valuelist):
 def copyRequiredRegex(dictlist, key, regexObject):
     return [dictio for dictio in dictlist if regexObject.search(dictio[key])]
 
-def updated(self, user, channel):
-    last_updated = self.games_last_updated[0]
-    current_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
-    difference = current_time - last_updated
-    if (difference > 600):
-        diff_result = str(datetime.timedelta(seconds = difference))
-        self.send_reply( ("== list was updated "+diff_result+" ago =="), user, channel)
-
 def games(self, user, channel):
     command = (self.command).split()
     conn, cur = self.db_data()
-    y = self.games[:]   # fresh copy of games
-    updated(self, user, channel)
+    url = 'http://master.open-ra.org/list_json.php'
+    data = urllib.request.urlopen(url).read().decode()  # ping master server and fetch data
+    y = json.loads(data)    # json object (fresh copy of games)
     if ( len(y) == 0 ):
         self.send_reply( ("No games found"), user, channel )
         return

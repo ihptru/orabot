@@ -42,12 +42,12 @@ server1 = {
             # GitHub repositories from where fetch new commit data (space as delimiter); Ex: https://github.com/OpenRA/OpenRA
             'git_repos' : '',
 
-            # Change topic of next channel in notifications process (space as delimiter):
+            # Change topic of next channel (space as delimiter):
             'change_topic_channel' : '',
 }
 
 # To add more server connections, simply create a new dictionary similar to previous one (`server1`)
-# and do not forget to add it's name to a list below (`servers`) ###
+# and do not forget to add it's name to a list below (`servers`)
 
 servers = ['server1']
 
@@ -60,12 +60,8 @@ log_dir = 'logs/'
 randomserver_dir = ''   # directory where files of (randomserver) command are saved (with / at the end)
 randomserver_url = ''   # url path to that directory    (with / at the end)
 
-randomteam_dir = '' #directory where files of (randomteam) command are saved (with / at the end
-randomteam_url = '' #url path to that directory (with / at the end)
-
-# Stream Server (is used to get list of OpenRA games)
-stream_server_address = ""
-stream_server_port = 0
+randomteam_dir = '' # directory where files of (randomteam) command are saved (with / at the end
+randomteam_url = '' # url path to that directory (with / at the end)
 
 # Path to OpenRA game (pickup system)
 openra_path = ""

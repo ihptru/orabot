@@ -34,10 +34,4 @@ def parse_event(self, recv):
         """
         cur.execute(sql)
         conn.commit()
-    # for notify
-    sql = """DELETE FROM notify
-            WHERE user = '"""+nick+"""' AND timeout <> 'f' AND timeout <> 'forever'
-    """
-    cur.execute(sql)
-    conn.commit()
     cur.close()

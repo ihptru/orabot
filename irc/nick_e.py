@@ -143,12 +143,6 @@ def parse_event(self, recv):
         """
         cur.execute(sql)
         conn.commit()
-    # for notify
-    sql = """DELETE FROM notify
-            WHERE user = '"""+original_nick+"""' AND timeout <> 'f' AND timeout <> 'forever'
-    """
-    cur.execute(sql)
-    conn.commit()
     # later
     sql = """SELECT sender,channel,date,message FROM later
             WHERE reciever = '"""+new_nick+"""'
