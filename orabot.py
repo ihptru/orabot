@@ -530,7 +530,6 @@ class IRC_Server:
         command = (self.command)
         # Break the command into pieces, so we can interpret it with arguments
         command = command.split()
-        # All public commands go here
         # The command isn't case sensitive
         if spam_filter.start(self, user, channel):
             # This line makes sure an actual command was sent, not a plain command prefix
@@ -538,7 +537,7 @@ class IRC_Server:
                 error = "Usage: "+self.command_prefix+"command [arguments]"
                 self.send_reply( (error), user, channel )
                 return
-            imp.reload(process_commands)
+            imp.reload(process_commands)    # will re-import all existing commands in realtime
             process_commands.evalCommand(self, command[0].lower(), user, channel)
 
 def main():
