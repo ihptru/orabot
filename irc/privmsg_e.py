@@ -43,7 +43,7 @@ def parse_event(self, recv):
     conn.commit()
     cur.close()
 
-    print ( ( "[%s] %s: %s" ) % (self.irc_host, irc_user_nick, irc_user_message) )
+    print ( ( "[%s %s] %s: %s" ) % (self.irc_host, chan, irc_user_nick, irc_user_message) )
     # Message starts with command prefix?
     if ( irc_user_message != '' ):
         if ( irc_user_message[0] == self.command_prefix ):
