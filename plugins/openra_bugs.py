@@ -69,7 +69,10 @@ def detect_bugs(self, conn, cur, e_bugs):
             cur.execute(sql)
             conn.commit()
             e_bugs.append(bug)
-            self.send_message_to_channel( ("New issue #" + str(bug) + " by " + y[remote_bugs.index(bug)]['user']['login'] + ": " + y[remote_bugs.index(bug)]['title'] + " | http://bugs.open-ra.org/" + str(bug)), self.write_bug_notifications_to.split()[0] )
+            type = "issue"
+            if remote_bugs.index(bug)['pull_request']['html_url'] != None:
+                type = "pull request"
+            self.send_message_to_channel( ("New " + type + " #" + str(bug) + " by " + y[remote_bugs.index(bug)]['user']['login'] + ": " + y[remote_bugs.index(bug)]['title'] + " | http://bugs.open-ra.org/" + str(bug)), self.write_bug_notifications_to.split()[0] )
 
     return e_bugs
 
