@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Last Command Module: seen, activity, message, game
+Last Command Module: seen, activity
 """
 
 import re
@@ -23,7 +23,7 @@ import datetime
 
 def last(self, user, channel):
     command = (self.command).split()
-    usage = "Usage: " + self.command_prefix + "last {seen|activity|message} args"
+    usage = "Usage: " + self.command_prefix + "last {seen|activity} args"
     if ( len(command) == 1 ):
         self.send_reply( (usage), user, channel )
         return
@@ -37,16 +37,6 @@ def last(self, user, channel):
             activity(self, user, channel, command[2:])
         else:
             self.send_reply( ("Usage: " + self.command_prefix + "last activity [-<amount of records>] username"), user, channel )
-    elif ( command[1].lower() == 'message' ):
-        if ( len(command) >= 2 and len(command) <= 4 ):
-            message(self, user, channel, command[2:])
-        else:
-            self.send_reply( ("Usage: " + self.command_prefix + "last message [-<amount of records>] username"), user, channel )
-    elif ( command[1].lower() == 'mention' ):
-        if ( len(command) == 3 ):
-            mention(self, user, channel, command[2:])
-        else:
-            self.send_reply( ("Usage: " + self.command_prefix + "last mention word"), user, channel )
     else:
         self.send_reply( (usage), user, channel )
 
@@ -189,115 +179,5 @@ def activity(self, user, channel, command_request):
                 chan = ' ' + records[i][2]
             result = time_result(records[i][1])
             message = event + chan + ":" + result
-            self.send_notice(message, user)
-    cur.close()
-
-def message(self, user, channel, command_request):
-    
-    """
-    Shows last user's messages
-    """
-    
-    conn, cur = self.db_data()
-    usage = "Usage: " + self.command_prefix + "last message [-<amount of records>] [username]"
-
-    def messages_from_channel(self, user, channel, usage, cur, conn, command_request):
-        amount_records = command_request[0][1:]
-        try:
-            amount_records = str(int(amount_records) + 1)
-        except:
-            self.send_reply( (usage), user, channel )
-            cur.close()
-            return
-        sql = """SELECT message,date_time,channel,user FROM messages
-                WHERE channel = '"""+channel+"""'
-                ORDER BY uid DESC
-                LIMIT """ + amount_records + """
-        """
-        cur.execute(sql)
-        records = cur.fetchall()
-        conn.commit()
-        if ( len(records) == 0 ):
-            self.send_notice("No records for " + channel, user)
-            return
-        else:
-            del records[0]
-            for i in range(len(records)):
-                result = time_result(records[i][1])
-                message = records[i][3] + result + " @ " + records[i][2] + " : " + records[i][0]
-                self.send_notice(message, user)
-
-    if ( len(command_request) == 0 ):
-        messages_from_channel(self, user, channel, usage, cur, conn, ['-10'])
-        return
-    if ( len(command_request) == 1 ):
-        if ( command_request[0].startswith('-') ):
-            messages_from_channel(self, user, channel, usage, cur, conn, command_request)
-            return
-        else:
-            username = command_request[0]
-            amount_records = '10'
-    elif ( len(command_request) == 2 ):
-        username = command_request[1]
-        if ( command_request[0].startswith('-') ):
-            amount_records = command_request[0][1:]
-            try:
-                amount_records = str(int(amount_records) + 1)
-            except:
-                self.send_reply( (usage), user, channel )
-                cur.close()
-                return
-        else:
-            self.send_reply( (usage), user, channel )
-            cur.close()
-            return
-    if ( int(amount_records) > 30 ):
-        amount_records = '30'
-    sql = """SELECT message,date_time,channel FROM messages
-            WHERE user = '""" + username + """'
-            ORDER BY uid DESC
-            LIMIT """ + amount_records + """
-    """
-    cur.execute(sql)
-    records = cur.fetchall()
-    conn.commit()
-    if ( len(records) == 0 ):
-        self.send_notice("No records of user's messages", user)
-        cur.close()
-        return
-    else:
-        del records[0]
-        for i in range(len(records)):
-            result = time_result(records[i][1])
-            message = username + result + " @ " + records[i][2] + " : " + records[i][0]
-            self.send_notice(message, user)
-    cur.close()
-
-def mention(self, user, channel, command_request):
-    
-    """
-    Shows last mentions of the word
-    """
-
-    conn, cur = self.db_data()
-
-    word = command_request[0]
-    sql = """SELECT message,date_time,channel,user FROM messages
-            WHERE channel = '"""+channel+"""' AND upper(message) LIKE upper('%"""+word+"""%') AND user <> '"""+user+"""'
-            ORDER BY uid DESC
-            LIMIT 10
-    """
-    cur.execute(sql)
-    records = cur.fetchall()
-    conn.commit()
-    if ( len(records) == 0 ):
-        self.send_notice("No records with "+word, user)
-        cur.close()
-        return
-    else:
-        del records[0]
-        for i in range(len(records)):
-            result = time_result(records[i][1])
-            message = records[i][3] + result + " @ " + records[i][2] + " : " + records[i][0]
             self.send_notice(message, user)
     cur.close()

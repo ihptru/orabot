@@ -28,18 +28,10 @@ def parse_event(self, recv):
     else:
         self.logs(irc_user_nick, chan, 'privmsg', irc_user_message, '')
     # logs end
-    conn, cur = self.db_data()
-    # for last message
-    sql = """INSERT INTO messages
-            (user,message,date_time,channel)
-            VALUES
-            (
-            '"""+irc_user_nick+"""','"""+irc_user_message.replace("'","''")+"""',strftime('%Y-%m-%d-%H-%M-%S'),'"""+chan+"""'
-            )
-    """
-    cur.execute(sql)
-    conn.commit()
-    cur.close()
+    if (len(self.last_lines) >= 20):
+        for i in range(5):
+            self.last_lines.pop(0)
+    self.last_lines.extend([(irc_user_nick, irc_user_message,)])
 
     print ( ( "[%s %s] %s: %s" ) % (self.irc_host, chan, irc_user_nick, irc_user_message) )
     # Message starts with command prefix?

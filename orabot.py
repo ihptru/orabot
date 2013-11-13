@@ -58,6 +58,7 @@ class IRC_Server:
         self.connect_return = ''
         self.command = ""
         self.start_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
+        self.last_lines = []    # keep in memory last 20 messages
         
         self.close_threads = [0]
 

@@ -27,7 +27,6 @@ def start(self):
     commits(conn, cur)
     bugs(conn, cur)
     activity(conn, cur)
-    messages(conn, cur)
 
     cur.close()
     print(("*** [%s] Creating database completed") % (self.irc_host))
@@ -236,18 +235,6 @@ def activity(conn, cur):
         "act" VARCHAR NOT NULL,
         "date_time" date NOT NULL,
         "channel" VARCHAR
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-
-def messages(conn, cur):
-    sql = """CREATE TABLE messages (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "user" VARCHAR NOT NULL,
-        "message" VARCHAR NOT NULL,
-        "date_time" date NOT NULL,
-        "channel" VARCHAR NOT NULL
         )
     """
     cur.execute(sql)
