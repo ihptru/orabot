@@ -23,7 +23,7 @@ import datetime
 
 def last(self, user, channel):
     command = (self.command).split()
-    usage = "Usage: " + self.command_prefix + "last {seen|activity|message|game} args"
+    usage = "Usage: " + self.command_prefix + "last {seen|activity|message} args"
     if ( len(command) == 1 ):
         self.send_reply( (usage), user, channel )
         return
@@ -47,15 +47,6 @@ def last(self, user, channel):
             mention(self, user, channel, command[2:])
         else:
             self.send_reply( ("Usage: " + self.command_prefix + "last mention word"), user, channel )
-    elif ( command[1].lower() == 'game' ):
-        if ( len(command) >= 2 and len(command) <= 3 ):
-            if ( len(command) == 2 ):
-                arg = ''
-            else:
-                arg = command[2]
-            game(self, user, channel, arg)
-        else:
-            self.send_reply( ("Usage: " + self.command_prefix + "last game [-<amount of records>]"), user, channel )
     else:
         self.send_reply( (usage), user, channel )
 
@@ -152,7 +143,7 @@ def activity(self, user, channel, command_request):
         if ( command_request[0].startswith('-') ):
             amount_records = command_request[0][1:]
             try:
-                trash = int(amount_records)
+                int(amount_records)
             except:
                 self.send_reply( (usage), user, channel )
                 cur.close()
@@ -282,65 +273,13 @@ def message(self, user, channel, command_request):
             self.send_notice(message, user)
     cur.close()
 
-def game(self, user, channel, command_request):
-    
-    """
-    Shows last started games
-    """
-    
-    conn, cur = self.db_data()
-    usage = "Usage: " + self.command_prefix + "last game [-<amount of records>]"
-    if ( command_request == '' ):
-        amount_records = '10'
-    else:
-        if ( command_request.startswith('-') ):
-            amount_records = command_request[1:]
-            try:
-                trash = int(amount_records)
-            except:
-                self.send_reply( (usage), user, channel )
-                cur.close()
-                return
-        else:
-            self.send_reply( (usage), user, channel )
-            cur.close()
-            return
-    if ( int(amount_records) > 30 ):
-        amount_records = '30'
-    sql = """SELECT name,players,date_time,version FROM games
-            ORDER BY uid DESC
-            LIMIT """ + amount_records + """
-    """
-    cur.execute(sql)
-    records = cur.fetchall()
-    conn.commit()
-    if ( len(records) == 0 ):
-        self.send_notice("No records of started games", user)
-        cur.close()
-        return
-    else:
-        for i in range(len(records)):
-            result = time_result(records[i][2])
-            if ( records[i][3] == '' ):
-                ver = ' |'
-            else:
-                if ( re.search('.*{DEV_VERSION}', records[i][3]) ):
-                    ver = 'DEV'
-                else:
-                    ver = records[i][3][-4:]
-                ver = ' | ver: ' + ver + ' |'
-            message = records[i][1] + " players" + ver + result + " | Name: " + records[i][0]
-            self.send_notice(message, user)
-    cur.close()
-
 def mention(self, user, channel, command_request):
     
     """
     Shows last mentions of the word
     """
-    
+
     conn, cur = self.db_data()
-    usage = "Usage: " + self.command_prefix + "last mention word"
 
     word = command_request[0]
     sql = """SELECT message,date_time,channel,user FROM messages

@@ -106,7 +106,7 @@ def games(self, user, channel):
         return
     y = copyRequired(y, 'state', '1')
     if len(y) == 0:
-        self.send_reply( ("Nothing to output"), user, channel )
+        self.send_reply( ("No games are waiting for players"), user, channel )
         return
     y = sorted(y, key=lambda k: int(k['players']))   # always sort by amount of players in result
     y.reverse()

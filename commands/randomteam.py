@@ -18,6 +18,7 @@ Single elimination tournament brackets generator
 """
 from time import strftime, localtime
 import random
+import config
 
 output_file = ''
 
@@ -26,7 +27,7 @@ def randomteam(self, user, channel):
     if ( len(command) > 3 ):
         name = strftime('%y%m%d%H%M%S',localtime())+'.txt'
         global output_file
-        output_file = self.randomteam_dir + name
+        output_file = config.randomteam_dir + name
         rand(self, user, channel, command[1:], name)
     else:
         self.send_reply( ("You must specify at least 3 teams"), user, channel )
@@ -99,7 +100,7 @@ def rand(self, user, channel, players, name):
             else:
                 playerList=playerList+str(players2[i])+", "
             
-    result = self.randomteam_url+name+"   "+playerList
+    result = config.randomteam_url+name+"   "+playerList
     self.send_reply( (result), user, channel )
 
 def o_writter(text):

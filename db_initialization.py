@@ -28,11 +28,9 @@ def start(self):
     bugs(conn, cur)
     activity(conn, cur)
     messages(conn, cur)
-    games(conn, cur)
-    quiz(conn, cur)
 
     cur.close()
-    print(("*** [%s] Creating database completed.\tOK") % (self.irc_host))
+    print(("*** [%s] Creating database completed") % (self.irc_host))
     
 def black_list(conn, cur):
     sql = """CREATE TABLE black_list (
@@ -253,46 +251,4 @@ def messages(conn, cur):
         )
     """
     cur.execute(sql)
-    conn.commit()
-
-def games(conn, cur):
-    sql = """CREATE TABLE games (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL,
-        "address" VARCHAR NOT NULL,
-        "players" VARCHAR NOT NULL,
-        "version" VARCHAR NOT NULL,
-        "mod" VARCHAR NOT NULL,
-        "map" VARCHAR NOT NULL,
-        "date_time" date NOT NULL,
-        "id" INTEGER NOT NULL DEFAULT 0
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-
-def quiz(conn, cur):
-    sql = """CREATE TABLE quiz (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "question" VARCHAR NOT NULL,
-        "answer" VARCHAR NOT NULL,
-        "is_answered" INTEGER NOT NULL DEFAULT 1
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    
-    sql = """CREATE TABLE quiz_users (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "user" VARCHAR NOT NULL,
-        "points" INTEGER NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    
-    sql = """
-        INSERT INTO quiz (question,answer) VALUES ('When was OpenRA project started?','2007');
-    """
-    cur.executescript(sql)
     conn.commit()
