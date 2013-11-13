@@ -7,10 +7,10 @@ server1 = {
             'port' : 6667,
 
             # channels to connect to (space as delimiter)
-            'channels' : '#change_channel1 #change_channel2',
+            'channels' : '#openra #openra-dev #openra.pickup',
 
             # bot nick
-            'bot_nick' : 'change_bot_nickname',
+            'bot_nick' : 'orabot',
 
             # identify with NickServ? ( True or False )
             'nickserv' : False,
@@ -25,22 +25,13 @@ server1 = {
             'command_timeout' : 20,
 
             # write channel logs?
-            'write_logs' : False,
+            'write_logs' : True,
 
             # channels to write logs of (space as delimiter)
-            'log_channels' : '#change_channel1 #change_channel2',
+            'log_channels' : '#openra',
 
             # support tools? ( True or False )
             'tools_support' : False,
-
-            # write bug reports to next channels (space as delimiter), if plugins_support is True
-            'write_bug_notifications_to' : '',
-
-            # write new commit notifications to next channels (space as delimiter), if plugins_support is True
-            'write_commit_notifications_to' : '',
-
-            # GitHub repositories from where we will fetch NEW commit info (space as delimiter); Ex: https://github.com/OpenRA/OpenRA
-            'git_repos' : '',
 }
 
 # To add more server connections, simply create a new dictionary similar to previous one (`server1`)
