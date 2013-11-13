@@ -13,4 +13,4 @@
 .eric4project/*
 .eric5project/
 .eric5project*
-__init__.py
+/__init__.py
