@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-#
-# Copyright 2011-2013 orabot Developers
+
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -55,11 +55,13 @@ class Tee(io.TextIOWrapper):
         self.f2.write(text)
         self.f1.flush()
         self.f2.flush()
-        # next code is for log rotation
+        self.log_rotate(text)
+
+    def log_rotate(self, text):
         if self.fd == "stdout":
             log_f = open('var/botlog.txt')
             log_f_lines = log_f.readlines()
-            if len(log_f_lines) > 10000:
+            if len(log_f_lines) > 100000:
                 _files = []
                 _dir = os.listdir('var/')
                 for fn in _dir:
@@ -95,9 +97,4 @@ sys.stdout = Tee(sys.stdout, log, "stdout")
 sys.stderr = Tee(sys.stderr, log, "stderr")
 print("Starting bot. Press CTRL+C to exit.")
 
-while(True):
-    try:
-        orabot.main()
-    except KeyboardInterrupt:
-        break
-    break #Break if not restarted.
+orabot.main()

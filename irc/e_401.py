@@ -1,4 +1,4 @@
-# Copyright 2011-2013 orabot Developers
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,8 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # No such Nick/Channel module: 401 event
-
-import sqlite3
 
 def parse_event(self, recv):
     nick = recv.split()[3]

@@ -1,4 +1,4 @@
-# Copyright 2011-2013 orabot Developers
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,8 +16,6 @@
 """
 Command is used to add a particular irc user to bot's database if he does not exist there
 """
-
-import sqlite3
 
 def adduser(self, user, channel):
     if not self.Admin(user, channel):

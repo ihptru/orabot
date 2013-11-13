@@ -1,4 +1,4 @@
-# Copyright 2011-2013 orabot Developers
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
 Last Command Module: seen, activity, message, game
 """
 
-import sqlite3
 import re
 import time
 import datetime

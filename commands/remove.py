@@ -1,4 +1,4 @@
-# Copyright 2011-2013 orabot Developers
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
 Removes a user performing a command from any game he is added to... (user can specify an optional argument - mode)
 """
 
-import sqlite3
 import re
 
 def remove(self, user, channel):

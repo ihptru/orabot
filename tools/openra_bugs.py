@@ -1,4 +1,4 @@
-# Copyright 2011-2013 orabot Developers
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,11 +27,8 @@ def start(self):
     conn.commit()
     
     e_bugs = [int(rec[0]) for rec in records]   # existing bugs in DB
-    
     y = bugs_list(self) # new list from a remote server
-    
     remote_bugs = [n['number'] for n in y]
-    remote_titles = [t['title'] for t in y]
 
     for bug in remote_bugs:
         if bug not in e_bugs:   # remote bug is not found in existing bugs, then update table
@@ -54,7 +51,6 @@ def start(self):
 def detect_bugs(self, conn, cur, e_bugs):
     y = bugs_list(self)
     remote_bugs = [n['number'] for n in y]
-    remote_titles = [t['title'] for t in y]
     
     for bug in remote_bugs:
         if bug not in e_bugs:   # it's a new bug

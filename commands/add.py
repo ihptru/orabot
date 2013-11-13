@@ -1,4 +1,4 @@
-# Copyright 2011-2013 orabot Developers
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,14 +17,11 @@
 Add yourself for a pickup game (add {1v1|2v2|3v3|4v4|5v5|6v6}
 """
 
-import sqlite3
 import re
-from datetime import date
 import random
 import time
 import subprocess
 import os
-import random
 
 import config
 

@@ -1,4 +1,4 @@
-# Copyright 2011-2013 orabot Developers
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -60,5 +60,5 @@ def evalCommand(self, commandname, user, channel):
             try:
                 command_function(self, user, channel)
                 signal.alarm(0)
-            except TimedOut as msg:
+            except TimedOut:
                 self.send_reply( ("Timed out!"), user, channel)

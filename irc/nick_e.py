@@ -1,4 +1,4 @@
-# Copyright 2011-2013 orabot Developers
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,8 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Module for NICK event
-
-import sqlite3
 
 def parse_event(self, recv):
     original_nick = recv.split(':')[1].split('!')[0]
@@ -119,7 +117,7 @@ def parse_event(self, recv):
             users_back = records[i][1].split(',')
             if ( new_nick in users_back ):
                 self.send_reply( (new_nick +' has joined IRC!'), who, who )
-                records_index = users_back.index(irc_join_nick)
+                records_index = users_back.index(new_nick)
                 del users_back[records_index]
                 users_back = ",".join(users_back)
                 if ( len(users_back) == 0 ):

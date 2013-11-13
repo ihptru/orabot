@@ -3,6 +3,10 @@
 *.pyc
 /db
 /db/*
+/logs
+/logs/*
+/__pycache__
+/__pycache__/*
 *.sw?
 *.e4p
 .eric4project/

@@ -1,4 +1,4 @@
-# Copyright 2011-2013 orabot Developers
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,11 +18,9 @@ Shows current games.\n
 More info at  http://wiki.ihptru.net/index.php/IRC_orabot
 """
 
-import sqlite3
 import re
 import urllib.request
 import time
-import datetime
 import json
 import getopt
 

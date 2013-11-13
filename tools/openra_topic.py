@@ -1,4 +1,4 @@
-# Copyright 2011-2013 orabot Developers
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -51,8 +51,8 @@ def change_topic(self):
         if ( self.change_topic_channel == '' ):
             return
         topic = "[logged] open-source RTS | latest: "+release+" | testing: "+playtest+" | http://open-ra.org | http://bugs.open-ra.org"
-        self.topic(self.change_topic_channel, topic)
-        print("["+self.irc_host+"] ### DEBUG: made an attempt to change the TOPIC of " + self.change_topic_channel + " ###")
+        self.topic('#openra', topic)
+        print("["+self.irc_host+"] ### DEBUG: made an attempt to change the TOPIC of #openra ###")
         write_version(release, playtest)
 
 def get_version(self, stream, version):

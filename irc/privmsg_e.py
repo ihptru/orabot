@@ -1,4 +1,4 @@
-# Copyright 2011-2013 orabot Developers
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,11 +16,9 @@
 # Module for PRIVMSG event
 
 import re
-import sqlite3
 
 def parse_event(self, recv):
     irc_user_nick = recv.split ( '!' ) [ 0 ] . split ( ":")[1]
-    irc_user_host = recv.split ( '@' ) [ 1 ] . split ( ' ' ) [ 0 ]
     irc_user_message = self.data_to_message(recv)
     chan = (recv).split()[2]  #channel
     # logs

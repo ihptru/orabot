@@ -10,7 +10,7 @@ server1 = {
             'channels' : '#change_channel1 #change_channel2',
 
             # bot nick
-            'bot_nick' : 'change_bot_nick',
+            'bot_nick' : 'change_bot_nickname',
 
             # identify with NickServ? ( True or False )
             'nickserv' : False,
@@ -27,27 +27,24 @@ server1 = {
             # write channel logs?
             'write_logs' : False,
 
-            # channel to write logs of (space as delimiter)
+            # channels to write logs of (space as delimiter)
             'log_channels' : '#change_channel1 #change_channel2',
 
-            # support plugins? ( True or False )
-            'plugins_support' : False,
+            # support tools? ( True or False )
+            'tools_support' : False,
 
-            # write bug reports to (space as delimiter)
+            # write bug reports to next channels (space as delimiter), if plugins_support is True
             'write_bug_notifications_to' : '',
 
-            # write new commit notifications to (space as delimiter)
+            # write new commit notifications to next channels (space as delimiter), if plugins_support is True
             'write_commit_notifications_to' : '',
 
-            # GitHub repositories from where fetch new commit data (space as delimiter); Ex: https://github.com/OpenRA/OpenRA
+            # GitHub repositories from where we will fetch NEW commit info (space as delimiter); Ex: https://github.com/OpenRA/OpenRA
             'git_repos' : '',
-
-            # Change topic of next channel (space as delimiter):
-            'change_topic_channel' : '',
 }
 
 # To add more server connections, simply create a new dictionary similar to previous one (`server1`)
-# and do not forget to add it's name to a list below (`servers`)
+# and do not forget to add it's name to a list below (servers); Ex: server = ['server1','server2']
 
 servers = ['server1']
 
@@ -63,5 +60,5 @@ randomserver_url = ''   # url path to that directory    (with / at the end)
 randomteam_dir = '' # directory where files of (randomteam) command are saved (with / at the end
 randomteam_url = '' # url path to that directory (with / at the end)
 
-# Path to OpenRA game (pickup system)
-openra_path = ""
+# Path to OpenRA game (directory with / at the end)
+openra_path = ''

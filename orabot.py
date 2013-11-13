@@ -1,4 +1,4 @@
-# Copyright 2011-2013 orabot Developers
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,22 +23,21 @@ import urllib.request
 import imp
 import html.parser
 import json
-from datetime import date
 
-import db_process
+import db_initialization
 import config
 import spam_filter
 import process_commands
 # IRC events in 'irc/' directory
 from irc import *
-# load all plugins
-from plugins import *
+# load all tools
+from tools import *
 
 # Defining a class to run the server. One per connection
 class IRC_Server:
 
     # The default constructor - declaring our global variables
-    def __init__(self, host, port, nick, channels, nickserv, nickserv_password, command_prefix, command_timeout, write_logs, log_channels, plugins_support, write_bug_notifications_to, write_commit_notifications_to, git_repos, change_topic_channel):
+    def __init__(self, host, port, nick, channels, nickserv, nickserv_password, command_prefix, command_timeout, write_logs, log_channels, tools_support, write_bug_notifications_to, write_commit_notifications_to, git_repos):
         self.irc_host = host
         self.irc_port = port
         self.irc_nick = nick
@@ -49,11 +48,10 @@ class IRC_Server:
         self.command_timeout = command_timeout
         self.write_logs = write_logs
         self.log_channels = log_channels
-        self.plugins_support = plugins_support
+        self.tools_support = tools_support
         self.write_bug_notifications_to = write_bug_notifications_to
         self.write_commit_notifications_to = write_commit_notifications_to
         self.git_repos = git_repos
-        self.change_topic_channel = change_topic_channel
         self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
         self.is_connected = False
         self.listen_return = ''
@@ -70,7 +68,7 @@ class IRC_Server:
     def ircbot(self):
         # Create database at first run
         if not os.path.exists('db/'+self.irc_host+'.sqlite'):
-            db_process.start(self)
+            db_initialization.start(self)
         try:
             while True:
                 conn, cur = self.db_data()
@@ -81,26 +79,25 @@ class IRC_Server:
                 cur.executescript(sql)
                 conn.commit()
                 cur.close()
-                if self.plugins_support:
-                    # run plugins
+                if self.tools_support:
                     fns = [openra_topic.start, openra_bugs.start, github_commits.start]
                     procs = [multiprocessing.Process(target=f, args=(self,)) for f in fns]
-                    print(("[%s] Plugins support...\t\tOK") % (self.irc_host))
-                    self.plugins('start', procs)
+                    print(("*** [%s] Tools are supported") % (self.irc_host))
+                    self.tools('start', procs)
 
                 if self.connect():
                     if ( self.connect_return == 'Excess Flood' ):
-                        if self.plugins_support:
-                            self.plugins('terminate', procs)
-                            print("[%s] Terminated child processes" % self.irc_host)
-                        print("[%s] Restarting the bot" % self.irc_host)
+                        if self.tools_support:
+                            self.tools('terminate', procs)
+                            print("*** [%s] Terminated child processes" % self.irc_host)
+                        print("*** [%s] Restarting the bot" % self.irc_host)
                         time.sleep(5)
                         self.irc_sock.close()
                         continue
                     elif ( self.connect_return == 'Manual Quit' ):
-                        if self.plugins_support:
-                            self.plugins('terminate', procs)
-                            print("[%s] Terminated child processes" % self.irc_host)
+                        if self.tools_support:
+                            self.tools('terminate', procs)
+                            print("*** [%s] Terminated child processes" % self.irc_host)
                         print("[%s] Exit" % self.irc_host)
                         break
                 self.close_threads = [1]
@@ -108,7 +105,7 @@ class IRC_Server:
             self.close_threads = [1]
             raise KeyboardInterrupt
 
-    def plugins(self, action, procs):
+    def tools(self, action, procs):
         if ( action == 'start' ):
             for p in procs:
                 p.start()
@@ -121,27 +118,26 @@ class IRC_Server:
         try:
             self.irc_sock.connect ((self.irc_host, self.irc_port))
         except:
-            print ("Error: Could not connect to IRC; Host: " + str(self.irc_host) + "Port: " + str(self.irc_port))
+            print ("*** [%s] Error: Could not connect to IRC server on (%s) port!" % (self.irc_host, self.irc_port))
             exit(1) # We should make it recconect if it gets an error here
-        print ("Connected to: " + str(self.irc_host) + ":" + str(self.irc_port))
+        print ("*** [%s] Connected to IRC server on (%s) port" % (self.irc_host, self.irc_port))
 
         def bot_connect(self):
             str_buff = ("NICK %s \r\n") % (self.irc_nick)
             self.irc_sock.send (str_buff.encode())
-            print (("[%s] Setting bot nick to " + str(self.irc_nick)) % (self.irc_host))
+            print (("*** [%s] Setting bot nick to " + str(self.irc_nick)) % (self.irc_host))
 
             str_buff = ("USER %s 8 * :X\r\n") % (self.irc_nick)
             self.irc_sock.send (str_buff.encode())
-            print (("[%s] Setting User") % (self.irc_host))
 
             for channel in self.channels:
                 str_buff = ( "JOIN %s \r\n" ) % (channel)
                 self.irc_sock.send (str_buff.encode())
-                print (("[%s] Joining channel " + channel) % (self.irc_host))
+                print (("*** [%s] Joining channel " + channel) % (self.irc_host))
         bot_connect(self)
         
         if self.nickserv == True:
-            print (("[%s] Sending request to identify with NickServ...") % (self.irc_host))
+            print (("*** [%s] Sending request to identify with NickServ...") % (self.irc_host))
             data = "identify "+self.nickserv_password
             self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('NickServ', data)).encode() )
 
@@ -167,23 +163,26 @@ class IRC_Server:
 
             data = self.handle_recv( recv )
             for recv in data:
-                if recv.find ( "PING" ) != -1:
-                    self.irc_sock.send ( ("PONG "+ recv.split() [ 1 ] + "\r\n").encode() )
+                try:
+                    framed_recv = recv.split()
+                except:
+                    continue
+                if framed_recv[1] == "PING":
+                    self.irc_sock.send ( ("PONG "+ framed_recv [ 1 ] + "\r\n").encode() )
 
-                if recv.find ( " PRIVMSG " ) != -1:
+                elif framed_recv[1] == "PRIVMSG":
                     imp.reload(privmsg_e)
                     multiprocessing.Process(target=privmsg_e.parse_event, args=(self,recv,)).start()
 
-                if recv.find ( " JOIN " ) != -1:
+                elif framed_recv[1] == "JOIN":
                     imp.reload(join_e)
                     join_e.parse_event(self, recv)
 
-                if recv.find ( " QUIT " ) != -1:
+                elif framed_recv[1] == "QUIT":
                     nick = recv.split('!')[0][1:]
-                    message = " ".join(recv.split()[2:])[1:]
+                    message = " ".join(framed_recv[2:])[1:]
                     if ( nick == self.irc_nick ):
-                        print(recv)
-                        print("[%s] Disconnected" % self.irc_host)
+                        print("*** [%s] Disconnected" % self.irc_host)
                         if ( message == 'Excess Flood' ):
                             self.listen_return = 'Excess Flood'
                             return True
@@ -193,61 +192,61 @@ class IRC_Server:
                     imp.reload(quit_e)
                     quit_e.parse_event(self, recv)
 
-                if recv.find ( " PART " ) != -1:
+                elif framed_recv[1] == "PART":
                     imp.reload(part_e)
                     part_e.parse_event(self, recv)
 
-                if recv.find ( " NICK " ) != -1:
+                elif framed_recv[1] == "NICK":
                     imp.reload(nick_e)
                     nick_e.parse_event(self, recv)
 
-                if recv.find ( " TOPIC " ) != -1:
+                elif framed_recv[1] == "NOTICE" and framed_recv[2].startswith("#"):
+                    imp.reload(channel_notice_e)
+                    channel_notice_e.parse_event(self, recv)
+
+                elif framed_recv[1] == "TOPIC":
                     imp.reload(topic_e)
                     topic_e.parse_event(self, recv)
 
-                if recv.find ( " KICK " ) != -1:
+                elif framed_recv[1] == "KICK":
                     imp.reload(kick_e)
                     kick_e.parse_event(self, recv)
 
-                if recv.find ( " MODE " ) != -1:
-                    if ( recv.split()[0] != ":" + self.irc_nick ):
-                        if recv.split()[3] in ['+v','-v','+o','-o','+h','-h']:
+                elif framed_recv[1] == "MODE":
+                    if ( framed_recv[0] != ":" + self.irc_nick ):
+                        if framed_recv[3] in ['+v','-v','+o','-o','+h','-h']:
                             imp.reload(mode_e)
                             mode_e.parse_event(self, recv)
 
-                if recv.find ( " 353 "+self.irc_nick ) != -1:     # NAMES
+                elif framed_recv[1] == "353" and framed_recv[2] == self.irc_nick:   # NAMES request by bot
                     imp.reload(names_e)
                     names_e.parse_event(self, recv)
 
-                if recv.find ( " NOTICE "+self.irc_nick+" :You are now identified for " ) != -1:
-                    print(("[%s] NickServ Identification Succeeded\t\tOK") % (self.irc_host))
+                elif framed_recv[1] == "NOTICE" and framed_recv[2] == self.irc_nick and framed_recv[6] == "identified":
+                    print(("*** [%s] NickServ Identification Succeeded\t\tOK") % (self.irc_host))
 
-                if recv.find ( " 433 * "+self.irc_nick+" " ) != -1:
-                    print(("[%s] Nick is already in use!!!") % (self.irc_host))
+                elif framed_recv[1] == "433" and framed_recv[2] == self.irc_nick:
+                    print(("*** [%s] Nick is already in use!!!") % (self.irc_host))
                     self.listen_return = 'Nick in Use'
                     return True
                 
-                if recv.find ( " 471 " ) != -1:
-                    if ( recv.split()[1] == "471" ):
-                        channel = recv.split()[3]
-                        print (("[%s] "+channel+" is full!") % (self.irc_host))
+                elif framed_recv[1] == "471":
+                    channel = recv.split()[3]
+                    print (("*** [%s] "+channel+" is full!") % (self.irc_host))
 
-                if recv.find ( " 473 " ) != -1:
-                    if ( recv.split()[1] == "473" ):
-                        channel = recv.split()[3]
-                        print (("[%s] "+channel+" is invite only!") % (self.irc_host))
+                elif framed_recv[1] == "473":
+                    channel = recv.split()[3]
+                    print (("*** [%s] "+channel+" is invite only!") % (self.irc_host))
 
-                if recv.find ( " 474 " ) != -1:
-                    if ( recv.split()[1] == "474" ):
-                        channel = recv.split()[3]
-                        print (("[%s] Bot is banned from "+channel+" !") % (self.irc_host))
+                elif framed_recv[1] == "474":
+                    channel = recv.split()[3]
+                    print (("*** [%s] Bot is banned from "+channel+" !") % (self.irc_host))
 
-                if recv.find ( " 475 " ) != -1:
-                    if ( recv.split()[1] == "475" ):
-                        channel = recv.split()[3]
-                        print (("[%s] Key is required for "+channel+" !") % (self.irc_host))
+                elif framed_recv[1] == "475":
+                    channel = recv.split()[3]
+                    print (("*** [%s] Key is required for "+channel+" !") % (self.irc_host))
 
-                if recv.find ( " 401 " + self.irc_nick + " " ) != -1:   # no such nick/channel
+                elif framed_recv[1] == "401" and framed_recv[2] == self.irc_nick: # no such nick/channel
                     imp.reload(e_401)
                     e_401.parse_event(self, recv)
 
@@ -281,10 +280,9 @@ class IRC_Server:
         self.logs(self.irc_nick, channel, 'privmsg', str(data), '')
 
     def send_notice(self, data, user):
-        print ( ( "[%s] NOTICE to %s: %s" ) % (self.irc_host, user, data) )
         str_buff = ( "NOTICE %s :%s\r\n" ) % (user,data)
         self.irc_sock.send (str_buff.encode())
-        time.sleep(1)
+        print ( ( "*** [%s] NOTICE to %s: %s" ) % (self.irc_host, user, data) )
 
     def send_names(self, channel):
         str_buff = ( "NAMES %s \r\n" ) % (channel)
@@ -314,7 +312,6 @@ class IRC_Server:
         if (channel[0] == "#"):
             str_buff = ( "JOIN %s \r\n" ) % (channel)
             self.irc_sock.send (str_buff.encode())
-            # This needs to test if the channel is full
 
     # This function takes a channel, which must start with a #.
     def quit_channel(self, channel):
@@ -402,6 +399,8 @@ class IRC_Server:
                     row = ' *** '+irc_user+' was kicked by '+some_data+' ('+some_more_data+')\n'
                 elif ( logs_of == 'mode' ):
                     row = ' *** '+some_data+'\n'
+                elif ( logs_of == 'channel_notice'):
+                    row = ' *** NOTICE to '+channel+' from '+irc_user+': '+some_data+'\n'
                 else:
                     return  # probably an error.
                 dir = os.path.dirname(filename)
@@ -412,7 +411,7 @@ class IRC_Server:
                     file.write(time_prefix + row)
                     file.close()
                 except:
-                    print('####### ERROR !!! ###### Probably no write permissions to logs directory! (or ascii coding error)')
+                    print('*** ERROR !!! Probably no write permissions to logs directory! (or ascii coding error)')
 
     def parse_html(self, string):
         h = html.parser.HTMLParser()
@@ -438,7 +437,7 @@ class IRC_Server:
             title = self.parse_html(titles[0])
             return title
         else:
-            raise Exception("Exception: " + url + " does not contain title")
+            raise Exception("*** Exception: " + url + " does not contain title")
 
     def parse_link(self, channel, user, message):
         if re.search('.*http.*://.*', message):
@@ -545,8 +544,11 @@ class IRC_Server:
 
 def main():
     # Here begins the main programs flow:
-    for irc_server in config.servers:
-        server_data = eval('config.'+irc_server)
-        ircserver = IRC_Server(server_data['host'], server_data['port'], server_data['bot_nick'], server_data['channels'].split(), server_data['nickserv'], server_data['nickserv_password'], server_data['command_prefix'], server_data['command_timeout'], server_data['write_logs'], server_data['log_channels'], server_data['plugins_support'], server_data['write_bug_notifications_to'], server_data['write_commit_notifications_to'], server_data['git_repos'], server_data['change_topic_channel'])
-        ircserver_process = multiprocessing.Process(None,ircserver.ircbot,name="IRC Server" )
-        ircserver_process.start()
+    try:
+        for irc_server in config.servers:
+            server_data = eval('config.'+irc_server)
+            ircserver = IRC_Server(server_data['host'], server_data['port'], server_data['bot_nick'], server_data['channels'].split(), server_data['nickserv'], server_data['nickserv_password'], server_data['command_prefix'], server_data['command_timeout'], server_data['write_logs'], server_data['log_channels'], server_data['tools_support'], server_data['write_bug_notifications_to'], server_data['write_commit_notifications_to'], server_data['git_repos'])
+            ircserver_process = multiprocessing.Process(None,ircserver.ircbot,name="IRC Server" )
+            ircserver_process.start()
+    except KeyboardInterrupt:
+        exit(1)

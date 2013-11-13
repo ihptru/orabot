@@ -1,4 +1,4 @@
-# Copyright 2011-2013 orabot Developers
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 
 def start(self):
     conn, cur = self.db_data()
-    print(("[%s] Creating database") % (self.irc_host))
+    print(("*** [%s] Creating database") % (self.irc_host))
     
     black_list(conn, cur)
     commands(conn, cur)
@@ -23,7 +23,6 @@ def start(self):
     user_channel(conn, cur)
     later(conn, cur)
     pickup(conn, cur)
-    faq(conn, cur)
     pingme(conn, cur)
     commits(conn, cur)
     bugs(conn, cur)
@@ -33,7 +32,7 @@ def start(self):
     quiz(conn, cur)
 
     cur.close()
-    print(("[%s] Creating database completed.\tOK") % (self.irc_host))
+    print(("*** [%s] Creating database completed.\tOK") % (self.irc_host))
     
 def black_list(conn, cur):
     sql = """CREATE TABLE black_list (
@@ -201,17 +200,6 @@ def pickup(conn, cur):
     cur.execute(sql)
     conn.commit()
 
-def faq(conn, cur):
-    sql = """CREATE TABLE "faq" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "item" VARCHAR NOT NULL ,
-        "whoset" VARCHAR NOT NULL ,
-        "desc" VARCHAR NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-
 def pingme(conn, cur):
     sql = """CREATE TABLE "pingme" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
@@ -305,8 +293,6 @@ def quiz(conn, cur):
     
     sql = """
         INSERT INTO quiz (question,answer) VALUES ('When was OpenRA project started?','2007');
-        INSERT INTO quiz (question,answer) VALUES ('What\'s Tanya\'s last name?','Adams');
-        INSERT INTO quiz (question,answer) VALUES ('OpenRA was written in?','C#');
     """
     cur.executescript(sql)
     conn.commit()

@@ -1,4 +1,4 @@
-# Copyright 2011-2013 orabot Developers
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,8 +16,6 @@
 """
 Removes a user specified in command as a argument from any game he is added to
 """
-
-import sqlite3
 
 def pickup_remove(self, user, channel):
     if not self.Admin(user, channel):

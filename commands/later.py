@@ -1,4 +1,4 @@
-# Copyright 2011-2013 orabot Developers
+# Copyright 2011-2014 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,8 +16,6 @@
 """
 Command is used to send an offline message to irc user
 """
-
-import sqlite3
 
 def later(self, user, channel):
     command = (self.command).split()

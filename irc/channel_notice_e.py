@@ -13,21 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-Computes the uptime of the bot
-"""
+# Module for channel NOTICE event
 
-import time
-import datetime
-
-def uptime(self, user, channel):
-    if not self.Admin(user, channel):
-        return
-    command = (self.command).split()
-    if ( len(command) == 1 ):
-        current = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
-        difference = current - self.start_time
-        result = str(datetime.timedelta(seconds = difference))
-        self.send_reply( (result), user, channel)
-    else:
-        self.send_reply( ("error"), user, channel)
+def parse_event(self, recv):
+    nick = recv.split(':')[1].split('!')[0]
+    message = recv[recv.find(" :")+2:]
+    chan = recv.split()[2]
+    self.logs(nick, chan, 'channel_notice', message, '')
+    print ( ( "[%s NOTICE to %s] %s: %s" ) % (self.irc_host, chan, nick, message) )
