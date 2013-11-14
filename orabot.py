@@ -39,7 +39,8 @@ class IRC_Server:
                     nickserv, nickserv_password,
                     command_prefix, command_timeout,
                     write_logs, log_channels,
-                    tools_support, log_dir):
+                    tools_support, log_dir,
+                    do_not_support_commands):
         self.irc_host = host
         self.irc_port = port
         self.irc_nick = nick
@@ -52,6 +53,7 @@ class IRC_Server:
         self.log_channels = log_channels
         self.tools_support = tools_support
         self.log_dir = log_dir
+        self.do_not_support_commands = do_not_support_commands
 
         self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
         self.is_connected = False
@@ -391,7 +393,6 @@ class IRC_Server:
         self.irc_sock.send ( str_buff.encode() )    # will work if bot has OP
 
     def logs(self, irc_user, channel, logs_of, some_data, some_more_data):
-
         if self.write_logs == True:
             chan_d = str(channel).replace('#','')
             t = time.localtime( time.time() )
@@ -561,6 +562,8 @@ class IRC_Server:
             error = "Usage: "+self.command_prefix+"command [arguments]"
             self.send_reply( (error), user, channel )
             return
+        if command[0].lower() in self.do_not_support_commands.split():
+            return
         imp.reload(handle_commands)    # will re-import all existing commands in realtime
         handle_commands.evalCommand(self, command[0].lower(), user, channel)
 
@@ -580,7 +583,8 @@ def main():
                                     server_data['write_logs'],
                                     server_data['log_channels'],
                                     server_data['tools_support'],
-                                    server_data['log_dir'])
+                                    server_data['log_dir'],
+                                    server_data['do_not_support_commands'])
             ircserver_process = multiprocessing.Process(None, ircserver.ircbot, name="IRC Server")
             ircserver_process.start()
     except KeyboardInterrupt:

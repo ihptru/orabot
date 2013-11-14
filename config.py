@@ -34,7 +34,10 @@ server1 = {
             'tools_support' : True,
             
             # log directory
-            'log_dir' : 'logs/'
+            'log_dir' : 'logs/',
+            
+            # specify commands which this instance must not support (space as delimiter)
+            'do_not_support_commands' : ''
 }
 
 # To add more server connections, simply create a new dictionary similar to previous one (`server1`)
