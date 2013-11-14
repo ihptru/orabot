@@ -21,7 +21,7 @@ def parse_event(self, recv):
     conn, cur = self.db_data()
     # for logs
     sql = """SELECT channel,status FROM user_channel
-            WHERE user = '"""+original_nick+"""'
+            WHERE user = '"""+original_nick.lower()+"""'
     """
     cur.execute(sql)
     records = cur.fetchall()
@@ -37,7 +37,7 @@ def parse_event(self, recv):
         transfer_status.append(status)
         self.logs(original_nick, channel, 'nick', new_nick, '')
     sql = """DELETE FROM user_channel
-            WHERE user = '"""+original_nick+"""'
+            WHERE user = '"""+original_nick.lower()+"""'
     """
     cur.execute(sql)
     conn.commit()
@@ -46,19 +46,19 @@ def parse_event(self, recv):
             (user,act,date_time)
             VALUES
             (
-            '"""+original_nick+"""','nick',strftime('%Y-%m-%d-%H-%M-%S')
+            '"""+original_nick.lower()+"""','nick',strftime('%Y-%m-%d-%H-%M-%S')
             )
     """
     cur.execute(sql)
     conn.commit()
     sql = """UPDATE users
             SET state = 0, date = strftime('%Y-%m-%d-%H-%M-%S')
-            WHERE user = '"""+original_nick+"""'
+            WHERE user = '"""+original_nick.lower()+"""'
     """
     cur.execute(sql)
     conn.commit()
     sql = """SELECT user FROM users
-            WHERE user = '"""+new_nick+"""'
+            WHERE user = '"""+new_nick.lower()+"""'
     """
     cur.execute(sql)
     records = cur.fetchall()
@@ -68,7 +68,7 @@ def parse_event(self, recv):
                 (user,state)
                 VALUES
                 (
-                '"""+new_nick+"""',1
+                '"""+new_nick.lower()+"""',1
                 )
         """
         cur.execute(sql)
@@ -78,7 +78,7 @@ def parse_event(self, recv):
                     (user,channel,status)
                     VALUES
                     (
-                    '"""+new_nick+"""','"""+transfer_channel[i]+"""','"""+transfer_status[i]+"""'
+                    '"""+new_nick.lower()+"""','"""+transfer_channel[i]+"""','"""+transfer_status[i]+"""'
                     )
             """
             cur.execute(sql)
@@ -86,7 +86,7 @@ def parse_event(self, recv):
     else:
         sql = """UPDATE users
                 SET state = 1
-                WHERE user = '"""+new_nick+"""'
+                WHERE user = '"""+new_nick.lower()+"""'
         """
         cur.execute(sql)
         conn.commit()
@@ -95,14 +95,14 @@ def parse_event(self, recv):
                     (user,channel,status)
                     VALUES
                     (
-                    '"""+new_nick+"""','"""+transfer_channel[i]+"""','"""+transfer_status[i]+"""'
+                    '"""+new_nick.lower()+"""','"""+transfer_channel[i]+"""','"""+transfer_status[i]+"""'
                     )
             """
             cur.execute(sql)
             conn.commit()
     # for pingme
     sql = """DELETE FROM pingme
-            WHERE who = '"""+original_nick+"""'
+            WHERE who = '"""+original_nick.lower()+"""'
     """
     cur.execute(sql)
     conn.commit()
@@ -115,9 +115,9 @@ def parse_event(self, recv):
         for i in range(len(records)):
             who = records[i][0]
             users_back = records[i][1].split(',')
-            if ( new_nick in users_back ):
+            if ( new_nick.lower() in users_back ):
                 self.send_reply( (new_nick +' has joined IRC!'), who, who )
-                records_index = users_back.index(new_nick)
+                records_index = users_back.index(new_nick.lower())
                 del users_back[records_index]
                 users_back = ",".join(users_back)
                 if ( len(users_back) == 0 ):
@@ -133,31 +133,23 @@ def parse_event(self, recv):
                     """
                     cur.execute(sql)
                     conn.commit()
-    # for pickup
-    modes = ['1v1', '2v2', '3v3', '4v4', '5v5', '6v6']
-    for diff_mode in modes:
-        sql = """DELETE FROM pickup_"""+diff_mode+"""
-                WHERE name = '"""+original_nick+"""'
-        """
-        cur.execute(sql)
-        conn.commit()
     # later
     sql = """SELECT sender,channel,date,message FROM later
-            WHERE reciever = '"""+new_nick+"""'
+            WHERE reciever = '"""+new_nick.lower()+"""'
     """
     cur.execute(sql)
     records = cur.fetchall()
     conn.commit()
     if ( len(records) != 0 ):    # he has messages in database, read it
         messages_ = len(records) # number of messages for player
-        self.send_message_to_channel( ("You have "+str(messages_)+" offline messages:"), new_nick )
+        self.send_message_to_channel( ("You have "+str(messages_)+" offline messages:"), new_nick.lower() )
         for i in range(messages_):
             date_l = "-".join(records[i][2].split('-')[0:3])
             time_l = ":".join(records[i][2].split('-')[3:5])
-            self.send_message_to_channel( ("### From: "+records[i][0]+";  channel: "+records[i][1]+";  date: "+date_l+" "+time_l), new_nick )
-            self.send_message_to_channel( (records[i][3]), new_nick )
+            self.send_message_to_channel( ("### From: "+records[i][0]+";  channel: "+records[i][1]+";  date: "+date_l+" "+time_l), new_nick.lower() )
+            self.send_message_to_channel( (records[i][3]), new_nick.lower() )
         sql = """DELETE FROM later
-                WHERE reciever = '"""+new_nick+"""'
+                WHERE reciever = '"""+new_nick.lower()+"""'
         """
         cur.execute(sql)
         conn.commit()

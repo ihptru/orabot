@@ -26,7 +26,7 @@ import json
 
 import db_initialization
 import config
-import spam_filter
+#import spam_filter
 import process_commands
 # IRC events in 'irc/' directory
 from irc import *
@@ -37,7 +37,7 @@ from tools import *
 class IRC_Server:
 
     # The default constructor - declaring our global variables
-    def __init__(self, host, port, nick, channels, nickserv, nickserv_password, command_prefix, command_timeout, write_logs, log_channels, tools_support, write_bug_notifications_to, write_commit_notifications_to, git_repos):
+    def __init__(self, host, port, nick, channels, nickserv, nickserv_password, command_prefix, command_timeout, write_logs, log_channels, tools_support, log_dir):
         self.irc_host = host
         self.irc_port = port
         self.irc_nick = nick
@@ -49,9 +49,7 @@ class IRC_Server:
         self.write_logs = write_logs
         self.log_channels = log_channels
         self.tools_support = tools_support
-        self.write_bug_notifications_to = write_bug_notifications_to
-        self.write_commit_notifications_to = write_commit_notifications_to
-        self.git_repos = git_repos
+        self.log_dir = log_dir
         self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
         self.is_connected = False
         self.listen_return = ''
@@ -59,7 +57,7 @@ class IRC_Server:
         self.command = ""
         self.start_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
         self.last_lines = []    # keep in memory last 20 messages
-        
+        self.commands_activity = [] # keep in memory last 20 requests (including who and when requested)
         self.close_threads = [0]
 
     # The destructor - Close socket.
@@ -81,7 +79,7 @@ class IRC_Server:
                 conn.commit()
                 cur.close()
                 if self.tools_support:
-                    fns = [openra_topic.start, openra_bugs.start, github_commits.start]
+                    fns = [openra_topic.start, openra_bugs.start]
                     procs = [multiprocessing.Process(target=f, args=(self,)) for f in fns]
                     print(("*** [%s] Tools are supported") % (self.irc_host))
                     self.tools('start', procs)
@@ -99,7 +97,7 @@ class IRC_Server:
                         if self.tools_support:
                             self.tools('terminate', procs)
                             print("*** [%s] Terminated child processes" % self.irc_host)
-                        print("[%s] Exit" % self.irc_host)
+                        print("*** [%s] Exit" % self.irc_host)
                         break
                 self.close_threads = [1]
         except KeyboardInterrupt:
@@ -166,6 +164,8 @@ class IRC_Server:
             for recv in data:
                 try:
                     framed_recv = recv.split()
+                    if len(framed_recv) < 2:
+                        continue
                 except:
                     continue
                 if framed_recv[1] == "PING":
@@ -210,6 +210,9 @@ class IRC_Server:
                     topic_e.parse_event(self, recv)
 
                 elif framed_recv[1] == "KICK":
+                    if framed_recv[3] == self.irc_nick:
+                        print(("*** [%s] %s kicked me from %s!!!") %
+                                    (self.irc_host, framed_recv[0].split(':')[1].split('!')[0], framed_recv[2]))
                     imp.reload(kick_e)
                     kick_e.parse_event(self, recv)
 
@@ -226,7 +229,7 @@ class IRC_Server:
                 elif framed_recv[1] == "NOTICE" and framed_recv[2] == self.irc_nick and framed_recv[6] == "identified":
                     print(("*** [%s] NickServ Identification Succeeded\t\tOK") % (self.irc_host))
 
-                elif framed_recv[1] == "433" and framed_recv[2] == self.irc_nick:
+                elif framed_recv[1] == "433" and framed_recv[3] == self.irc_nick:
                     print(("*** [%s] Nick is already in use!!!") % (self.irc_host))
                     self.listen_return = 'Nick in Use'
                     return True
@@ -250,6 +253,9 @@ class IRC_Server:
                 elif framed_recv[1] == "401" and framed_recv[2] == self.irc_nick: # no such nick/channel
                     imp.reload(e_401)
                     e_401.parse_event(self, recv)
+                elif framed_recv[0] == "ERROR" and framed_recv[1] == ":Closing":
+                    print (("*** [%s] Connection aborted!") % (self.irc_host))
+                    exit(1)
 
     def data_to_message(self, data):
         data = data[data.find(" :")+2:]
@@ -343,7 +349,7 @@ class IRC_Server:
                 if ( n not in name_other_channels ):
                     sql = """UPDATE users
                             SET state = 0
-                            WHERE user = '"""+n+"""'
+                            WHERE user = '"""+n.lower()+"""'
                     """
                     cur.execute(sql)
                     conn.commit()
@@ -362,7 +368,7 @@ class IRC_Server:
 
         conn, cur = self.db_data()
         sql = """SELECT status FROM user_channel
-                WHERE user = '"""+self.irc_nick+"""' AND channel = '"""+channel+"""'
+                WHERE user = '"""+self.irc_nick.lower()+"""' AND channel = '"""+channel+"""'
         """
         cur.execute(sql)
         records = cur.fetchall()
@@ -377,7 +383,7 @@ class IRC_Server:
             chan_d = str(channel).replace('#','')
             t = time.localtime( time.time() )
             time_prefix = time.strftime( '%Y-%m-%dT%T', t )
-            log_dir = config.log_dir
+            log_dir = self.log_dir
             if ( log_dir[-1] != '/' ):
                 log_dir = log_dir + '/'
             filename = log_dir + self.irc_host + '/' + chan_d + time.strftime( '/%Y/%m/%d', t )
@@ -519,7 +525,7 @@ class IRC_Server:
             return False
         conn, cur = self.db_data()
         sql = """SELECT status FROM user_channel
-                WHERE user = '"""+user+"""' AND channel = '"""+channel+"""'
+                WHERE user = '"""+user.lower()+"""' AND channel = '"""+channel+"""'
         """
         cur.execute(sql)
         records = cur.fetchall()
@@ -534,22 +540,37 @@ class IRC_Server:
         # Break the command into pieces, so we can interpret it with arguments
         command = command.split()
         # The command isn't case sensitive
-        if spam_filter.start(self, user, channel):
-            # This line makes sure an actual command was sent, not a plain command prefix
-            if ( len(command) == 0):
-                error = "Usage: "+self.command_prefix+"command [arguments]"
-                self.send_reply( (error), user, channel )
-                return
-            imp.reload(process_commands)    # will re-import all existing commands in realtime
-            process_commands.evalCommand(self, command[0].lower(), user, channel)
+        #if spam_filter.start(self, user, channel):
+        # This line makes sure an actual command was sent, not a plain command prefix
+        if ( len(command) == 0):
+            error = "Usage: "+self.command_prefix+"command [arguments]"
+            self.send_reply( (error), user, channel )
+            return
+        if (len(self.commands_activity) >= 20):
+            for i in range(3):
+                self.commands_activity.pop(0)
+        self.commands_activity.extend([(user, time.strftime('%Y-%m-%d-%H-%M-%S'),)])
+        imp.reload(process_commands)    # will re-import all existing commands in realtime
+        process_commands.evalCommand(self, command[0].lower(), user, channel)
 
 def main():
     # Here begins the main programs flow:
     try:
         for irc_server in config.servers:
             server_data = eval('config.'+irc_server)
-            ircserver = IRC_Server(server_data['host'], server_data['port'], server_data['bot_nick'], server_data['channels'].split(), server_data['nickserv'], server_data['nickserv_password'], server_data['command_prefix'], server_data['command_timeout'], server_data['write_logs'], server_data['log_channels'], server_data['tools_support'], server_data['write_bug_notifications_to'], server_data['write_commit_notifications_to'], server_data['git_repos'])
-            ircserver_process = multiprocessing.Process(None,ircserver.ircbot,name="IRC Server" )
+            ircserver = IRC_Server(server_data['host'],
+                                    server_data['port'],
+                                    server_data['bot_nick'],
+                                    server_data['channels'].split(),
+                                    server_data['nickserv'],
+                                    server_data['nickserv_password'],
+                                    server_data['command_prefix'],
+                                    server_data['command_timeout'],
+                                    server_data['write_logs'],
+                                    server_data['log_channels'],
+                                    server_data['tools_support'],
+                                    server_data['log_dir'])
+            ircserver_process = multiprocessing.Process(None, ircserver.ircbot, name="IRC Server")
             ircserver_process.start()
     except KeyboardInterrupt:
         exit(1)

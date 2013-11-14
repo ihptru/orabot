@@ -16,7 +16,7 @@
 # No such Nick/Channel module: 401 event
 
 def parse_event(self, recv):
-    nick = recv.split()[3]
+    nick = recv.split()[3].lower()
     conn, cur = self.db_data()
     # for pingme
     sql = """DELETE FROM pingme
@@ -24,12 +24,4 @@ def parse_event(self, recv):
     """
     cur.execute(sql)
     conn.commit()
-    # for pickup
-    modes = ['1v1', '2v2', '3v3', '4v4', '5v5', '6v6']
-    for diff_mode in modes:
-        sql = """DELETE FROM pickup_"""+diff_mode+"""
-                WHERE name = '"""+nick+"""'
-        """
-        cur.execute(sql)
-        conn.commit()
     cur.close()

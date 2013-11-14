@@ -23,7 +23,7 @@ def ifuser(self, user, channel):
     if ( len(command) == 2 ):
         nick = command[1]
         sql = """SELECT user FROM users
-                WHERE user = '"""+nick+"""'
+                WHERE user = '"""+nick.lower()+"""'
         """
         cur.execute(sql)
         records = cur.fetchall()

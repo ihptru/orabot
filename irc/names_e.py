@@ -31,7 +31,7 @@ def parse_event(self, recv):
         else:
             status = ''
         sql = """SELECT user FROM users
-                WHERE user = '"""+user+"""'
+                WHERE user = '"""+user.lower()+"""'
         """
         cur.execute(sql)
         records = cur.fetchall()
@@ -41,7 +41,7 @@ def parse_event(self, recv):
                     (user,state)
                     VALUES
                     (
-                    '"""+user+"""',1
+                    '"""+user.lower()+"""',1
                     )
             """
             cur.execute(sql)
@@ -50,7 +50,7 @@ def parse_event(self, recv):
                     (user, channel, status)
                     VALUES
                     (
-                    '"""+user+"""','"""+channel+"""','"""+status+"""'
+                    '"""+user.lower()+"""','"""+channel+"""','"""+status+"""'
                     )
             """
             cur.execute(sql)
@@ -58,7 +58,7 @@ def parse_event(self, recv):
         else:
             sql = """UPDATE users
                     SET state = 1
-                    WHERE user = '"""+user+"""'
+                    WHERE user = '"""+user.lower()+"""'
             """
             cur.execute(sql)
             conn.commit()
@@ -66,7 +66,7 @@ def parse_event(self, recv):
                     (user, channel, status)
                     VALUES
                     (
-                    '"""+user+"""','"""+channel+"""','"""+status+"""'
+                    '"""+user.lower()+"""','"""+channel+"""','"""+status+"""'
                     )
             """
             cur.execute(sql)

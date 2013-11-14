@@ -28,19 +28,19 @@ def parse_event(self, recv):
             (user,act,date_time)
             VALUES
             (
-            '"""+irc_quit_nick+"""','quit',strftime('%Y-%m-%d-%H-%M-%S')
+            '"""+irc_quit_nick.lower()+"""','quit',strftime('%Y-%m-%d-%H-%M-%S')
             )
     """
     cur.execute(sql)
     conn.commit()
     sql = """UPDATE users
             SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
-            WHERE user = '"""+irc_quit_nick+"""'
+            WHERE user = '"""+irc_quit_nick.lower()+"""'
     """
     cur.execute(sql)
     conn.commit()
     sql = """SELECT channel FROM user_channel
-            WHERE user = '"""+irc_quit_nick+"""'
+            WHERE user = '"""+irc_quit_nick.lower()+"""'
     """
     cur.execute(sql)    #in current system: if user quits, we know on what channels he is
     records = cur.fetchall()
@@ -49,22 +49,14 @@ def parse_event(self, recv):
         channel = records[i][0]
         self.logs(irc_quit_nick, channel, 'quit', irc_quit_host, reason)
     sql = """DELETE FROM user_channel
-            WHERE user = '"""+irc_quit_nick+"""'
+            WHERE user = '"""+irc_quit_nick.lower()+"""'
     """
     cur.execute(sql)
     conn.commit()
     # for pingme
     sql = """DELETE FROM pingme
-            WHERE who = '"""+irc_quit_nick+"""'
+            WHERE who = '"""+irc_quit_nick.lower()+"""'
     """
     cur.execute(sql)
     conn.commit()
-    # for pickup
-    modes = ['1v1', '2v2', '3v3', '4v4', '5v5', '6v6']
-    for diff_mode in modes:
-        sql = """DELETE FROM pickup_"""+diff_mode+"""
-                WHERE name = '"""+irc_quit_nick+"""'
-        """
-        cur.execute(sql)
-        conn.commit()
     cur.close()

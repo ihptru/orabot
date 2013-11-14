@@ -18,13 +18,10 @@ def start(self):
     print(("*** [%s] Creating database") % (self.irc_host))
     
     black_list(conn, cur)
-    commands(conn, cur)
     users(conn, cur)
     user_channel(conn, cur)
     later(conn, cur)
-    pickup(conn, cur)
     pingme(conn, cur)
-    commits(conn, cur)
     bugs(conn, cur)
     activity(conn, cur)
 
@@ -41,27 +38,6 @@ def black_list(conn, cur):
     """
     cur.execute(sql)
     conn.commit()
-
-def commands(conn, cur):
-    sql = """CREATE TABLE commands (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
-        "user" varchar(30) NOT NULL,
-        "command" varchar(300) NOT NULL,
-        "date_time" date NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    for i in range(31):
-        sql = """INSERT INTO commands
-            (user,command,date_time)
-            VALUES
-            (
-            'test','test_command',strftime('%Y-%m-%d-%H-%M-%S')
-            )
-        """
-        cur.execute(sql)
-        conn.commit()
     
 def users(conn, cur):
     sql = """CREATE TABLE users (
@@ -98,121 +74,11 @@ def later(conn, cur):
     cur.execute(sql)
     conn.commit()
 
-def pickup(conn, cur):
-    sql = """CREATE TABLE "pickup_1v1" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL ,
-        "timeout" DATETIME NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "pickup_2v2" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL ,
-        "timeout" DATETIME NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "pickup_3v3" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL ,
-        "timeout" DATETIME NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "pickup_4v4" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL ,
-        "timeout" DATETIME NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "pickup_5v5" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL ,
-        "timeout" DATETIME NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "pickup_6v6" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL ,
-        "timeout" DATETIME NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "pickup_game_start" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "team1" VARCHAR NOT NULL ,
-        "team2" VARCHAR NOT NULL ,
-        "type" VARCHAR NOT NULL ,
-        "map" VARCHAR NOT NULL ,
-        "maphash" VARCHAR NOT NULL,
-        "time" DATETIME NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-    sql = """CREATE TABLE "pickup_maps" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL ,
-        "hash" VARCHAR NOT NULL ,
-        "1v1" BOOL NOT NULL ,
-        "2v2" BOOL NOT NULL ,
-        "3v3" BOOL NOT NULL ,
-        "4v4" BOOL NOT NULL ,
-        "5v5" BOOL NOT NULL ,
-        "6v6" BOOL NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-
-    sql = """
-        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Keep Off The Grass 2','a3088b0857f20742b8ebcf78210f2812ae28532e',1,0,0,0,0,0);
-        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Man to Man','11fd2f8a4a8b54d62ed076287c183c46fe9b2b44',1,0,0,0,0,0);
-        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Styrian Mountains','5d357387bb7463c59cf9a6eaf8cba455f6e8ed34',1,0,0,0,0,0);
-        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Artic Triangle Affair','e2725037c92830933641e98d43625f2a8d576210',1,0,0,0,0,0);
-        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Baywatch','2a60ed2929aef1f75478aba0b9386006ac0e596c',1,0,0,0,0,0);
-        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Snowy Ridge','938993e56bbe5add578f60d8c2bc6523289b5602',1,0,0,0,0,0);
-        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Winter Warzone','b5f87f7efb964e57614d22422ff442645357eb2c',1,0,0,0,0,0);
-        INSERT INTO pickup_maps (name,hash,"1v1","2v2","3v3","4v4","5v5","6v6") VALUES ('Ares','0233a8939d91b2370e878167ef65844add8388ae',1,1,0,0,0,0);
-    """
-    cur.executescript(sql)
-    conn.commit()
-
-    sql = """CREATE TABLE "pickup_stats" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "name" VARCHAR NOT NULL ,
-        "games" INTEGER NOT NULL  DEFAULT 0,
-        "complaints" INTEGER NOT NULL  DEFAULT 0
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-
 def pingme(conn, cur):
     sql = """CREATE TABLE "pingme" (
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "who" VARCHAR NOT NULL ,
         "users_back" VARCHAR NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-
-def commits(conn, cur):
-    sql = """CREATE TABLE "commits" (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "title" VARCHAR NOT NULL,
-        "repo" VARCHAR NOT NULL,
-        "branch" VARCHAR NOT NULL
         )
     """
     cur.execute(sql)

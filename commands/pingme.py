@@ -39,7 +39,7 @@ def pingme(self, user, channel):
             cur.close()
             return
         user_nicks = self.get_names(channel)
-        user_join = command[2]
+        user_join = command[2].lower()
         chars = ['`','-','_','[',']','{','}','\\','^']  #char which CAN be used in irc nick
         for i in range(len(user_join)):
             if ( (user_join[i] not in chars) and ( not re.search('[a-zA-Z0-9]', user_join[i])) ):

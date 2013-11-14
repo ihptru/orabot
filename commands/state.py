@@ -25,7 +25,7 @@ def state(self, user, channel):
         username = command[1]
         conn, cur = self.db_data()
         sql = """SELECT state FROM users
-                WHERE user = '"""+username+"""'
+                WHERE user = '"""+username.lower()+"""'
         """
         cur.execute(sql)
         records = cur.fetchall()

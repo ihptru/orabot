@@ -16,7 +16,10 @@
 # Module for channel NOTICE event
 
 def parse_event(self, recv):
-    nick = recv.split(':')[1].split('!')[0]
+    nick = recv.split()[0].split(':')[1]
+    if nick.find("!") == -1:
+        return
+    nick = nick.split('!')[0]
     message = recv[recv.find(" :")+2:]
     chan = recv.split()[2]
     self.logs(nick, chan, 'channel_notice', message, '')

@@ -34,18 +34,18 @@ def parse_event(self, recv):
         name_other_channels = []
         for i in range(len(records)):
             name_other_channels.append(records[i][0])
-        if ( irc_part_nick not in name_other_channels ):
+        if ( irc_part_nick.lower() not in name_other_channels ):
             state = '0'
         else:
             state = '1'
     sql = """UPDATE users
             SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = """+state+"""
-            WHERE user = '"""+irc_part_nick+"""'
+            WHERE user = '"""+irc_part_nick.lower()+"""'
     """
     cur.execute(sql)
     conn.commit()
     sql = """DELETE FROM user_channel
-            WHERE user = '"""+irc_part_nick+"""' AND channel = '"""+chan+"""'
+            WHERE user = '"""+irc_part_nick.lower()+"""' AND channel = '"""+chan+"""'
     """
     cur.execute(sql)
     conn.commit()
@@ -54,23 +54,15 @@ def parse_event(self, recv):
             (user,act,date_time,channel)
             VALUES
             (
-            '"""+irc_part_nick+"""','part',strftime('%Y-%m-%d-%H-%M-%S'),'"""+chan+"""'
+            '"""+irc_part_nick.lower()+"""','part',strftime('%Y-%m-%d-%H-%M-%S'),'"""+chan+"""'
             )
     """
     cur.execute(sql)
     conn.commit()
     # for pingme
     sql = """DELETE FROM pingme
-            WHERE who = '"""+irc_part_nick+"""'
+            WHERE who = '"""+irc_part_nick.lower()+"""'
     """
     cur.execute(sql)
     conn.commit()
-    # for pickup
-    modes = ['1v1', '2v2', '3v3', '4v4', '5v5', '6v6']
-    for diff_mode in modes:
-        sql = """DELETE FROM pickup_"""+diff_mode+"""
-                WHERE name = '"""+irc_part_nick+"""'
-        """
-        cur.execute(sql)
-        conn.commit()
     cur.close()

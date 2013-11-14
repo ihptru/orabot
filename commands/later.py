@@ -23,17 +23,17 @@ def later(self, user, channel):
     if ( len(command) >= 3 ):
         if ( channel.startswith('#') ):
             user_nick = command[1] # reciever
-            if ( user_nick == user ):
+            if ( user_nick.lower() == user ):
                 self.send_reply( (user+", you can not send a message to yourself"), user, channel)
             else:
                 user_message = " ".join(command[2:])  # message
                 user_nicks = self.get_names(channel)
-                if user_nick in user_nicks:  # reciever is on the channel right now
+                if user_nick.lower() in user_nicks:  # reciever is on the channel right now
                     self.send_reply( (user+", "+user_nick+" is on the channel right now!"), user, channel)
                 else:   # reciever is not on the channel
                     # check if he exists in database
                     sql = """SELECT user FROM users
-                            WHERE user = '"""+user_nick+"""'
+                            WHERE user = '"""+user_nick.lower()+"""'
                     
                     """
                     cur.execute(sql)
@@ -46,7 +46,7 @@ def later(self, user, channel):
                                 (sender,reciever,channel,date,message)
                                 VALUES
                                 (
-                                '"""+user+"""','"""+user_nick+"""','"""+channel+"""',strftime('%Y-%m-%d-%H-%M'),'"""+user_message+"""'
+                                '"""+user+"""','"""+user_nick.lower()+"""','"""+channel+"""',strftime('%Y-%m-%d-%H-%M'),'"""+user_message+"""'
                                 )
                         """
                         cur.execute(sql)

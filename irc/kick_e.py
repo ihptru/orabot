@@ -24,12 +24,12 @@ def parse_event(self, recv):
     conn, cur = self.db_data()
     sql = """UPDATE users
             SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
-            WHERE user = '"""+whom+"""'
+            WHERE user = '"""+whom.lower()+"""'
     """
     cur.execute(sql)
     conn.commit()
     sql = """DELETE FROM user_channel
-            WHERE user = '"""+whom+"""' AND channel = '"""+chan+"""'
+            WHERE user = '"""+whom.lower()+"""' AND channel = '"""+chan+"""'
     """
     cur.execute(sql)
     conn.commit()
@@ -38,23 +38,15 @@ def parse_event(self, recv):
             (user,act,date_time,channel)
             VALUES
             (
-            '"""+whom+"""','kick',strftime('%Y-%m-%d-%H-%M-%S'),'"""+chan+"""'
+            '"""+whom.lower()+"""','kick',strftime('%Y-%m-%d-%H-%M-%S'),'"""+chan+"""'
             )
     """
     cur.execute(sql)
     conn.commit()
     # for pingme
     sql = """DELETE FROM pingme
-            WHERE who = '"""+whom+"""'
+            WHERE who = '"""+whom.lower()+"""'
     """
     cur.execute(sql)
     conn.commit()
-    # for pickup
-    modes = ['1v1', '2v2', '3v3', '4v4', '5v5', '6v6']
-    for diff_mode in modes:
-        sql = """DELETE FROM pickup_"""+diff_mode+"""
-                WHERE name = '"""+whom+"""'
-        """
-        cur.execute(sql)
-        conn.commit()
     cur.close()

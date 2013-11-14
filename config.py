@@ -7,7 +7,7 @@ server1 = {
             'port' : 6667,
 
             # channels to connect to (space as delimiter)
-            'channels' : '#openra #openra-dev #openra.pickup',
+            'channels' : '#openra #openra-dev',
 
             # bot nick
             'bot_nick' : 'orabot',
@@ -32,14 +32,12 @@ server1 = {
 
             # support tools? ( True or False )
             'tools_support' : False,
+            
+            # log directory
+            'log_dir' : 'logs/'
 }
 
 # To add more server connections, simply create a new dictionary similar to previous one (`server1`)
 # and do not forget to add it's name to a list below (servers); Ex: server = ['server1','server2']
 
 servers = ['server1']
-
-# Next configs are global for all bot instances
-
-#log directory
-log_dir = 'logs/'
