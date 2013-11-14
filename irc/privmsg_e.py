@@ -17,28 +17,20 @@
 
 import re
 
-def parse_event(self, recv):
-    irc_user_nick = recv.split ( '!' ) [ 0 ] . split ( ":")[1]
-    irc_user_message = self.data_to_message(recv)
-    chan = (recv).split()[2]  #channel
-    # logs
+def parse_event(self, irc_user_nick, irc_user_message, chan):    
     action = re.findall('^ACTION (.*?)$', irc_user_message)
     if ( len(action) != 0 ):
         self.logs(irc_user_nick, chan, 'action', action[0], '')
     else:
         self.logs(irc_user_nick, chan, 'privmsg', irc_user_message, '')
     # logs end
-    if (len(self.last_lines) >= 20):
-        for i in range(3):
-            self.last_lines.pop(0)
-    self.last_lines.extend([(irc_user_nick.lower(), irc_user_message,)])
-
     print ( ( "[%s %s] %s: %s" ) % (self.irc_host, chan, irc_user_nick, irc_user_message) )
     # Message starts with command prefix?
     if ( irc_user_message != '' ):
         if ( irc_user_message[0] == self.command_prefix ):
             self.command = irc_user_message[1:].replace("'","''")
-            self.process_command(irc_user_nick.lower(), ( chan ))
+            self.process_command(irc_user_nick.lower(), chan)
+    self.spam_filter(irc_user_nick.lower(), chan)
     # parse links and bug reports numbers
     self.parse_link(chan, irc_user_nick.lower(), irc_user_message)
     self.parse_bug_num(chan, irc_user_message)

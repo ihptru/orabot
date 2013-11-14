@@ -26,8 +26,7 @@ import json
 
 import db_initialization
 import config
-#import spam_filter
-import process_commands
+import handle_commands
 # IRC events in 'irc/' directory
 from irc import *
 # load all tools
@@ -36,8 +35,11 @@ from tools import *
 # Defining a class to run the server. One per connection
 class IRC_Server:
 
-    # The default constructor - declaring our global variables
-    def __init__(self, host, port, nick, channels, nickserv, nickserv_password, command_prefix, command_timeout, write_logs, log_channels, tools_support, log_dir):
+    def __init__(self, host, port, nick, channels,
+                    nickserv, nickserv_password,
+                    command_prefix, command_timeout,
+                    write_logs, log_channels,
+                    tools_support, log_dir):
         self.irc_host = host
         self.irc_port = port
         self.irc_nick = nick
@@ -50,17 +52,16 @@ class IRC_Server:
         self.log_channels = log_channels
         self.tools_support = tools_support
         self.log_dir = log_dir
+
         self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
         self.is_connected = False
         self.listen_return = ''
         self.connect_return = ''
         self.command = ""
         self.start_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
-        self.last_lines = []    # keep in memory last 20 messages
-        self.commands_activity = [] # keep in memory last 20 requests (including who and when requested)
+        self.last_lines = []    # keep in memory last 20 messages (including username and his message)
         self.close_threads = [0]
 
-    # The destructor - Close socket.
     def __del__(self):
         self.irc_sock.close()
 
@@ -168,12 +169,19 @@ class IRC_Server:
                         continue
                 except:
                     continue
-                if framed_recv[1] == "PING":
-                    self.irc_sock.send ( ("PONG "+ framed_recv [ 1 ] + "\r\n").encode() )
+                if framed_recv[0] == "PING":
+                    self.irc_sock.send ( ("PONG " + framed_recv[1] + "\r\n").encode() )
 
                 elif framed_recv[1] == "PRIVMSG":
+                    user_nick = recv.split ( '!' ) [ 0 ] . split ( ":")[1]
+                    user_message = self.data_to_message(recv)
+                    channel = (recv).split()[2]
+                    if (len(self.last_lines) >= 20):
+                        for i in range(3):
+                            self.last_lines.pop(0)
+                    self.last_lines.append((user_nick.lower(), user_message))
                     imp.reload(privmsg_e)
-                    multiprocessing.Process(target=privmsg_e.parse_event, args=(self,recv,)).start()
+                    multiprocessing.Process(target=privmsg_e.parse_event, args=(self,user_nick,user_message,channel,)).start()
 
                 elif framed_recv[1] == "JOIN":
                     imp.reload(join_e)
@@ -378,7 +386,12 @@ class IRC_Server:
                 self.send_message_to_channel( ("I've tried to change the topic of this channel but do not have rights for it"), channel)
         cur.close()
 
+    def kick_user(self, user, channel, reason):
+        str_buff = ( "KICK %s %s :%s\r\n" ) % (channel, user, reason)
+        self.irc_sock.send ( str_buff.encode() )    # will work if bot has OP
+
     def logs(self, irc_user, channel, logs_of, some_data, some_more_data):
+
         if self.write_logs == True:
             chan_d = str(channel).replace('#','')
             t = time.localtime( time.time() )
@@ -535,23 +548,21 @@ class IRC_Server:
             return False
         return True
 
+    def spam_filter(self, user, channel):
+        if self.last_lines.count(self.last_lines[-1]) >= 10:
+            reason = "stop spamming channel, please!"
+            self.kick_user(user, channel, reason)
+
     def process_command(self, user, channel):
-        command = (self.command)
-        # Break the command into pieces, so we can interpret it with arguments
-        command = command.split()
+        command = (self.command).split()
         # The command isn't case sensitive
-        #if spam_filter.start(self, user, channel):
         # This line makes sure an actual command was sent, not a plain command prefix
         if ( len(command) == 0):
             error = "Usage: "+self.command_prefix+"command [arguments]"
             self.send_reply( (error), user, channel )
             return
-        if (len(self.commands_activity) >= 20):
-            for i in range(3):
-                self.commands_activity.pop(0)
-        self.commands_activity.extend([(user, time.strftime('%Y-%m-%d-%H-%M-%S'),)])
-        imp.reload(process_commands)    # will re-import all existing commands in realtime
-        process_commands.evalCommand(self, command[0].lower(), user, channel)
+        imp.reload(handle_commands)    # will re-import all existing commands in realtime
+        handle_commands.evalCommand(self, command[0].lower(), user, channel)
 
 def main():
     # Here begins the main programs flow:

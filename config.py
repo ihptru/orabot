@@ -31,7 +31,7 @@ server1 = {
             'log_channels' : '#openra',
 
             # support tools? ( True or False )
-            'tools_support' : False,
+            'tools_support' : True,
             
             # log directory
             'log_dir' : 'logs/'

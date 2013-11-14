@@ -16,8 +16,7 @@
 def start(self):
     conn, cur = self.db_data()
     print(("*** [%s] Creating database") % (self.irc_host))
-    
-    black_list(conn, cur)
+
     users(conn, cur)
     user_channel(conn, cur)
     later(conn, cur)
@@ -27,17 +26,6 @@ def start(self):
 
     cur.close()
     print(("*** [%s] Creating database completed") % (self.irc_host))
-    
-def black_list(conn, cur):
-    sql = """CREATE TABLE black_list (
-        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
-        "user" varchar(30) NOT NULL,
-        "date_time" date NOT NULL,
-        "count" integer NOT NULL
-        )        
-    """
-    cur.execute(sql)
-    conn.commit()
     
 def users(conn, cur):
     sql = """CREATE TABLE users (
