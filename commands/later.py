@@ -26,7 +26,7 @@ def later(self, user, channel):
             user_nicks = self.get_names(channel)
             for user_nick in user_nicknames:
                 if ( user_nick.lower() == user ):
-                    self.send_reply( (user+", you can not send a message to yourself"), user, channel)
+                    self.send_reply( ("Error! You can't send a message to yourself"), user, channel)
                 else:
                     user_message = " ".join(command[2:])  # message
                     if user_nick.lower() in user_nicks:  # reciever is on the channel right now
@@ -55,5 +55,5 @@ def later(self, user, channel):
         else:
             self.send_message_to_channel( ("You can use ]later only on a channel"), user)
     else:
-        self.send_reply( ("Usage: ]later nick message"), user, channel )
+        self.send_reply( ("Usage: ]later nick[,nick1,...] message"), user, channel )
     cur.close()

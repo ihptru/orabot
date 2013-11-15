@@ -240,29 +240,30 @@ class IRC_Server:
                     print(("*** [%s] NickServ Identification Succeeded\t\tOK") % (self.irc_host))
 
                 elif framed_recv[1] == "433" and framed_recv[3] == self.irc_nick:
-                    print(("*** [%s] Nick is already in use!!!") % (self.irc_host))
+                    print(("*** [%s] Nick is already in use!") % (self.irc_host))
                     self.listen_return = 'Nick in Use'
                     return True
                 
                 elif framed_recv[1] == "471":
                     channel = recv.split()[3]
-                    print (("*** [%s] "+channel+" is full!") % (self.irc_host))
+                    print (("*** [%s] %s is full!") % (self.irc_host, channel))
 
                 elif framed_recv[1] == "473":
                     channel = recv.split()[3]
-                    print (("*** [%s] "+channel+" is invite only!") % (self.irc_host))
+                    print (("*** [%s] %s is invite only!") % (self.irc_host, channel))
 
                 elif framed_recv[1] == "474":
                     channel = recv.split()[3]
-                    print (("*** [%s] Bot is banned from "+channel+" !") % (self.irc_host))
+                    print (("*** [%s] Bot is banned from %s!") % (self.irc_host, channel))
 
                 elif framed_recv[1] == "475":
                     channel = recv.split()[3]
-                    print (("*** [%s] Key is required for "+channel+" !") % (self.irc_host))
+                    print (("*** [%s] Key is required for %s !") % (self.irc_host, channel))
 
                 elif framed_recv[1] == "401" and framed_recv[2] == self.irc_nick: # no such nick/channel
                     imp.reload(e_401)
                     e_401.parse_event(self, recv)
+
                 elif framed_recv[0] == "ERROR" and framed_recv[1] == ":Closing":
                     print (("*** [%s] Connection aborted!") % (self.irc_host))
                     exit(1)
@@ -277,23 +278,20 @@ class IRC_Server:
         recv = regex.findall(recv)
         return recv
 
-    # helper to remove some insanity.
-    def send_reply(self, data, user, channel):
-        target = channel if channel.startswith('#') else user
-        self.send_message_to_channel(data,target)
-
-    #another helper
     def decode_stream(self, stream):
         try:
             return stream.decode("utf-8")
         except:
             return stream.decode("CP1252")
 
+    def send_reply(self, data, user, channel):
+        target = channel if channel.startswith('#') else user
+        self.send_message_to_channel(data, target)
+
     # This function sends a message to a channel or user
     def send_message_to_channel(self, data, channel):
         print ( ( "[%s %s] %s: %s") % (self.irc_host, channel, self.irc_nick, data) )
         self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % (channel, data[0:512])).encode() )
-        # logs
         self.logs(self.irc_nick, channel, 'privmsg', str(data), '')
 
     def send_notice(self, data, user):
@@ -321,16 +319,14 @@ class IRC_Server:
 
     def db_data(self):
         conn = sqlite3.connect('db/'+self.irc_host+'.sqlite')   # connect to database
-        cur=conn.cursor()
+        cur = conn.cursor()
         return (conn, cur)
 
-    # This function takes a channel, which must start with a #.
     def join_channel(self, channel):
         if (channel[0] == "#"):
             str_buff = ( "JOIN %s \r\n" ) % (channel)
             self.irc_sock.send (str_buff.encode())
 
-    # This function takes a channel, which must start with a #.
     def quit_channel(self, channel):
         if (channel[0] == "#"):
             conn, cur = self.db_data()
@@ -340,7 +336,7 @@ class IRC_Server:
             cur.execute(sql)
             records = cur.fetchall()
             conn.commit()
-            name_this_channel = []
+            name_this_channel = []  # users on specified channel
             for i in range(len(records)):
                 name_this_channel.append(records[i][0])
             sql = """SELECT user FROM user_channel
@@ -349,10 +345,8 @@ class IRC_Server:
             cur.execute(sql)
             records = cur.fetchall()
             conn.commit()
-            name_other_channels = []
-            if ( len(records) == 0 ):
-                pass
-            else:
+            name_other_channels = []    # users on other channel
+            if len(records) != 0:
                 for i in range(len(records)):
                     name_other_channels.append(records[i][0])
             for n in name_this_channel:
@@ -383,8 +377,8 @@ class IRC_Server:
         cur.execute(sql)
         records = cur.fetchall()
         conn.commit()
-        if ( len(records) != 0 ):   #at least, bot must be on a channel to send warning message
-            if ( records[0][0] == '' or records[0][0] == None ):    #simple user
+        if ( len(records) != 0 ):   # bot must be on a channel to send warning message
+            if ( records[0][0] == '' or records[0][0] == None ):    # bot is not Op/HalfOp/Voice
                 self.send_message_to_channel( ("I've tried to change the topic of this channel but do not have rights for it"), channel)
         cur.close()
 
@@ -432,7 +426,7 @@ class IRC_Server:
                     file.write(time_prefix + row)
                     file.close()
                 except:
-                    print('*** ERROR !!! Probably no write permissions to logs directory! (or ascii coding error)')
+                    print(('*** [%s] Error! Probably no write permissions to logs dir! (or ascii coding error)') (self.irc_nick))
 
     def parse_html(self, string):
         h = html.parser.HTMLParser()
@@ -446,19 +440,19 @@ class IRC_Server:
         try:
             encoding = str(data).lower().split('charset=')[1].split('"')[0]
             data = data.decode(encoding)
-        except: #no encoding found
+        except: # encoding was not found
             data = data.decode('utf-8')
         return data
 
     def title_from_url(self, url):
-        data = self.data_from_url(url, 8192)
+        data = self.data_from_url(url, 8192) # size should be enough
         rx_title = re.compile(r'<title>(.*?)</title>', re.IGNORECASE)
         titles = rx_title.findall(data.replace('\n',' '))
         if ( titles != [] ):
             title = self.parse_html(titles[0])
             return title
         else:
-            raise Exception("*** Exception: " + url + " does not contain title")
+            raise Exception(("*** [%s] Exception: %s does not contain title") % (self.irc_host, url))
 
     def parse_link(self, channel, user, message):
         if re.search('.*http.*://.*', message):
@@ -495,13 +489,13 @@ class IRC_Server:
                             if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
                                 self.send_message_to_channel( ("Youtube: " + title), channel )
                         except Exception as e:
-                            print(e)    #probably socket error or http 404 error in title_from_url() or title not found
+                            print(("*** [%s] %s") % (self.irc_host, e)) # probably socket error or http 404 error in title_from_url() or title not found
                     else:
                         try:
                             title = self.title_from_url(link)
                             self.send_message_to_channel( ("Title: " + title), channel )
                         except Exception as e:
-                            print(e)    #probably socket error or http 404 error in title_from_url() or title not found
+                            print(("*** [%s] %s") % (self.irc_host, e)) # probably socket error or http 404 error in title_from_url() or title not found
 
     def parse_bug_num(self, channel, message):
         matches = re.findall(r"\B"+"#([0-9]*)", message)
@@ -523,7 +517,7 @@ class IRC_Server:
                             type = "Pull request"
                         self.send_message_to_channel( (type + " #" + bug_report + "(" + y['state'] + ") by " + y['user']['login'] + ": " + y['title'] + " | " + "http://bugs.open-ra.org/" + bug_report), channel )
                     except Exception as e:
-                        print(e)
+                        print(("*** [%s] %s") % (self.irc_host, e))
 
     def safe_eval(self, expr, symbols={}):
             return eval(expr, dict(__builtins__=None), symbols)
@@ -557,7 +551,6 @@ class IRC_Server:
     def process_command(self, user, channel):
         command = (self.command).split()
         # The command isn't case sensitive
-        # This line makes sure an actual command was sent, not a plain command prefix
         if ( len(command) == 0):
             error = "Usage: "+self.command_prefix+"command [arguments]"
             self.send_reply( (error), user, channel )
