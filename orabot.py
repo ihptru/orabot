@@ -183,7 +183,8 @@ class IRC_Server:
                             self.last_lines.pop(0)
                     self.last_lines.append((user_nick.lower(), user_message))
                     imp.reload(privmsg_e)
-                    multiprocessing.Process(target=privmsg_e.parse_event, args=(self,user_nick,user_message,channel,)).start()
+                    multiprocessing.Process(target=privmsg_e.parse_event,
+                                            args=(self,user_nick,user_message,channel,)).start()
 
                 elif framed_recv[1] == "JOIN":
                     imp.reload(join_e)
@@ -379,7 +380,7 @@ class IRC_Server:
         conn.commit()
         if ( len(records) != 0 ):   # bot must be on a channel to send warning message
             if ( records[0][0] == '' or records[0][0] == None ):    # bot is not Op/HalfOp/Voice
-                self.send_message_to_channel( ("I've tried to change the topic of this channel but do not have rights for it"), channel)
+                self.send_message_to_channel( ("Tried to change the topic of channel but do not have rights"), channel)
         cur.close()
 
     def kick_user(self, user, channel, reason):
@@ -426,7 +427,7 @@ class IRC_Server:
                     file.write(time_prefix + row)
                     file.close()
                 except:
-                    print(('*** [%s] Error! Probably no write permissions to logs dir! (or ascii coding error)') (self.irc_nick))
+                    print(('*** [%s] Error! No write permissions to logs dir! (or ascii error)') (self.irc_nick))
 
     def parse_html(self, string):
         h = html.parser.HTMLParser()
@@ -488,14 +489,14 @@ class IRC_Server:
                             title = self.title_from_url(link).split('- YouTube')[0]
                             if ( title != 'YouTube - Broadcast Yourself.' ):    #video exists
                                 self.send_message_to_channel( ("Youtube: " + title), channel )
-                        except Exception as e:
-                            print(("*** [%s] %s") % (self.irc_host, e)) # probably socket error or http 404 error in title_from_url() or title not found
+                        except Exception as e:  # socket error or 404 error in title_from_url() or title not found
+                            print(("*** [%s] %s") % (self.irc_host, e))
                     else:
                         try:
                             title = self.title_from_url(link)
                             self.send_message_to_channel( ("Title: " + title), channel )
-                        except Exception as e:
-                            print(("*** [%s] %s") % (self.irc_host, e)) # probably socket error or http 404 error in title_from_url() or title not found
+                        except Exception as e:  # socket error or 404 error in title_from_url() or title not found
+                            print(("*** [%s] %s") % (self.irc_host, e))
 
     def parse_bug_num(self, channel, message):
         matches = re.findall(r"\B"+"#([0-9]*)", message)
@@ -515,7 +516,8 @@ class IRC_Server:
                         type = "Issue"
                         if y['pull_request']['html_url'] != None:
                             type = "Pull request"
-                        self.send_message_to_channel( (type + " #" + bug_report + "(" + y['state'] + ") by " + y['user']['login'] + ": " + y['title'] + " | " + "http://bugs.open-ra.org/" + bug_report), channel )
+                        self.send_message_to_channel( ("%s #%s(%s) by %s: %s | http://bugs.open-ra.org/%s") %
+                                (type, bug_report, y['state'], y['user']['login'], y['title'], bug_report), channel)
                     except Exception as e:
                         print(("*** [%s] %s") % (self.irc_host, e))
 
