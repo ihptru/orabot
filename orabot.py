@@ -30,6 +30,7 @@ import handle_commands
 # IRC events in 'irc/' directory
 from irc import *
 # load all tools
+import tools
 from tools import *
 
 # Defining a class to run the server. One per connection
@@ -56,13 +57,12 @@ class IRC_Server:
         self.do_not_support_commands = do_not_support_commands
 
         self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
-        self.is_connected = False
-        self.listen_return = ''
-        self.connect_return = ''
+        self.socket_timeout = 18000 # 5 hours
+        self.irc_sock.settimeout(self.socket_timeout)
+        self.disconnected = ""
         self.command = ""
         self.start_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
         self.last_lines = []    # keep in memory last 20 messages (including username and his message)
-        self.close_threads = [0]
 
     def __del__(self):
         self.irc_sock.close()
@@ -71,63 +71,75 @@ class IRC_Server:
         # Create database at first run
         if not os.path.exists('db/'+self.irc_host+'.sqlite'):
             db_initialization.start(self)
-        try:
-            while True:
-                conn, cur = self.db_data()
-                sql = """UPDATE users
-                        SET state = 0;
-                        DELETE FROM user_channel;
-                """
-                cur.executescript(sql)
-                conn.commit()
-                cur.close()
-                if self.tools_support:
-                    fns = [openra_topic.start, openra_bugs.start]
-                    procs = [multiprocessing.Process(target=f, args=(self,)) for f in fns]
-                    print(("*** [%s] Tools are supported") % (self.irc_host))
-                    self.tools('start', procs)
+        while True:
+            conn, cur = self.db_data()
+            sql = """UPDATE users
+                    SET state = 0;
+                    DELETE FROM user_channel;
+            """
+            cur.executescript(sql)
+            conn.commit()
+            cur.close()
+            procs = [multiprocessing.Process(target=eval(f+'.start'), args=(self,), name=eval(f+'.__name__'))
+                        for f in tools.__all__]
+            self.tools('start', procs)
 
+            try:
                 if self.connect():
-                    if ( self.connect_return == 'Excess Flood' ):
-                        if self.tools_support:
-                            self.tools('terminate', procs)
-                            print("*** [%s] Terminated child processes" % self.irc_host)
+                    if ( self.disconnected in ['excess flood', 'ping timeout']):
+                        self.tools('terminate', procs)
                         print("*** [%s] Restarting the bot" % self.irc_host)
-                        time.sleep(5)
                         self.irc_sock.close()
+                        self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
                         continue
-                    elif ( self.connect_return == 'Manual Quit' ):
-                        if self.tools_support:
-                            self.tools('terminate', procs)
-                            print("*** [%s] Terminated child processes" % self.irc_host)
+                    elif ( self.disconnected == 'quit' ):
+                        self.tools('terminate', procs)
                         print("*** [%s] Exit" % self.irc_host)
                         break
-                self.close_threads = [1]
-        except KeyboardInterrupt:
-            self.close_threads = [1]
-            raise KeyboardInterrupt
+                else:
+                    self.tools('terminate', procs)
+                    break
+            except KeyboardInterrupt:
+                print("*** [%s] KeyboardInterrupt Exception Occurred" % self.irc_host)
+                self.tools('terminate', procs)
+                break
+            except socket.timeout:
+                print("*** [%s] Socket timeout! Will restart the bot in 5 minutes" % self.irc_host)
+                self.tools('terminate', procs)
+                self.irc_sock.close()
+                time.sleep(300) # wait 5 minutes
+                self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
+                self.irc_sock.settimeout(self.socket_timeout)
+                continue
+            except Exception as e:
+                print("*** [%s] Unexpected error: %s" % (self.irc_host, e))
+                self.tools('terminate', procs)
+                raise
 
     def tools(self, action, procs):
+        if not self.tools_support:
+            return
         if ( action == 'start' ):
             for p in procs:
                 p.start()
+                print("*** [%s] Started child process: %s" % (self.irc_host, p.name))
         elif ( action == 'terminate' ):
             for p in procs:
                 p.terminate()
+                print("*** [%s] Terminated child process: %s" % (self.irc_host, p.name))
 
-    # This is the bit that controls connection to a server & channel.
     def connect(self):
         try:
             self.irc_sock.connect ((self.irc_host, self.irc_port))
-        except:
-            print ("*** [%s] Error: Could not connect to IRC server on (%s) port!" % (self.irc_host, self.irc_port))
-            exit(1) # We should make it recconect if it gets an error here
+        except Exception as e:
+            print ("*** [%s] Error: Could not connect to IRC server on (%s) port! (%s)" % (self.irc_host, self.irc_port, e))
+            return False
         print ("*** [%s] Connected to IRC server on (%s) port" % (self.irc_host, self.irc_port))
 
-        def bot_connect(self):
+        def setup_connection(self):
             str_buff = ("NICK %s \r\n") % (self.irc_nick)
             self.irc_sock.send (str_buff.encode())
-            print (("*** [%s] Setting bot nick to " + str(self.irc_nick)) % (self.irc_host))
+            print (("*** [%s] Setting bot nick to %s") % (self.irc_host, self.irc_nick))
 
             str_buff = ("USER %s 8 * :X\r\n") % (self.irc_nick)
             self.irc_sock.send (str_buff.encode())
@@ -136,31 +148,28 @@ class IRC_Server:
                 str_buff = ( "JOIN %s \r\n" ) % (channel)
                 self.irc_sock.send (str_buff.encode())
                 print (("*** [%s] Joining channel " + channel) % (self.irc_host))
-        bot_connect(self)
+        setup_connection(self)
         
         if self.nickserv == True:
-            print (("*** [%s] Sending request to identify with NickServ...") % (self.irc_host))
+            print (("*** [%s] Sent request to identify with NickServ") % (self.irc_host))
             data = "identify "+self.nickserv_password
             self.irc_sock.send( (("PRIVMSG %s :%s\r\n") % ('NickServ', data)).encode() )
 
-        self.is_connected = True
         while True:
             if self.listen():
-                if ( self.listen_return == 'Nick in Use' ):
+                if ( self.disconnected == 'nick in use' ):
                     self.irc_nick = self.irc_nick + "_"
-                    bot_connect(self)
+                    setup_connection(self)
                     continue
-                elif ( self.listen_return == 'Manual Quit' ):
-                    self.is_connected = False
-                    self.connect_return = 'Manual Quit'
+                elif ( self.disconnected == 'quit' ):
                     return True
-                elif ( self.listen_return == 'Excess Flood' ):
-                    self.connect_return = 'Excess Flood'
+                elif ( self.disconnected in ['excess flood', 'ping timeout'] ):
                     return True
 
     def listen(self):
-        while self.is_connected:
+        while True:
             recv = self.irc_sock.recv( 4096 )
+            self.irc_sock.settimeout( self.socket_timeout )
             recv = self.decode_stream( recv )
 
             data = self.handle_recv( recv )
@@ -192,15 +201,15 @@ class IRC_Server:
 
                 elif framed_recv[1] == "QUIT":
                     nick = recv.split('!')[0][1:]
-                    message = " ".join(framed_recv[2:])[1:]
+                    message = " ".join(framed_recv[2:][0:2])[1:].rstrip(':')
                     if ( nick == self.irc_nick ):
                         print("*** [%s] Disconnected" % self.irc_host)
-                        if ( message == 'Excess Flood' ):
-                            self.listen_return = 'Excess Flood'
-                            return True
+                        if ( message.lower() in ['excess flood', 'ping timeout'] ):
+                            self.disconnected = message.lower()
                         else:
-                            self.listen_return = 'Manual Quit'
-                            return True
+                            self.disconnected = 'quit'
+                        print("*** [%s] Reason: %s" % (self.irc_host, self.disconnected))
+                        return True
                     imp.reload(quit_e)
                     quit_e.parse_event(self, recv)
 
@@ -242,7 +251,7 @@ class IRC_Server:
 
                 elif framed_recv[1] == "433" and framed_recv[3] == self.irc_nick:
                     print(("*** [%s] Nick is already in use!") % (self.irc_host))
-                    self.listen_return = 'Nick in Use'
+                    self.disconnected = 'Nick in Use'
                     return True
                 
                 elif framed_recv[1] == "471":
@@ -564,23 +573,20 @@ class IRC_Server:
 
 def main():
     # Here begins the main programs flow:
-    try:
-        for irc_server in config.servers:
-            server_data = eval('config.'+irc_server)
-            ircserver = IRC_Server(server_data['host'],
-                                    server_data['port'],
-                                    server_data['bot_nick'],
-                                    server_data['channels'].split(),
-                                    server_data['nickserv'],
-                                    server_data['nickserv_password'],
-                                    server_data['command_prefix'],
-                                    server_data['command_timeout'],
-                                    server_data['write_logs'],
-                                    server_data['log_channels'],
-                                    server_data['tools_support'],
-                                    server_data['log_dir'],
-                                    server_data['do_not_support_commands'])
-            ircserver_process = multiprocessing.Process(None, ircserver.ircbot, name="IRC Server")
-            ircserver_process.start()
-    except KeyboardInterrupt:
-        exit(1)
+    for irc_server in config.servers:
+        server_data = eval('config.'+irc_server)
+        ircserver = IRC_Server(server_data['host'],
+                                server_data['port'],
+                                server_data['bot_nick'],
+                                server_data['channels'].split(),
+                                server_data['nickserv'],
+                                server_data['nickserv_password'],
+                                server_data['command_prefix'],
+                                server_data['command_timeout'],
+                                server_data['write_logs'],
+                                server_data['log_channels'],
+                                server_data['tools_support'],
+                                server_data['log_dir'],
+                                server_data['do_not_support_commands'])
+        ircserver_process = multiprocessing.Process(None, ircserver.ircbot, name="IRC Server")
+        ircserver_process.start()
