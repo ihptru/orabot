@@ -57,7 +57,7 @@ class IRC_Server:
         self.do_not_support_commands = do_not_support_commands
 
         self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
-        self.socket_timeout = 18000 # 5 hours
+        self.socket_timeout = 10800 # 3 hours
         self.irc_sock.settimeout(self.socket_timeout)
         self.disconnected = ""
         self.command = ""
@@ -389,7 +389,7 @@ class IRC_Server:
         conn.commit()
         if ( len(records) != 0 ):   # bot must be on a channel to send warning message
             if ( records[0][0] == '' or records[0][0] == None ):    # bot is not Op/HalfOp/Voice
-                self.send_message_to_channel( ("Tried to change the topic of channel but do not have rights"), channel)
+                self.send_message_to_channel( ("Failed to change the topic to: %s" % topic), channel)
         cur.close()
 
     def kick_user(self, user, channel, reason):

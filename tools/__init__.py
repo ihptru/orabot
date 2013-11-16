@@ -1,1 +1,1 @@
-__all__ = ["openra_bugs", "openra_topic"]
+__all__ = ["new_issue", "handle_topic"]

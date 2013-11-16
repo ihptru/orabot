@@ -21,7 +21,6 @@ def start(self):
     user_channel(conn, cur)
     later(conn, cur)
     pingme(conn, cur)
-    bugs(conn, cur)
     activity(conn, cur)
 
     cur.close()
@@ -67,16 +66,6 @@ def pingme(conn, cur):
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
         "who" VARCHAR NOT NULL ,
         "users_back" VARCHAR NOT NULL
-        )
-    """
-    cur.execute(sql)
-    conn.commit()
-
-def bugs(conn, cur):
-    sql = """CREATE TABLE "bugs" (
-        "uid" INTEGER PRIMARY KEY AUTOINCREMENT  NOT NULL  UNIQUE ,
-        "title" VARCHAR NOT NULL,
-        "num" VARCHAR NOT NULL
         )
     """
     cur.execute(sql)

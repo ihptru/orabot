@@ -22,17 +22,11 @@ def start(self):
         change_topic(self)
 
 def change_topic(self):
-    def write_version(release, playtest):
-        filename = 'var/version.txt'
-        file = open(filename, 'w')
-        file.write(release + "\n" + playtest + "\n")
-        file.close()
-
     url = 'https://api.github.com/repos/OpenRA/OpenRA/tags'
     try:
         stream = self.data_from_url(url, None)
     except Exception as e:
-        print(e) #can not reach page in 90% cases
+        print(("*** [%s] %s: %s") % (self.irc_host, __name__, e))
         return
     release = get_version(self, stream, 'release')
     playtest = get_version(self, stream, 'playtest')
@@ -43,16 +37,19 @@ def change_topic(self):
         lines = file.readlines()
         file.close()
     except:
-        pass    #no file exists
+        pass    # no file exists
     if ( lines == [] ):
         write_version(release, playtest)
         return
     if ( (release + '\n' not in lines) or (playtest + '\n' not in lines) ):
-        if ( self.change_topic_channel == '' ):
-            return
-        topic = "[logged] open-source RTS | latest: "+release+" | testing: "+playtest+" | http://open-ra.org | http://bugs.open-ra.org"
-        self.topic('#openra', topic)
-        print("["+self.irc_host+"] ### DEBUG: made an attempt to change the TOPIC of #openra ###")
+        if self.irc_host == "irc.freenode.net":
+            topic = "[logged] open-source RTS | latest: %s | testing: %s | http://open-ra.org | http://bugs.open-ra.org" % (release, playtest)
+            self.topic('#openra', topic)
+            print("*** [%s] Attempt to change the TOPIC of #openra" % self.irc_host)
+        elif self.irc_host == "irc.open-ra.org":
+            topic = "Latest release: %s | Latest playtest: %s" % (release, playtest)
+            self.topic('#global', topic)
+            print("*** [%s] Attempt to change the TOPIC of #global" % self.irc_host)
         write_version(release, playtest)
 
 def get_version(self, stream, version):
@@ -63,3 +60,9 @@ def get_version(self, stream, version):
         if item['name'].split('-')[0] == version:
             break
     return result
+
+def write_version(release, playtest):
+        filename = 'var/version.txt'
+        file = open(filename, 'w')
+        file.write(release + "\n" + playtest + "\n")
+        file.close()
