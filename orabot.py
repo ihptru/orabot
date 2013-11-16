@@ -507,7 +507,7 @@ class IRC_Server:
                         except Exception as e:  # socket error or 404 error in title_from_url() or title not found
                             print(("*** [%s] %s") % (self.irc_host, e))
 
-    def parse_bug_num(self, channel, message):
+    def parse_issue(self, channel, message):
         matches = re.findall(r"\B"+"#([0-9]*)", message)
         mentioned = []
         if ( matches != [] ):

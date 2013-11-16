@@ -23,14 +23,13 @@ def parse_event(self, irc_user_nick, irc_user_message, chan):
         self.logs(irc_user_nick, chan, 'action', action[0], '')
     else:
         self.logs(irc_user_nick, chan, 'privmsg', irc_user_message, '')
-    # logs end
     print ( ( "[%s %s] %s: %s" ) % (self.irc_host, chan, irc_user_nick, irc_user_message) )
-    # Message starts with command prefix?
     if ( irc_user_message != '' ):
         if ( irc_user_message[0] == self.command_prefix ):
             self.command = irc_user_message[1:].replace("'","''")
             self.process_command(irc_user_nick.lower(), chan)
+
     self.spam_filter(irc_user_nick.lower(), chan)
-    # parse links and bug reports numbers
+    # parse links and issue numbers
     self.parse_link(chan, irc_user_nick.lower(), irc_user_message)
-    self.parse_bug_num(chan, irc_user_message)
+    self.parse_issue(chan, irc_user_message)

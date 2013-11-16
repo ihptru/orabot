@@ -19,7 +19,6 @@ def parse_event(self, recv):
     original_nick = recv.split(':')[1].split('!')[0]
     new_nick = recv.split()[2].replace(':','').replace('\r\n','')
     conn, cur = self.db_data()
-    # for logs
     sql = """SELECT channel,status FROM user_channel
             WHERE user = '"""+original_nick.lower()+"""'
     """

@@ -42,7 +42,7 @@ def parse_event(self, recv):
     sql = """SELECT channel FROM user_channel
             WHERE user = '"""+irc_quit_nick.lower()+"""'
     """
-    cur.execute(sql)    #in current system: if user quits, we know on what channels he is
+    cur.execute(sql)    # if user quits, we know on what channels he is
     records = cur.fetchall()
     conn.commit()
     for i in range(len(records)):

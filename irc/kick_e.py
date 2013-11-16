@@ -22,12 +22,19 @@ def parse_event(self, recv):
     reason = " ".join(recv.split()[4:]).replace(':','').replace('\r\n','')
     self.logs(whom, chan, 'kick', by, reason)
     conn, cur = self.db_data()
-    sql = """UPDATE users
-            SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
-            WHERE user = '"""+whom.lower()+"""'
+    sql = """SELECT user FROM user_channel
+            WHERE channel <> '"""+chan+"""' AND user = '"""+whom.lower()+"""'
     """
     cur.execute(sql)
+    records = cur.fetchall()
     conn.commit()
+    if ( len(records) == 0  ):
+        sql = """UPDATE users
+                SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
+                WHERE user = '"""+whom.lower()+"""'
+        """
+        cur.execute(sql)
+        conn.commit()
     sql = """DELETE FROM user_channel
             WHERE user = '"""+whom.lower()+"""' AND channel = '"""+chan+"""'
     """

@@ -68,7 +68,7 @@ def parse_event(self, recv):
     cur.execute(sql)
     records = cur.fetchall()
     conn.commit()
-    if ( len(records) == 0 ):   #user NOT found, add him (if user is not in db, he could not have ]later message)   
+    if ( len(records) == 0 ):   # user NOT found, add him
         sql = """INSERT INTO users
                 (user,state)
                 VALUES
@@ -87,7 +87,7 @@ def parse_event(self, recv):
         """
         cur.execute(sql)
         conn.commit()
-    else:   #user is in `users` table; he can have ]later messages
+    else:   # user is in `users` table
         sql = """UPDATE users
                 SET state = 1
                 WHERE user = '"""+irc_join_nick.lower()+"""'

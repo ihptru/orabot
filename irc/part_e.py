@@ -20,30 +20,20 @@ def parse_event(self, recv):
     irc_part_nick = recv.split( "!" )[ 0 ].split( ":" ) [ 1 ]
     irc_part_host = recv.split()[0].split('!')[1]
     chan = recv.split()[2].strip()
-    # logs
     self.logs(irc_part_nick, chan, 'part', irc_part_host, '')
     sql = """SELECT user FROM user_channel
-            WHERE channel <> '"""+chan+"""'
+            WHERE channel <> '"""+chan+"""' AND user = '"""+irc_part_nick.lower()+"""'
     """
     cur.execute(sql)
     records = cur.fetchall()
     conn.commit()
     if ( len(records) == 0  ):
-        state = '0'
-    else:
-        name_other_channels = []
-        for i in range(len(records)):
-            name_other_channels.append(records[i][0])
-        if ( irc_part_nick.lower() not in name_other_channels ):
-            state = '0'
-        else:
-            state = '1'
-    sql = """UPDATE users
-            SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = """+state+"""
-            WHERE user = '"""+irc_part_nick.lower()+"""'
-    """
-    cur.execute(sql)
-    conn.commit()
+        sql = """UPDATE users
+                SET date = strftime('%Y-%m-%d-%H-%M-%S'), state = 0
+                WHERE user = '"""+irc_part_nick.lower()+"""'
+        """
+        cur.execute(sql)
+        conn.commit()
     sql = """DELETE FROM user_channel
             WHERE user = '"""+irc_part_nick.lower()+"""' AND channel = '"""+chan+"""'
     """
