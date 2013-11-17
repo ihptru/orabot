@@ -73,7 +73,7 @@ def pingme(self, user, channel):
                 self.send_notice( message, user )
                 return
             if ( len(records_list) == 20 ):
-                message = "Sorry, You've already requested `"+self.command_prefix+"pingme` of 20 users! I don't support more..."
+                message = "You've already requested `"+self.command_prefix+"pingme` of 20 users! I don't support more"
                 self.send_notice( message, user )
                 cur.close()
                 return

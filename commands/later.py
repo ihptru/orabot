@@ -46,7 +46,8 @@ def later(self, user, channel):
                                     (sender,reciever,channel,date,message)
                                     VALUES
                                     (
-                                    '"""+user+"""','"""+user_nick.lower()+"""','"""+channel+"""',strftime('%Y-%m-%d-%H-%M'),'"""+user_message+"""'
+                                    '"""+user+"""','"""+user_nick.lower()+"""','"""+channel+"""',
+                                    strftime('%Y-%m-%d-%H-%M'),'"""+user_message+"""'
                                     )
                             """
                             cur.execute(sql)

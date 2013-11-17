@@ -15,7 +15,6 @@
 
 """
 Shows current games.\n
-More info at  http://wiki.ihptru.net/index.php/IRC_orabot
 """
 
 import re

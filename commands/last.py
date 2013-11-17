@@ -36,7 +36,7 @@ def last(self, user, channel):
         if ( len(command) >= 3 and len(command) <= 4 ):
             activity(self, user, channel, command[2:])
         else:
-            self.send_reply( ("Usage: " + self.command_prefix + "last activity [-<amount of records>] username"), user, channel )
+            self.send_reply( ("Usage: "+self.command_prefix+"last activity [-<amount of records>] username"), user, channel )
     else:
         self.send_reply( (usage), user, channel )
 

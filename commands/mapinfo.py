@@ -37,4 +37,6 @@ def mapinfo(self, user, channel):
                 description = ''
             else:
                 description = " - Description: "+y[0]['description']
-            self.send_reply( ("Map name: "+y[0]['title']+" - Mod: "+y[0]['mod']+description+" - Author: "+y[0]['author']+" - Max Players: "+y[0]['players']+" - Type: "+y[0]['type']+" - Titleset: "+y[0]['tileset']+" - Width: "+y[0]['width']+" - Height: "+y[0]['height']), user, channel )
+            self.send_reply(("Map name: %s - Mod: %s - Author: %s - Max Players: %s - Type: %s - Tileset: %s - Width: %s - Height: %s")
+                               % (y[0]['title'], y[0]['mod']+description, y[0]['author'],
+                               y[0]['players'], y[0]['type'], y[0]['tileset'], y[0]['width'], y[0]['height']), user, channel )
