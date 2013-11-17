@@ -463,7 +463,7 @@ class IRC_Server:
             title = self.parse_html(titles[0])
             return title
         else:
-            raise Exception(("*** [%s] Exception: %s does not contain title") % (self.irc_host, url))
+            raise Exception(("Exception: %s does not contain title") % (self.irc_host, url))
 
     def parse_link(self, channel, user, message):
         if re.search('.*http.*://.*', message):

@@ -36,7 +36,7 @@ def detect_bugs(self, e_bugs):
         if bug not in e_bugs:   # it's a new bug
             e_bugs.append(bug)
             type = "issue"
-            if remote_bugs.index(bug)['pull_request']['html_url'] != None:
+            if y[remote_bugs.index(bug)]['pull_request']['html_url'] != None:
                 type = "pull request"
             self.send_message_to_channel(("New %s #%s by %s: %s | http://bugs.open-ra.org/%s")
                                         % (type, str(bug), y[remote_bugs.index(bug)]['user']['login'],
