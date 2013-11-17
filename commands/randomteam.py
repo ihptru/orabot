@@ -16,6 +16,7 @@
 """
 Single elimination tournament brackets generator
 """
+
 from time import strftime, localtime
 import random
 

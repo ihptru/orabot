@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Ping you when 'someone' joins IRC
+Ping you when 'someone' joins IRC: Usage: pingme when USERNAME join
 """
 
 import re
@@ -40,12 +40,12 @@ def pingme(self, user, channel):
             return
         user_nicks = self.get_names(channel)
         user_join = command[2].lower()
-        chars = ['`','-','_','[',']','{','}','\\','^']  #char which CAN be used in irc nick
+        chars = ['`','-','_','[',']','{','}','\\','^']  # char which CAN be used in irc nick
         for i in range(len(user_join)):
             if ( (user_join[i] not in chars) and ( not re.search('[a-zA-Z0-9]', user_join[i])) ):
                 self.send_reply( ("Username Error!"), user, channel)
                 return
-        if user_join in user_nicks:  #reciever is on the channel right now
+        if user_join in user_nicks:  # reciever is on the channel right now
             self.send_reply( ("User is online!"), user, channel)
             cur.close()
             return

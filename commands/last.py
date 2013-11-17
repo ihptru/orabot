@@ -29,7 +29,7 @@ def last(self, user, channel):
         return
     if ( command[1].lower() == 'seen' ):
         if ( len(command) == 3):
-            seen(self, user, channel, command[2])
+            seen(self, user, channel, command[2].lower())
         else:
             self.send_reply( ("Usage: " + self.command_prefix + "last seen <username>"), user, channel )
     elif ( command[1].lower() == 'activity' ):
@@ -126,10 +126,10 @@ def activity(self, user, channel, command_request):
     conn, cur = self.db_data()
     usage = "Usage: " + self.command_prefix + "last activity [-<amount of records>] username"
     if ( len(command_request) == 1 ):
-        username = command_request[0]
+        username = command_request[0].lower()
         amount_records = '10'
     elif ( len(command_request) == 2 ):
-        username = command_request[1]
+        username = command_request[1].lower()
         if ( command_request[0].startswith('-') ):
             amount_records = command_request[0][1:]
             try:

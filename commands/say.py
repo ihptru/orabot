@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Repeat given arguments
+Repeats given arguments
 """
 
 def say(self, user, channel):
