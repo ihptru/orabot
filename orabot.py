@@ -144,6 +144,7 @@ class IRC_Server:
             str_buff = ("USER %s 8 * :X\r\n") % (self.irc_nick)
             self.irc_sock.send (str_buff.encode())
 
+            time.sleep(5)
             for channel in self.channels:
                 str_buff = ( "JOIN %s \r\n" ) % (channel)
                 self.irc_sock.send (str_buff.encode())
