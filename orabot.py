@@ -23,6 +23,7 @@ import urllib.request
 import imp
 import html.parser
 import json
+import traceback
 
 import db_initialization
 import config
@@ -114,7 +115,7 @@ class IRC_Server:
             except Exception as e:
                 print("*** [%s] Unexpected error: %s" % (self.irc_host, e))
                 self.tools('terminate', procs)
-                raise
+                print(traceback.print_exc())
 
     def tools(self, action, procs):
         if not self.tools_support:
@@ -252,7 +253,7 @@ class IRC_Server:
 
                 elif framed_recv[1] == "433" and framed_recv[3] == self.irc_nick:
                     print(("*** [%s] Nick is already in use!") % (self.irc_host))
-                    self.disconnected = 'Nick in Use'
+                    self.disconnected = 'nick in use'
                     return True
                 
                 elif framed_recv[1] == "471":

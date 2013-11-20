@@ -15,9 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import io
 import sys
-import time
 import os
 import gzip
 import shutil
@@ -28,65 +26,66 @@ try:
     os.mkdir("db")  # Create directory where database is stored
     os.chmod("db", 0o700)
 except OSError as e:
-    if e.args[0]==17:   # Directory already exists
+    if e.args[0] == 17:   # Directory already exists
         pass    # Ignore
     else:
         raise e # Raise exception again
 
 # a class which works like the shell command "tee"
-class Tee(io.TextIOWrapper):
-    def __init__(self, f1, f2, fd):
-        io.TextIOWrapper.__init__(self, f1)
-        self.f1 = f1
-        self.f2 = f2
+class Tee:
+    def __init__(self, fd, logfile):
         self.fd = fd
+        self.logfile = logfile
+
+    def __del__(self):
+        self.logfile.close()
 
     def write(self, text):
-        if (text.strip() != ''):
-            text = time.strftime('[%Y-%m-%d %H:%M:%S] ') + text
-        self.f1.write(text)
-        self.f2.write(text)
-        self.f1.flush()
-        self.f2.flush()
+        self.fd.write(text)
+        self.logfile.write(text)
         self.log_rotate(text)
 
+    def flush(self):
+        self.fd.flush()
+        self.logfile.flush()
+
     def log_rotate(self, text):
-        log_f = open('var/botlog.txt')
-        log_f_lines = log_f.readlines()
-        if len(log_f_lines) > 100000:
+        log_file = open('var/console_log.txt')
+        log_file_lines = log_file.readlines()
+        if len(log_file_lines) > 100000:
             _files = []
             _dir = os.listdir('var/')
-            for fn in _dir:
-                if fn[0:6] == "botlog":
-                    _files.append(fn)
+            for filename in _dir:
+                if filename[0:11] == 'console_log':
+                    _files.append(filename)
             _nums = []
             for file in _files:
-                if file == "botlog.txt":
+                if file == "console_log.txt":
                     _nums.append(0)
                 else:
-                    _nums.append(int(file.split("botlog")[1].split(".")[0]))
+                    _nums.append(int(file.split('console_log_')[1].split('.')[0]))
             _nums.sort()
             _nums.reverse()
-            for num in _nums:
-                if num != 0:    # rename every existing log file
-                    source = "var/botlog"+str(num)+".txt.gz"
-                    dest = "var/botlog"+str(num+1)+".txt.gz"
+            for number in _nums:
+                if number != 0:    # rename every existing log file
+                    source = 'var/console_log_'+str(number)+'.txt.gz'
+                    dest = 'var/console_log_'+str(number+1)+'.txt.gz'
                     shutil.move(source, dest)
-                else:   # gzip last one and open a new file
-                    f_in = open('var/botlog.txt', 'rb')
-                    f_out = gzip.open('var/botlog1.txt.gz', 'wb')
-                    f_out.writelines(f_in)
-                    f_out.close()
-                    f_in.close()
-                    self.f2.close()
-                    open('var/botlog.txt', 'w').close()
-                    self.f2 = io.open('var/botlog.txt', 'a')
+                else:   # gzip last one
+                    shutil.copy('var/console_log.txt', 'var/console_log_1.txt')
+                    file_to_gz = open('var/console_log_1.txt', 'rb')
+                    result_gz_file = gzip.open('var/console_log_1.txt.gz', 'wb')
+                    result_gz_file.writelines(file_to_gz)
+                    result_gz_file.close()
+                    file_to_gz.close()
+                    os.remove("var/console_log_1.txt")
+                    open('var/console_log.txt', 'w').close()
 
-logfile = "var/botlog.txt"
-log = io.open(logfile, "a")
+logfile = "var/console_log.txt"
+log = open(logfile, "a")
 
-sys.stdout = Tee(sys.stdout, log, "stdout")
-sys.stderr = Tee(sys.stderr, log, "stderr")
+sys.stdout = Tee(sys.stdout, log)
+sys.stderr = Tee(sys.stderr, log)
 print("Starting bot. Press CTRL+C to exit.")
 
 orabot.main()
