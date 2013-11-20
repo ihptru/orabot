@@ -57,16 +57,20 @@ def games(self, user, channel):
         self.send_reply( ("No games found"), user, channel )
         return
     # read keys
-    optlist,  args = getopt.getopt(command[1:], 'sr', ['show-empty', 'mods=', 'version='])   # priority exists here
+    try:
+        optlist,  args = getopt.getopt(command[1:], 'sr', ['mods=', 'version='])   # priority exists here
+        print(optlist)
+    except getopt.GetoptError as e:
+        self.send_reply(str(e), user, channel)
+        return
     arguments = [opt[0] for opt in optlist]
     # imply filters
-    if '-r' not in arguments and '-s' not in arguments: #don't imply other filters if this 2 options are set
-        if '--show-empty' not in arguments:
-            y = copyRequired(y, 'players', [str(l) for l in range(1,31)])   # show servers only with people
-        if '--mods' in arguments:
-            pass
-        if '--version' in arguments:
-            pass
+    if '-r' not in arguments and '-s' not in arguments: # don't imply other filters if this 2 options are set
+        if '--mods' in arguments or '--version' in arguments:
+            for value in optlist:
+                p = re.compile(value[1], re.IGNORECASE)
+                y = copyRequiredRegex(y, 'mods', p)
+        y = copyRequired(y, 'players', [str(l) for l in range(1,31)])   # show servers only with people
     # process orders
     if '-s' in arguments:
         waiting = len(copyRequired(y, 'state', ['1']))
@@ -116,5 +120,5 @@ def games(self, user, channel):
         players = game['players']
         games = '@ '+sname.strip().ljust(18)[0:18]+' - '+players.ljust(3)[0:2]+' - '+modinfo(game['mods'])
         self.send_reply( (games), user, channel )
-        time.sleep(0.2)
+        time.sleep(0.1)
     cur.close()
