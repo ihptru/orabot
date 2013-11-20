@@ -59,7 +59,6 @@ def games(self, user, channel):
     # read keys
     try:
         optlist,  args = getopt.getopt(command[1:], 'sr', ['mods=', 'version='])   # priority exists here
-        print(optlist)
     except getopt.GetoptError as e:
         self.send_reply(str(e), user, channel)
         return
