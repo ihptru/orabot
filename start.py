@@ -17,6 +17,7 @@
 
 import sys
 import os
+import time
 import gzip
 import shutil
 import orabot
@@ -41,6 +42,8 @@ class Tee:
         self.logfile.close()
 
     def write(self, text):
+        if (text.strip() != ''):
+            text = time.strftime('[%Y-%m-%d %H:%M:%S] ') + text
         self.fd.write(text)
         self.logfile.write(text)
         self.log_rotate(text)
