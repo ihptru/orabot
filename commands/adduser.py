@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Command is used to add a particular irc user to bot's database if he does not exist there
+Command is used to add a particular IRC user to bot's database if he does not exist there
 """
 
 def adduser(self, user, channel):

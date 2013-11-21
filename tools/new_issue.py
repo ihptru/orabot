@@ -20,12 +20,12 @@ import json
 def start(self):
     if self.irc_host != "irc.freenode.net":
         return
-    time.sleep(1800)    # wait 30 minutes
+    time.sleep(1200)    # wait 20 minutes
     y = bugs_list(self) # request a list from github
     e_bugs = [n['number'] for n in y]
     
     while True:
-        time.sleep(1800)    # wait 30 minutes
+        time.sleep(1200)    # wait 20 minutes
         e_bugs = detect_bugs(self, e_bugs)
 
 def detect_bugs(self, e_bugs):

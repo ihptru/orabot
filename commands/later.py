@@ -31,8 +31,7 @@ def later(self, user, channel):
                     user_message = " ".join(command[2:])  # message
                     if user_nick.lower() in user_nicks:  # reciever is on the channel right now
                         self.send_reply( ("Error! "+user_nick+" is online!"), user, channel)
-                    else:   # reciever is not on the channel
-                        # check if he exists in database
+                    else:   # reciever is not on the channel; check if he exists in database
                         sql = """SELECT user FROM users
                                 WHERE user = '"""+user_nick.lower()+"""'
                         """

@@ -55,7 +55,7 @@ class Tee:
     def log_rotate(self, text):
         log_file = open('var/console_log.txt')
         log_file_lines = log_file.readlines()
-        if len(log_file_lines) > 100000:
+        if len(log_file_lines) > 50000:
             _files = []
             _dir = os.listdir('var/')
             for filename in _dir:

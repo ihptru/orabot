@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Command is used to check if irc user exists in bot's database (to make sure ]later will work)
+Command is used to check if IRC user exists in bot's database
 """
 
 def ifuser(self, user, channel):
