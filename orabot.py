@@ -99,7 +99,11 @@ class IRC_Server:
                         break
                 else:
                     self.tools('terminate', procs)
-                    break
+                    print("*** [%s] I will try to reconnect later")
+                    time.sleep(1800)    # wait 30 minutes
+                    self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
+                    self.irc_sock.settimeout(self.socket_timeout)
+                    continue
             except KeyboardInterrupt:
                 print("*** [%s] KeyboardInterrupt Exception Occurred" % self.irc_host)
                 self.tools('terminate', procs)
