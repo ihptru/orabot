@@ -19,6 +19,7 @@ import json
 
 def start(self):
     if self.irc_host != "irc.freenode.net":
+        print("*** [%s] Terminating child process (unsupported): %s" % (self.irc_host, __name__))
         return
     time.sleep(1200)    # wait 20 minutes
     y = bugs_list(self) # request a list from github
@@ -32,16 +33,15 @@ def detect_bugs(self, e_bugs):
     y = bugs_list(self) # request a list from github
     remote_bugs = [n['number'] for n in y]
     
-    for bug in remote_bugs:
-        if bug not in e_bugs:   # it's a new bug
-            e_bugs.append(bug)
+    for i in range(0, 16):
+        if remote_bugs[i] not in e_bugs:   # it's a new bug
             type = "issue"
-            if y[remote_bugs.index(bug)]['pull_request']['html_url'] != None:
+            if y[i]['pull_request']['html_url'] != None:
                 type = "pull request"
             self.send_message_to_channel(("New %s #%s by %s: %s | http://bugs.open-ra.org/%s")
-                                        % (type, str(bug), y[remote_bugs.index(bug)]['user']['login'],
-                                        y[remote_bugs.index(bug)]['title'], str(bug)), "#openra")
-    return e_bugs
+                                        % (type, str(remote_bugs[i]), y[i]['user']['login'],
+                                        y[i]['title'], str(remote_bugs[i])), "#openra")
+    return remote_bugs
 
 def bugs_list(self):
     url = 'https://api.github.com/repos/OpenRA/OpenRA/issues'
