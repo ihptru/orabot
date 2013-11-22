@@ -51,7 +51,11 @@ def games(self, user, channel):
     command = (self.command).split()
     conn, cur = self.db_data()
     url = 'http://master.open-ra.org/list_json.php'
-    data = urllib.request.urlopen(url).read().decode()  # ping master server and fetch data
+    try:
+        data = urllib.request.urlopen(url).read().decode()  # ping master server and fetch data
+    except:
+        self.send_reply("Failed to fetch data from master server", user, channel)
+        return
     y = json.loads(data)    # json object (fresh copy of games)
     if ( len(y) == 0 ):
         self.send_reply( ("No games found"), user, channel )
