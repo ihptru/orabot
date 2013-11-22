@@ -99,7 +99,7 @@ class IRC_Server:
                         break
                 else:
                     self.tools('terminate', procs)
-                    print("*** [%s] I will try to reconnect later")
+                    print("*** [%s] I will try to connect to that server again later" % self.irc_host)
                     time.sleep(1800)    # wait 30 minutes
                     self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
                     self.irc_sock.settimeout(self.socket_timeout)
