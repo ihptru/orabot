@@ -30,7 +30,7 @@ def change_topic(self):
         return
     release = get_version(self, stream, 'release')
     playtest = get_version(self, stream, 'playtest')
-    filename = 'var/version.txt'
+    filename = 'var/version_%s.txt' % self.irc_host
     lines = []
     try:
         file = open(filename, 'r')
@@ -39,7 +39,7 @@ def change_topic(self):
     except:
         pass    # no file exists
     if ( lines == [] ):
-        write_version(release, playtest)
+        write_version(self, release, playtest)
         return
     if ( (release + '\n' not in lines) or (playtest + '\n' not in lines) ):
         if self.irc_host == "irc.freenode.net":
@@ -50,7 +50,7 @@ def change_topic(self):
             topic = "Latest release: %s | Latest playtest: %s" % (release, playtest)
             self.topic('#global', topic)
             print("*** [%s] Attempt to change the TOPIC of #global" % self.irc_host)
-        write_version(release, playtest)
+        write_version(self, release, playtest)
 
 def get_version(self, stream, version):
     result = ""
@@ -61,8 +61,8 @@ def get_version(self, stream, version):
             break
     return result
 
-def write_version(release, playtest):
-        filename = 'var/version.txt'
+def write_version(self, release, playtest):
+        filename = 'var/version_%s.txt' % self.irc_host
         file = open(filename, 'w')
         file.write(release + "\n" + playtest + "\n")
         file.close()

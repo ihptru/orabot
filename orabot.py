@@ -58,7 +58,7 @@ class IRC_Server:
         self.do_not_support_commands = do_not_support_commands
 
         self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
-        self.socket_timeout = 10800 # 3 hours
+        self.socket_timeout = 7200 # 2 hours
         self.irc_sock.settimeout(self.socket_timeout)
         self.disconnected = ""
         self.command = ""
@@ -108,8 +108,8 @@ class IRC_Server:
                 print("*** [%s] KeyboardInterrupt Exception Occurred" % self.irc_host)
                 self.tools('terminate', procs)
                 break
-            except socket.timeout:
-                print("*** [%s] Socket timeout! Will restart the bot in 5 minutes" % self.irc_host)
+            except (socket.timeout, socket.error) as e:
+                print("*** [%s] Socket error: [%s]! Will restart the bot in 5 minutes" % (self.irc_host, repr(e)))
                 self.tools('terminate', procs)
                 self.irc_sock.close()
                 time.sleep(300) # wait 5 minutes
@@ -130,8 +130,9 @@ class IRC_Server:
                 print("*** [%s] Started child process: %s" % (self.irc_host, p.name))
         elif ( action == 'terminate' ):
             for p in procs:
-                p.terminate()
-                print("*** [%s] Terminated child process: %s" % (self.irc_host, p.name))
+                if p.is_alive():
+                    p.terminate()
+                    print("*** [%s] Terminated child process: %s" % (self.irc_host, p.name))
 
     def connect(self):
         try:
