@@ -20,40 +20,47 @@ Command is used to send an offline message to irc user
 def later(self, user, channel):
     command = (self.command).split()
     conn, cur = self.db_data()
-    if ( len(command) >= 3 ):
-        if ( channel.startswith('#') ):
-            user_nicknames = command[1].split(',') # reciever (or recievers, if splitted by comma)
-            user_nicks = self.get_names(channel)
-            for user_nick in user_nicknames:
-                if ( user_nick.lower() == user ):
-                    self.send_reply( ("Error! You can't send a message to yourself"), user, channel)
-                else:
-                    user_message = " ".join(command[2:])  # message
-                    if user_nick.lower() in user_nicks:  # reciever is on the channel right now
-                        self.send_reply( ("Error! "+user_nick+" is online!"), user, channel)
-                    else:   # reciever is not on the channel; check if he exists in database
-                        sql = """SELECT user FROM users
-                                WHERE user = '"""+user_nick.lower()+"""'
-                        """
-                        cur.execute(sql)
-                        records = cur.fetchall()
-                        conn.commit()
-                        if ( len(records) == 0 ):
-                            self.send_reply( ("Error! Unknown nickname: '"+user_nick+"'"), user, channel)
-                        else:   # user exists
-                            sql = """INSERT INTO later
-                                    (sender,reciever,channel,date,message)
-                                    VALUES
-                                    (
-                                    '"""+user+"""','"""+user_nick.lower()+"""','"""+channel+"""',
-                                    strftime('%Y-%m-%d-%H-%M'),'"""+user_message+"""'
-                                    )
-                            """
-                            cur.execute(sql)
-                            conn.commit()
-                            self.send_reply( ("The operation succeeded for " + user_nick), user, channel)
-        else:
-            self.send_message_to_channel( ("You can use ]later only on a channel"), user)
-    else:
+    if not ( len(command) >= 3 ):
         self.send_reply( ("Usage: ]later nick[,nick1,...] message"), user, channel )
+        cur.close()
+        return
+    if not ( channel.startswith('#') ):
+        self.send_message_to_channel( ("You can use ]later only on a channel"), user )
+        cur.close()
+        return
+    user_nicknames = command[1].split(',') # reciever (or recievers, if splitted by comma)
+    user_nicks_list = self.get_names(channel)
+    for user_nick in user_nicknames:
+        if ( user_nick.lower() == user ):
+            self.send_reply( ("Error! You can't send a message to yourself"), user, channel )
+            continue
+        user_message = " ".join(command[2:])  # message
+        if user_nick.lower() in user_nicks_list:  # reciever is on the channel right now
+            self.send_reply( ("Error! "+user_nick+" is online!"), user, channel )
+            continue
+        # reciever is not on the channel; check if he exists in database
+        sql = """SELECT user,state FROM users
+                WHERE user = '"""+user_nick.lower()+"""'
+        """
+        cur.execute(sql)
+        records = cur.fetchall()
+        conn.commit()
+        if ( len(records) == 0 ):
+            self.send_reply( ("Error! Unknown nickname: '"+user_nick+"'"), user, channel )
+            continue
+        # user exists
+        if records[0][1] == True:
+            self.send_reply( ("Error! "+user_nick+" is online!"), user, channel )
+            continue
+        sql = """INSERT INTO later
+                (sender,reciever,channel,date,message)
+                VALUES
+                (
+                '"""+user+"""','"""+user_nick.lower()+"""','"""+channel+"""',
+                strftime('%Y-%m-%d-%H-%M'),'"""+user_message+"""'
+                )
+        """
+        cur.execute(sql)
+        conn.commit()
+        self.send_reply( ("The operation succeeded for " + user_nick), user, channel )
     cur.close()
