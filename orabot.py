@@ -120,6 +120,7 @@ class IRC_Server:
                 print("*** [%s] Unexpected error: %s" % (self.irc_host, e))
                 self.tools('terminate', procs)
                 print(traceback.print_exc())
+                time.sleep(10)
 
     def tools(self, action, procs):
         if not self.tools_support:
@@ -253,8 +254,12 @@ class IRC_Server:
                     imp.reload(names_e)
                     names_e.parse_event(self, recv)
 
-                elif framed_recv[1] == "NOTICE" and framed_recv[2] == self.irc_nick and framed_recv[6] == "identified":
-                    print(("*** [%s] NickServ Identification Succeeded\t\tOK") % (self.irc_host))
+                elif framed_recv[1] == "NOTICE" and framed_recv[2] == self.irc_nick:
+                    try:
+                        if framed_recv[6] == "identified":
+                            print(("*** [%s] NickServ Identification Succeeded\t\tOK") % (self.irc_host))
+                    except:
+                        pass
 
                 elif framed_recv[1] == "433" and framed_recv[3] == self.irc_nick:
                     print(("*** [%s] Nick is already in use!") % (self.irc_host))
