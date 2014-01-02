@@ -91,6 +91,7 @@ class IRC_Server:
                         self.tools('terminate', procs)
                         print("*** [%s] Restarting the bot" % self.irc_host)
                         self.irc_sock.close()
+                        time.sleep(60)
                         self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
                         continue
                     elif ( self.disconnected == 'quit' ):
@@ -120,7 +121,7 @@ class IRC_Server:
                 print("*** [%s] Unexpected error: %s" % (self.irc_host, e))
                 self.tools('terminate', procs)
                 print(traceback.print_exc())
-                time.sleep(10)
+                time.sleep(60)
 
     def tools(self, action, procs):
         if not self.tools_support:
