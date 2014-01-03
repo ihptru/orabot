@@ -528,6 +528,8 @@ class IRC_Server:
                 for bug_report in matches:
                     if ( bug_report == '' ):
                         return
+                    if ( len(bug_report) < 3 ):
+                        continue
                     if ( bug_report in mentioned):
                         continue
                     mentioned.append(bug_report)
