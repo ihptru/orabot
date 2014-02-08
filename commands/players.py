@@ -63,7 +63,10 @@ def players(self, user, channel):
     if_other = ""
     if w_other != 0:
     	if_other = "; Other: %s" % w_other
-    if p_other != 0:
-    	if_other += " (%s)" % p_other
+        if p_other != 0:
+    	   if_other += " (%s)" % p_other
+    else:
+        if p_other != 0:
+            if_other = "; Other: 0 (%s)" % p_other
     result = "Waiting (playing) -->  RA: %s (%s); TD: %s (%s); D2k: %s (%s)%s" % (w_ra,p_ra,w_td,p_td,w_d2k,p_d2k,if_other)
     self.send_reply( (result), user, channel )
