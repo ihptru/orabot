@@ -24,12 +24,18 @@ def players(self, user, channel):
     command = (self.command).split()
     if ( not len(command) == 1 ):
         return
-    url = 'http://master.open-ra.org/list_json.php'
-    try:
-        data = urllib.request.urlopen(url).read().decode()  # ping master server and fetch data
-    except:
-        self.send_reply("Failed to fetch data from master server", user, channel)
-        return
+    masterServers = ['http://master.open-ra.org/', 'http://master.openra.net/', 'http://master.ihptru.net/']
+    for i in range(len(masterServers)):
+        url = masterServers[i] + 'list_json.php'
+        try:
+            data = urllib.request.urlopen(url).read().decode()  # ping master server and fetch data
+            break
+        except:
+            if i == 2:
+                self.send_reply("Failed to fetch data from master server", user, channel)
+                return
+            else:
+                continue
     y = json.loads(data)    # json object (fresh copy of games)
     if ( len(y) == 0 ):
         self.send_reply( ("Nothing found"), user, channel )
@@ -62,9 +68,9 @@ def players(self, user, channel):
     		continue
     if_other = ""
     if w_other != 0:
-    	if_other = "; Other: %s" % w_other
+        if_other = "; Other: %s" % w_other
         if p_other != 0:
-    	   if_other += " (%s)" % p_other
+            if_other += " (%s)" % p_other
     else:
         if p_other != 0:
             if_other = "; Other: 0 (%s)" % p_other

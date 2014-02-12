@@ -50,12 +50,18 @@ def copyRequiredRegex(dictlist, key, regexObject):
 def games(self, user, channel):
     command = (self.command).split()
     conn, cur = self.db_data()
-    url = 'http://master.open-ra.org/list_json.php'
-    try:
-        data = urllib.request.urlopen(url).read().decode()  # ping master server and fetch data
-    except:
-        self.send_reply("Failed to fetch data from master server", user, channel)
-        return
+    masterServers = ['http://master.open-ra.org/', 'http://master.openra.net/', 'http://master.ihptru.net/']
+    for i in range(len(masterServers)):
+        url = masterServers[i] + 'list_json.php'
+        try:
+            data = urllib.request.urlopen(url).read().decode()  # ping master server and fetch data
+            break
+        except:
+            if i == 2:
+                self.send_reply("Failed to fetch data from master server", user, channel)
+                return
+            else:
+                continue
     y = json.loads(data)    # json object (fresh copy of games)
     if ( len(y) == 0 ):
         self.send_reply( ("No games found"), user, channel )
