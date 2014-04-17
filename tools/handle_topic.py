@@ -22,7 +22,7 @@ def start(self):
         change_topic(self)
 
 def change_topic(self):
-    url = 'https://api.github.com/repos/OpenRA/OpenRA/tags'
+    url = 'https://api.github.com/repos/OpenRA/OpenRA/git/refs/tags'
     try:
         stream = self.data_from_url(url, None)
     except Exception as e:
@@ -56,9 +56,8 @@ def get_version(self, stream, version):
     result = ""
     y = json.loads(stream)
     for item in y:
-        result = item['name'].split('-')[1]
-        if item['name'].split('-')[0] == version:
-            break
+        if version in item['ref']:
+            result = item['ref'].split(version + '-')[1]
     return result
 
 def write_version(self, release, playtest):
