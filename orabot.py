@@ -538,8 +538,9 @@ class IRC_Server:
                         data = urllib.request.urlopen(url).read().decode()
                         y = json.loads(data)
                         type = "Issue"
-                        if y['pull_request']['html_url'] != None:
-                            type = "Pull request"
+                        if 'pull_request' in y:
+                            if y['pull_request']['html_url'] != None:
+                                type = "Pull request"
                         self.send_message_to_channel( ("%s #%s (%s) by %s: %s | http://bugs.open-ra.org/%s") %
                                 (type, bug_report, y['state'], y['user']['login'], y['title'], bug_report), channel)
                     except Exception as e:
