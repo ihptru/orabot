@@ -43,7 +43,7 @@ def change_topic(self):
         return
     if ( (release + '\n' not in lines) or (playtest + '\n' not in lines) ):
         if self.irc_host == "irc.freenode.net":
-            topic = "[logged] open-source RTS | latest: %s | testing: %s | http://open-ra.org | http://bugs.open-ra.org" % (release, playtest)
+            topic = "[logged] open-source RTS | release: %s | playtest: %s | http://open-ra.org | http://wiki.openra.net" % (release, playtest)
             self.topic('#openra', topic)
             print("*** [%s] Attempt to change the TOPIC of #openra" % self.irc_host)
         elif self.irc_host == "irc.open-ra.org":
