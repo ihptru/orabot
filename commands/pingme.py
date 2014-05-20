@@ -14,13 +14,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Ping you when 'someone' joins IRC: Usage: pingme when USERNAME join
+Ping you when 'someone' joins IRC: Usage: pingme when USERNAME joins
 """
 
 import re
 
 def usage(self, user, channel):
-    self.send_reply( ("Usage: "+self.command_prefix+"pingme when USERNAME join"), user, channel )
+    self.send_reply( ("Usage: "+self.command_prefix+"pingme when USERNAME joins"), user, channel )
 
 def pingme(self, user, channel):
     command = (self.command).split()
@@ -34,7 +34,7 @@ def pingme(self, user, channel):
             usage(self, user, channel)
             cur.close()
             return
-        if ( command[3].lower() != 'join' ):
+        if ( command[3].lower() != 'joins' ):
             usage(self, user, channel)
             cur.close()
             return
