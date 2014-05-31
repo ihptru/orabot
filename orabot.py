@@ -521,14 +521,15 @@ class IRC_Server:
                             print(("*** [%s] %s") % (self.irc_host, e))
 
     def parse_issue(self, channel, message):
-        def parse(channel, message, matches, api_url, result_url):
+        def parse(channel, message, matches, api_url, result_url, allow_low_numbers=False):
             if re.search("^#", channel):
                 mentioned = []
                 for bug_report in matches:
                     if ( bug_report == '' ):
                         return
-                    if ( len(bug_report) < 3 ):
-                        continue
+                    if not allow_low_numbers:
+                        if ( len(bug_report) < 3 ):
+                            continue
                     if ( bug_report in mentioned):
                         continue
                     mentioned.append(bug_report)
@@ -549,7 +550,10 @@ class IRC_Server:
             parse(channel, message, matches, 'https://api.github.com/repos/OpenRA/OpenRA/issues/', 'http://bugs.open-ra.org/')
         matches = re.findall("web#([0-9]*)", message)
         if ( matches != [] ):
-            parse(channel, message, matches, 'https://api.github.com/repos/OpenRA/OpenRAWeb/issues/', 'https://github.com/OpenRA/OpenRAWeb/issues/')
+            parse(channel, message, matches, 'https://api.github.com/repos/OpenRA/OpenRAWeb/issues/', 'https://github.com/OpenRA/OpenRAWeb/issues/', True)
+        matches = re.findall("master#([0-9]*)", message)
+        if ( matches != [] ):
+            parse(channel, message, matches, 'https://api.github.com/repos/OpenRA/OpenRAMasterServer/issues/', 'https://github.com/OpenRA/OpenRAMasterServer/issues/', True)
 
     def safe_eval(self, expr, symbols={}):
             return eval(expr, dict(__builtins__=None), symbols)
