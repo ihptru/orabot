@@ -521,10 +521,9 @@ class IRC_Server:
                             print(("*** [%s] %s") % (self.irc_host, e))
 
     def parse_issue(self, channel, message):
-        matches = re.findall(r"\B"+"#([0-9]*)", message)
-        mentioned = []
-        if ( matches != [] ):
+        def parse(channel, message, matches, api_url, result_url):
             if re.search("^#", channel):
+                mentioned = []
                 for bug_report in matches:
                     if ( bug_report == '' ):
                         return
@@ -533,7 +532,7 @@ class IRC_Server:
                     if ( bug_report in mentioned):
                         continue
                     mentioned.append(bug_report)
-                    url = 'https://api.github.com/repos/OpenRA/OpenRA/issues/'+bug_report   #api v3
+                    url = api_url+bug_report
                     try:
                         data = urllib.request.urlopen(url).read().decode()
                         y = json.loads(data)
@@ -541,10 +540,16 @@ class IRC_Server:
                         if 'pull_request' in y:
                             if y['pull_request']['html_url'] != None:
                                 type = "Pull request"
-                        self.send_message_to_channel( ("%s #%s (%s) by %s: %s | http://bugs.open-ra.org/%s") %
-                                (type, bug_report, y['state'], y['user']['login'], y['title'], bug_report), channel)
+                        self.send_message_to_channel( ("%s #%s (%s) by %s: %s | %s%s") %
+                                (type, bug_report, y['state'], y['user']['login'], y['title'], result_url, bug_report), channel)
                     except Exception as e:
                         print(("*** [%s] %s") % (self.irc_host, e))
+        matches = re.findall(r"\B"+"#([0-9]*)", message)
+        if ( matches != [] ):
+            parse(channel, message, matches, 'https://api.github.com/repos/OpenRA/OpenRA/issues/', 'http://bugs.open-ra.org/')
+        matches = re.findall("web#([0-9]*)", message)
+        if ( matches != [] ):
+            parse(channel, message, matches, 'https://api.github.com/repos/OpenRA/OpenRAWeb/issues/', 'https://github.com/OpenRA/OpenRAWeb/issues/')
 
     def safe_eval(self, expr, symbols={}):
             return eval(expr, dict(__builtins__=None), symbols)
