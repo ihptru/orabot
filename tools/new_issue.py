@@ -39,7 +39,7 @@ def detect_bugs(self, e_bugs):
             if 'pull_request' in y[i]:
                 if y[i]['pull_request']['html_url'] != None:
                     type = "pull request"
-            self.send_message_to_channel(("New %s #%s by %s: %s | http://bugs.open-ra.org/%s")
+            self.send_message_to_channel(("New %s #%s by %s: %s | http://bugs.openra.net/%s")
                                         % (type, str(remote_bugs[i]), y[i]['user']['login'],
                                         y[i]['title'], str(remote_bugs[i])), "#openra")
     return remote_bugs

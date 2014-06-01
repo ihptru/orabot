@@ -45,15 +45,15 @@ def issues(self, user, channel):
 	result = []
 	for report in data:
 		if report['comments'] == 0:
-			if report['pull_request']['html_url'] == None:
-				ttype = "Issue"
-			else:
-				ttype = "Pull request"
+			ttype = "Issue"
+			if 'pull_request' in report:
+				if report['pull_request']['html_url'] != None:
+					ttype = "Pull request"
 			result.append([report['number'], report['title'], ttype])
 		if len(result) == amount:
 			break
 	for i in range(len(result)):
 		if not use_notice:
-			self.send_reply( "%s: http://bugs.open-ra.org/%s | %s" % (result[i][2], result[i][0], result[i][1]), user, channel )
+			self.send_reply( "%s: http://bugs.openra.net/%s | %s" % (result[i][2], result[i][0], result[i][1]), user, channel )
 		else:
-			self.send_notice( "%s: http://bugs.open-ra.org/%s | %s" % (result[i][2], result[i][0], result[i][1]), user)
+			self.send_notice( "%s: http://bugs.openra.net/%s | %s" % (result[i][2], result[i][0], result[i][1]), user)

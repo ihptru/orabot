@@ -26,7 +26,7 @@ def mapinfo(self, user, channel):
         self.send_reply( ("Part of map's name required!"), user, channel )
     else:
         map_pattern = "%20".join(command[1:])
-        url = "http://content.open-ra.org/api/map_data.php?title=%s" % map_pattern
+        url = "http://resource.openra.net/map/title/%s" % map_pattern
         data = urllib.request.urlopen(url).read().decode('utf-8')
         y = json.loads(data)
         if ( not len(y) ):
@@ -38,5 +38,5 @@ def mapinfo(self, user, channel):
             else:
                 description = " - Description: "+y[0]['description']
             self.send_reply(("Map name: %s - Mod: %s - Author: %s - Max Players: %s - Type: %s - Tileset: %s - Width: %s - Height: %s")
-                               % (y[0]['title'], y[0]['mod']+description, y[0]['author'],
-                               y[0]['players'], y[0]['type'], y[0]['tileset'], y[0]['width'], y[0]['height']), user, channel )
+                               % (y[0]['title'], y[0]['game_mod']+description, y[0]['author'],
+                               y[0]['players'], y[0]['map_type'], y[0]['tileset'], y[0]['width'], y[0]['height']), user, channel )

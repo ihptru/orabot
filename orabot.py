@@ -547,7 +547,7 @@ class IRC_Server:
                         print(("*** [%s] %s") % (self.irc_host, e))
         matches = re.findall(r"\B"+"#([0-9]*)", message)
         if ( matches != [] ):
-            parse(channel, message, matches, 'https://api.github.com/repos/OpenRA/OpenRA/issues/', 'http://bugs.open-ra.org/')
+            parse(channel, message, matches, 'https://api.github.com/repos/OpenRA/OpenRA/issues/', 'http://bugs.openra.net/')
         matches = re.findall("web#([0-9]*)", message)
         if ( matches != [] ):
             parse(channel, message, matches, 'https://api.github.com/repos/OpenRA/OpenRAWeb/issues/', 'https://github.com/OpenRA/OpenRAWeb/issues/', True)

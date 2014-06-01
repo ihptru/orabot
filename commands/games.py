@@ -50,7 +50,7 @@ def copyRequiredRegex(dictlist, key, regexObject):
 def games(self, user, channel):
     command = (self.command).split()
     conn, cur = self.db_data()
-    masterServers = ['http://master.open-ra.org/', 'http://master.openra.net/', 'http://master.ihptru.net/']
+    masterServers = ['http://master.open-ra.org/', 'http://master.openra.net/']
     for i in range(len(masterServers)):
         url = masterServers[i] + 'list_json.php'
         try:
