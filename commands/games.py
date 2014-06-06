@@ -39,7 +39,7 @@ def modinfo( mod ):
                     result_version += "-" + version_split[2]
             else:
                 result_version = version
-        return (mod_split[0].upper().ljust(5)[0:4] + '@' + result_version).ljust(18)
+        return (mod_split[0].upper().replace('CNC', 'TD').ljust(5)[0:4] + '@' + result_version).ljust(18)
 
 def copyRequired(dictlist, key, valuelist):
     return [dictio for dictio in dictlist if dictio[key] in valuelist]
