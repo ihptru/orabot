@@ -34,6 +34,7 @@ def start(self):
 
         if reconf_mirror_list == 0:
             try:
+                urllib.request.urlcleanup()
                 data = urllib.request.urlopen('http://www.openra.net/packages/ra-mirrors.txt').read().decode()
                 servers_to_test['mirrors'] = {}
                 for s1 in data.split():
@@ -43,20 +44,28 @@ def start(self):
 
         servers_to_test = check_servers(self, servers_to_test)
         reconf_mirror_list += 1
-        if reconf_mirror_list >= 100:
+        if reconf_mirror_list >= 200:
             reconf_mirror_list = 0
 
 def check_servers(self, servers_to_test):
-    for item in servers_to_test:
+    servers_to_test_copy = servers_to_test.copy()
+    for item in servers_to_test_copy:
         for server in servers_to_test[item]:
-            try:
-                data = urllib.request.urlopen(server).read(1)
-                if servers_to_test[item][server] != 0:
-                    servers_to_test[item][server] = 0
-            except:
-                if servers_to_test[item][server] >= 10:
-                    servers_to_test[item][server] = 0
-                if servers_to_test[item][server] == 0:
-                    self.send_message_to_channel('4Alert! 3%s 4is unreachable!' % server, "#openra")
-                servers_to_test[item][server] += 1
+            def attempt(self, servers_to_test, item, server, new_attempt=0):
+                try:
+                    urllib.request.urlcleanup()
+                    data = urllib.request.urlopen(server).read(1).decode()
+                    if servers_to_test[item][server] != 0:
+                        servers_to_test[item][server] = 0
+                except:
+                    if new_attempt == 1:
+                        if servers_to_test[item][server] >= 200:
+                            servers_to_test[item][server] = 0
+                        if servers_to_test[item][server] == 0:
+                            self.send_message_to_channel('4Alert! 3%s 4is unreachable!' % server, "#openra")
+                        servers_to_test[item][server] += 1
+                    else:
+                        attempt(self, servers_to_test, item, server, 1)
+                return servers_to_test
+            servers_to_test = attempt(self, servers_to_test, item, server, 0)
     return servers_to_test
