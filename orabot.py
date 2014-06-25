@@ -554,6 +554,9 @@ class IRC_Server:
         matches = re.findall("master#([0-9]*)", message)
         if ( matches != [] ):
             parse(channel, message, matches, 'https://api.github.com/repos/OpenRA/OpenRAMasterServer/issues/', 'https://github.com/OpenRA/OpenRAMasterServer/issues/', True)
+        matches = re.findall("resource#([0-9]*)", message)
+        if ( matches != [] ):
+            parse(channel, message, matches, 'https://api.github.com/repos/OpenRA/OpenRA-Resources/issues/', 'https://github.com/OpenRA/OpenRA-Resources/issues/', True)
 
     def safe_eval(self, expr, symbols={}):
             return eval(expr, dict(__builtins__=None), symbols)
