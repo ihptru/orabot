@@ -545,6 +545,23 @@ class IRC_Server:
                                 (type, bug_report, y['state'], y['user']['login'], y['title'], result_url, bug_report), channel)
                     except Exception as e:
                         print(("*** [%s] %s") % (self.irc_host, e))
+        def parse_map(channel, message, matches):
+            if not re.search("^#", channel):
+                return
+            mentioned = []
+            for map_id in matches:
+                if map_id == '':
+                    return
+                if map_id in mentioned:
+                    continue
+                mentioned.append(map_id)
+                url = "http://resource.openra.net/map/id/%s" % map_id
+                try:
+                    data = self.data_from_url(url, None)
+                    y = json.loads(data)
+                    self.send_message_to_channel('Map: %s by %s | %s' % (y[0]['title'], y[0]['author'], 'http://resource.openra.net/maps/'+str(y[0]['id'])+'/'), channel)
+                except Exception as e:
+                        print(("*** [%s] %s") % (self.irc_host, e))
         matches = re.findall(r"\B"+"#([0-9]*)", message)
         if ( matches != [] ):
             parse(channel, message, matches, 'https://api.github.com/repos/OpenRA/OpenRA/issues/', 'http://bugs.openra.net/')
@@ -557,6 +574,9 @@ class IRC_Server:
         matches = re.findall("resource#([0-9]*)", message)
         if ( matches != [] ):
             parse(channel, message, matches, 'https://api.github.com/repos/OpenRA/OpenRA-Resources/issues/', 'https://github.com/OpenRA/OpenRA-Resources/issues/', True)
+        matches = re.findall("map#([0-9]*)", message)
+        if ( matches != [] ):
+            parse_map(channel, message, matches)
 
     def safe_eval(self, expr, symbols={}):
             return eval(expr, dict(__builtins__=None), symbols)

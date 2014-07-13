@@ -35,7 +35,7 @@ def start(self):
         if reconf_mirror_list == 0:
             try:
                 urllib.request.urlcleanup()
-                data = urllib.request.urlopen('http://www.openra.net/packages/ra-mirrors.txt').read().decode()
+                data = self.data_from_url('http://www.openra.net/packages/ra-mirrors.txt', None)
                 servers_to_test['mirrors'] = {}
                 for s1 in data.split():
                     servers_to_test['mirrors'][s1] = 0

@@ -1,1 +1,1 @@
-__all__ = ["new_issue", "handle_topic", "monitor"]
+__all__ = ["new_issue", "handle_topic", "monitor", "new_map"]
