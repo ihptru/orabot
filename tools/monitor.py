@@ -23,7 +23,7 @@ def start(self):
     servers_to_test = {}
     servers_to_test['mirrors'] = {}
     servers_to_test['servers'] = {}
-    servers_to_test['servers']['http://master.open-ra.org/list.php'] = 0
+    servers_to_test['servers']['http://master.openra.net/list'] = 0
     servers_to_test['servers']['http://openra.net'] = 0
     servers_to_test['servers']['http://resource.openra.net'] = 0
 
