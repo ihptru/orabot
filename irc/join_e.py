@@ -130,7 +130,7 @@ def parse_event(self, recv):
                 date_l = "-".join(records[i][2].split('-')[0:3])
                 time_l = ":".join(records[i][2].split('-')[3:5])
                 self.send_message_to_channel( ("### From: "+records[i][0]+";  channel: "+records[i][1]+";  date: "+date_l+" "+time_l), irc_join_nick.lower() )
-                self.send_message_to_channel( (records[i][3]), irc_join_nick.lower() )
+                self.send_message_to_channel( ("### "+records[i][3]), irc_join_nick.lower() )
                 self.send_message_to_channel( ("Message to %s from %s has been delivered (%s %s)") % (irc_join_nick, records[i][0], date_l, time_l), records[i][1] )
             sql = """DELETE FROM later
                     WHERE reciever = '"""+irc_join_nick.lower()+"""'
