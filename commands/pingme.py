@@ -39,53 +39,53 @@ def pingme(self, user, channel):
             cur.close()
             return
         user_nicks = self.get_names(channel)
-        user_join = command[2].lower()
+        requested_nicknames = command[2].split(',')
         chars = ['`','-','_','[',']','{','}','\\','^']  # char which CAN be used in irc nick
-        for i in range(len(user_join)):
-            if ( (user_join[i] not in chars) and ( not re.search('[a-zA-Z0-9]', user_join[i])) ):
-                self.send_reply( ("Username Error!"), user, channel)
-                return
-        if user_join in user_nicks:  # reciever is on the channel right now
-            self.send_reply( ("User is online!"), user, channel)
-            cur.close()
-            return
-        sql = """SELECT users_back FROM pingme
-                WHERE who = '"""+user+"""'
-        """
-        cur.execute(sql)
-        records = cur.fetchall()
-        conn.commit()
-        if ( len(records) == 0 ):
-            sql = """INSERT INTO pingme
-                    (who,users_back)
-                    VALUES
-                    (
-                    '"""+user+"""','"""+user_join+"""'
-                    )
-            """
-            cur.execute(sql)
-            conn.commit()
-            self.send_reply( ("I will do it!"), user, channel )
-        else:
-            records_list = records[0][0].split(',')
-            if ( user_join in records_list ):
-                message = "You've already requested to ping you when "+user_join+" joins..."
-                self.send_notice( message, user )
-                return
-            if ( len(records_list) == 20 ):
-                message = "You've already requested `"+self.command_prefix+"pingme` of 20 users! I don't support more"
-                self.send_notice( message, user )
-                cur.close()
-                return
-            records_list.append(user_join)
-            records_back = ",".join(records_list)
-            sql = """UPDATE pingme
-                    SET users_back = '"""+records_back+"""'
+        for user_join in requested_nicknames:
+            user_join = user_join.lower()
+            for i in range(len(user_join)):
+                if ( (user_join[i] not in chars) and ( not re.search('[a-zA-Z0-9]', user_join[i])) ):
+                    self.send_reply( ("Username Error! (%s)" % user_join), user, channel)
+                    continue
+            if user_join in user_nicks:  # reciever is on the channel right now
+                self.send_reply( ("%s is online!" % user_join), user, channel)
+                continue
+            sql = """SELECT users_back FROM pingme
                     WHERE who = '"""+user+"""'
             """
             cur.execute(sql)
+            records = cur.fetchall()
             conn.commit()
-            self.send_reply( ("I will do it!"), user, channel )
+            if ( len(records) == 0 ):
+                sql = """INSERT INTO pingme
+                        (who,users_back)
+                        VALUES
+                        (
+                        '"""+user+"""','"""+user_join+"""'
+                        )
+                """
+                cur.execute(sql)
+                conn.commit()
+                self.send_reply( ("I will ping you when %s joins!" % user_join), user, channel )
+            else:
+                records_list = records[0][0].split(',')
+                if ( user_join in records_list ):
+                    message = "You've already requested to ping you when "+user_join+" joins..."
+                    self.send_notice( message, user )
+                    continue
+                if ( len(records_list) == 20 ):
+                    message = "You've already requested `"+self.command_prefix+"pingme` of 20 users! I don't support more"
+                    self.send_notice( message, user )
+                    return
+                records_list.append(user_join)
+                records_back = ",".join(records_list)
+                sql = """UPDATE pingme
+                        SET users_back = '"""+records_back+"""'
+                        WHERE who = '"""+user+"""'
+                """
+                cur.execute(sql)
+                conn.commit()
+                self.send_reply( ("I will ping you when %s joins!" % user_join), user, channel )
     elif ( len(command) == 1 ):
         sql = """SELECT users_back FROM pingme
                 WHERE who = '"""+user+"""'
