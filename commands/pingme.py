@@ -34,11 +34,12 @@ def pingme(self, user, channel):
             usage(self, user, channel)
             cur.close()
             return
-        if ( command[3].lower() != 'joins' ):
+        if ( command[3].lower() not in ['join', 'joins'] ):
             usage(self, user, channel)
             cur.close()
             return
         user_nicks = self.get_names(channel)
+        success_nicknames = []
         requested_nicknames = command[2].split(',')
         chars = ['`','-','_','[',']','{','}','\\','^']  # char which CAN be used in irc nick
         for user_join in requested_nicknames:
@@ -66,7 +67,7 @@ def pingme(self, user, channel):
                 """
                 cur.execute(sql)
                 conn.commit()
-                self.send_reply( ("I will ping you when %s joins!" % user_join), user, channel )
+                success_nicknames.append(user_join)
             else:
                 records_list = records[0][0].split(',')
                 if ( user_join in records_list ):
@@ -85,7 +86,9 @@ def pingme(self, user, channel):
                 """
                 cur.execute(sql)
                 conn.commit()
-                self.send_reply( ("I will ping you when %s joins!" % user_join), user, channel )
+                success_nicknames.append(user_join)
+        if success_nicknames:
+            self.send_reply( ("I will ping you when next users join: %s" % ", ".join(success_nicknames)), user, channel)
     elif ( len(command) == 1 ):
         sql = """SELECT users_back FROM pingme
                 WHERE who = '"""+user+"""'
