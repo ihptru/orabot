@@ -54,6 +54,8 @@ def help(self, user, channel):
             self.send_notice( ("Commands: help " + " ".join(___all___)), user )
             return
         if ( command[1] in ___all___ ):
+            if ( command[1] in self.do_not_support_commands ):
+                return
             desc = eval(command[1]).__doc__
             if ( desc != None ):
                 desc = desc.strip().replace('\n', ' ')
