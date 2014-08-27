@@ -34,7 +34,7 @@ def last(self, user, channel):
             self.send_reply( ("Usage: " + self.command_prefix + "last seen <username>"), user, channel )
     elif ( command[1].lower() == 'activity' ):
         if ( len(command) >= 3 and len(command) <= 4 ):
-            activity(self, user, channel, command[2:].lower())
+            activity(self, user, channel, command[2:])
         else:
             self.send_reply( ("Usage: "+self.command_prefix+"last activity [-<amount of records>] username"), user, channel )
     else:
