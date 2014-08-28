@@ -35,13 +35,16 @@ def detect_bugs(self, e_bugs):
     
     for i in range(0, 16):
         if remote_bugs[i] not in e_bugs:   # it's a new bug
-            type = "issue"
+            report_type = "issue"
             if 'pull_request' in y[i]:
                 if y[i]['pull_request']['html_url'] != None:
-                    type = "pull request"
+                    report_type = "pull request"
             self.send_message_to_channel(("New %s #%s by %s: %s | http://bugs.openra.net/%s")
-                                        % (type, str(remote_bugs[i]), y[i]['user']['login'],
+                                        % (report_type, str(remote_bugs[i]), y[i]['user']['login'],
                                         y[i]['title'], str(remote_bugs[i])), "#openra")
+            if report_type == "pull request":
+                isFirstPR(self, y[i]['user']['login'])
+
     return remote_bugs
 
 def bugs_list(self):
@@ -53,3 +56,13 @@ def bugs_list(self):
         except:
             print("*** [%s] Could not fetch a list of OpenRA bugs, apparently 'Exceed Rate Limit'" % self.irc_host)
             time.sleep(7200)    # wait 2 hours
+
+def isFirstPR(self, reportedBy):
+    url = 'https://api.github.com/search/issues?q=repo:OpenRA/OpenRA+type:pr+author:%s' % reportedBy
+    try:
+        data = urllib.request.urlopen(url).read().decode()
+        e = json.loads(data)
+        if e['total_count'] == 0:
+            self.send_message_to_channel( "Thanks for making your first Pull Request, %s!" % reportedBy, "#openra")
+    except Exception as e:
+        print(e)
