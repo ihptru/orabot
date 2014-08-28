@@ -18,7 +18,7 @@ import json
 
 def start(self):
     while  True:
-        time.sleep(7320)  # wait 2 hours and 2 minutes
+        time.sleep(3720)  # wait an hour and 2 minutes
         detect(self)
 
 def detect(self):
