@@ -24,9 +24,9 @@ def players(self, user, channel):
     command = (self.command).split()
     if ( not len(command) == 1 ):
         return
-    masterServers = ['http://master.open-ra.org/', 'http://master.openra.net/']
+    masterServers = ['http://master.openra.net/', 'http://master.open-ra.org/']
     for i in range(len(masterServers)):
-        url = masterServers[i] + 'list_json.php'
+        url = masterServers[i] + 'games_json'
         try:
             data = urllib.request.urlopen(url).read().decode()  # ping master server and fetch data
             break
