@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Shows the full openra map's information
+Shows the full openra map's information; search by title
 """
 
 import json
@@ -33,10 +33,4 @@ def mapinfo(self, user, channel):
             self.send_reply( ("Map is not found!"), user, channel )
             return
         else:
-            if ( y[0]['description'] == '' ):
-                description = ''
-            else:
-                description = " - Description: "+y[0]['description']
-            self.send_reply(("Map name: %s - Mod: %s - Author: %s - Max Players: %s - Type: %s - Tileset: %s - Width: %s - Height: %s")
-                               % (y[0]['title'], y[0]['game_mod']+description, y[0]['author'],
-                               y[0]['players'], y[0]['map_type'], y[0]['tileset'], y[0]['width'], y[0]['height']), user, channel )
+            self.send_reply("Map (%s): %s by %s (%s) | http://resource.openra.net/%s/ | players: %s | type: %s | tileset: %s" % (y[0]['game_mod'], y[0]['title'], y[0]['author'], "x".join(y[0]['bounds'].split(',')[2:]), y[0]['id'], y[0]['players'], y[0]['map_type'], y[0]['tileset']), user, channel)
