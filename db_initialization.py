@@ -90,7 +90,9 @@ def voting(conn, cur):
         "active" bool NOT NULL DEFAULT 0,
         "positive" INTEGER DEFAULT 0,
         "negative" INTEGER DEFAULT 0,
-        "date_activated" DATE
+        "initialized_by" VARCHAR NOT NULL,
+        "date_activated" DATE,
+        "users_voted" VARCHAR
         )
     """
     cur.execute(sql)
