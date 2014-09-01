@@ -82,3 +82,16 @@ def activity(conn, cur):
     """
     cur.execute(sql)
     conn.commit()
+
+def voting(conn, cur):
+    sql = """CREATE TABLE "voting" (
+        "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,
+        "topic" VARCHAR NOT NULL,
+        "active" bool NOT NULL DEFAULT 0,
+        "positive" INTEGER DEFAULT 0,
+        "negative" INTEGER DEFAULT 0,
+        "date_activated" DATE
+        )
+    """
+    cur.execute(sql)
+    conn.commit()
