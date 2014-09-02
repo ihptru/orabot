@@ -196,7 +196,7 @@ class IRC_Server:
                     user_nick = recv.split ( '!' ) [ 0 ] . split ( ":")[1]
                     user_message = self.data_to_message(recv)
                     channel = (recv).split()[2]
-                    if (len(self.last_lines) >= 20):
+                    if (len(self.last_lines) >= 30):
                         for i in range(3):
                             self.last_lines.pop(0)
                     self.last_lines.append((user_nick.lower(), user_message))
@@ -603,9 +603,54 @@ class IRC_Server:
         return True
 
     def spam_filter(self, user, channel):
-        if self.last_lines.count(self.last_lines[-1]) >= 10:
-            reason = "stop spamming channel, please!"
+        last_lines = self.last_lines[:]
+        last_lines.reverse()
+        last_messages_of_user = []
+        for i in range(len(last_lines)):
+            if i >= 10:
+                break
+            if last_lines[i][0] == user:
+                last_messages_of_user.append(last_lines[i][1])
+        if len(last_messages_of_user) < 5:
+            return
+
+        last_message = last_messages_of_user[0]
+        last_words = last_message.split()
+        percent_of_one_word = 100.0/len(last_words)
+
+        percent_for_messages = []
+        k = 0
+        for message in last_messages_of_user:
+            k += 1
+            if k == 1:
+                continue
+            if k > 5:
+                break
+            if message == last_message:
+                percent_for_messages.append(100)
+                continue
+            pc = 0
+            for word in last_words:
+                if word in message.split() and len(word) > 3:
+                    pc += percent_of_one_word
+            percent_for_messages.append(pc)
+
+        average = sum([k for k in percent_for_messages])/float(len(percent_for_messages))
+
+        if average >= 70.0:
+            reason = "Flood activity detected! If wrong, please report."
             self.kick_user(user, channel, reason)
+            return
+
+        still_kick = True
+        for message in last_messages_of_user:
+            if len(message) < 100:
+                still_kick = False
+        print(len(last_messages_of_user))
+        if still_kick:
+            reason = "Too much flood, be more specific. If you think I am wrong, please report."
+            self.kick_user(user, channel, reason)
+            return
 
     def process_command(self, user, channel):
         command = (self.command).split()
