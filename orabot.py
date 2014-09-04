@@ -646,7 +646,6 @@ class IRC_Server:
         for message in last_messages_of_user:
             if len(message) < 100:
                 still_kick = False
-        print(len(last_messages_of_user))
         if still_kick:
             reason = "Too much flood, be more specific. If you think I am wrong, please report."
             self.kick_user(user, channel, reason)

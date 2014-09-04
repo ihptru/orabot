@@ -62,7 +62,7 @@ def isFirstPR(self, reportedBy):
     try:
         data = urllib.request.urlopen(url).read().decode()
         e = json.loads(data)
-        if e['total_count'] == 0:
+        if e['total_count'] == 1:
             self.send_message_to_channel( "Thanks for making your first Pull Request, %s!" % reportedBy, "#openra")
     except Exception as e:
         print(e)
