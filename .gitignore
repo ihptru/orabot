@@ -14,3 +14,5 @@
 .eric5project/
 .eric5project*
 /__init__.py
+.idea/
+.idea/*

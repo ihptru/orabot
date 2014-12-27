@@ -682,3 +682,4 @@ def main():
                                 server_data['do_not_support_commands'])
         ircserver_process = multiprocessing.Process(None, ircserver.ircbot, name="IRC Server")
         ircserver_process.start()
+

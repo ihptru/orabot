@@ -114,7 +114,7 @@ def games(self, user, channel):
                 games = '@ '+sname.strip().ljust(18)[0:18]+' - '+players.ljust(3)[0:2]+' - '+modinfo(listio[z]['mods'])
                 self.send_reply( (games), user, channel )
             if len(listio) > 3:
-                self.send_reply( ("I can't give you more then 3 results, but in sum, "+str(len(listio))+" servers match your request."), user, channel )
+                self.send_reply( ("I can't give you more than 3 results, but in sum, "+str(len(listio))+" servers match your request."), user, channel )
         return
     y = copyRequired(y, 'state', '1')
     if len(y) == 0:
