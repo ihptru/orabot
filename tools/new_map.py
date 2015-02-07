@@ -1,4 +1,4 @@
-# Copyright 2011-2014 orabot Developers
+# Copyright 2011-2015 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ def detect(self, cached_hash):
         stream = self.data_from_url(url, None)
     except Exception as e:
         print(("*** [%s] %s: %s") % (self.irc_host, __name__, e))
-        return
+        return cached_hash
 
     y = json.loads(stream)
     if cached_hash == "":

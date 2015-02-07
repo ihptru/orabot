@@ -1,4 +1,4 @@
-# Copyright 2011-2014 orabot Developers
+# Copyright 2011-2015 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ def start(self):
         return
     cached = False
     while  True:
-        time.sleep(2520)  # wait 42 minutes
+        time.sleep(7320)  # wait 2 hours and 2 minutes
         cached = detect(self, cached)
 
 def detect(self, cached):
@@ -46,6 +46,6 @@ def pulls_list(self):
         data = urllib.request.urlopen(url).read().decode()
         return json.loads(data)
     except:
-        print("*** [%s] Could not fetch a list of OpenRA bugs, apparently 'Exceed Rate Limit'" % self.irc_host)
+        print("*** [%s] Could not fetch a list of OpenRA pulls, apparently 'Exceed Rate Limit'" % self.irc_host)
         time.sleep(7200)    # wait 2 hours
         return False
