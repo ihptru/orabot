@@ -42,7 +42,8 @@ class IRC_Server:
                     command_prefix, command_timeout,
                     write_logs, log_channels,
                     tools_support, log_dir,
-                    do_not_support_commands):
+                    do_not_support_commands,
+                    spam_filter_support):
         self.irc_host = host
         self.irc_port = port
         self.irc_nick = nick
@@ -56,6 +57,7 @@ class IRC_Server:
         self.tools_support = tools_support
         self.log_dir = log_dir
         self.do_not_support_commands = do_not_support_commands
+        self.spam_filter_support = spam_filter_support
 
         self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
         self.socket_timeout = 7200 # 2 hours
@@ -617,6 +619,8 @@ class IRC_Server:
         return True
 
     def spam_filter(self, user, channel):
+        if not self.spam_filter_support:
+            return
         last_lines = self.last_lines[:]
         last_lines.reverse()
         last_messages_of_user = []
@@ -693,7 +697,8 @@ def main():
                                 server_data['log_channels'],
                                 server_data['tools_support'],
                                 server_data['log_dir'],
-                                server_data['do_not_support_commands'])
+                                server_data['do_not_support_commands'],
+                                server_data['spam_filter_support'])
         ircserver_process = multiprocessing.Process(None, ircserver.ircbot, name="IRC Server")
         ircserver_process.start()
 
