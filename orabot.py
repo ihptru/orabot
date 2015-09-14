@@ -64,6 +64,7 @@ class IRC_Server:
         self.command = ""
         self.start_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
         self.last_lines = []    # keep in memory last 20 messages (including username and his message)
+        self.joined = False
 
     def __del__(self):
         self.irc_sock.close()
@@ -136,6 +137,13 @@ class IRC_Server:
                     p.terminate()
                     print("*** [%s] Terminated child process: %s" % (self.irc_host, p.name))
 
+    def join_channels(self):
+        for channel in self.channels:
+            str_buff = ( "JOIN %s \r\n" ) % (channel)
+            self.irc_sock.send (str_buff.encode())
+            print(("*** [%s] Joining channel " + channel) % (self.irc_host))
+            self.joined = True
+
     def connect(self):
         try:
             self.irc_sock.connect ((self.irc_host, self.irc_port))
@@ -153,10 +161,8 @@ class IRC_Server:
             self.irc_sock.send (str_buff.encode())
 
             time.sleep(5)
-            for channel in self.channels:
-                str_buff = ( "JOIN %s \r\n" ) % (channel)
-                self.irc_sock.send (str_buff.encode())
-                print (("*** [%s] Joining channel " + channel) % (self.irc_host))
+            self.join_channels()
+
         setup_connection(self)
         
         if self.nickserv == True:
@@ -250,6 +256,10 @@ class IRC_Server:
                         if framed_recv[3] in ['+v','-v','+o','-o','+h','-h']:
                             imp.reload(mode_e)
                             mode_e.parse_event(self, recv)
+                    else:
+                        if framed_recv[2] == self.irc_nick:
+                            if not self.joined:
+                                self.join_channels()
 
                 elif framed_recv[1] == "353" and framed_recv[2] == self.irc_nick:   # NAMES request by bot
                     imp.reload(names_e)
@@ -290,6 +300,10 @@ class IRC_Server:
                 elif framed_recv[0] == "ERROR" and framed_recv[1] == ":Closing":
                     print (("*** [%s] Connection aborted!") % (self.irc_host))
                     exit(1)
+
+                elif framed_recv[1] == "451" and framed_recv[2] == "JOIN":
+                    # ERR_NOTREGISTERED ":You have not registered"
+                    self.joined = False
 
     def data_to_message(self, data):
         data = data[data.find(" :")+2:]
