@@ -40,7 +40,16 @@ server1 = {
             'do_not_support_commands' : '',
 
             # support spam_filter on specific network?
-            'spam_filter_support': True
+            'spam_filter_support': True,
+
+            # authenticate over `oper` to OP itself?
+            'use_oper': True,
+
+            # `oper` password
+            'oper_password': '',
+
+            # OP itself over `oper` on channels (space as delimiter):
+            'oper_channels': ''
 }
 
 # To add more server connections, simply create a new dictionary similar to previous one (`server1`)

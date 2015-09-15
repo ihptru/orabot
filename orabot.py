@@ -43,7 +43,8 @@ class IRC_Server:
                     write_logs, log_channels,
                     tools_support, log_dir,
                     do_not_support_commands,
-                    spam_filter_support):
+                    spam_filter_support,
+                    use_oper, oper_password, oper_channels):
         self.irc_host = host
         self.irc_port = port
         self.irc_nick = nick
@@ -58,6 +59,9 @@ class IRC_Server:
         self.log_dir = log_dir
         self.do_not_support_commands = do_not_support_commands
         self.spam_filter_support = spam_filter_support
+        self.use_oper = use_oper
+        self.oper_password = oper_password
+        self.oper_channels = oper_channels.split()
 
         self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
         self.socket_timeout = 7200 # 2 hours
@@ -67,6 +71,7 @@ class IRC_Server:
         self.start_time = time.mktime(time.strptime( time.strftime('%Y-%m-%d-%H-%M-%S'), '%Y-%m-%d-%H-%M-%S'))
         self.last_lines = []    # keep in memory last 20 messages (including username and his message)
         self.joined = False
+        self.oper_used = False
 
     def __del__(self):
         self.irc_sock.close()
@@ -261,7 +266,11 @@ class IRC_Server:
                     else:
                         if framed_recv[2] == self.irc_nick:
                             if not self.joined:
+                                print(("*** [%s] Re-joining channels, due to failed attempt being non-authenticated with IRC server") % (self.irc_host))
                                 self.join_channels()
+
+                            if self.use_oper and not self.oper_used:
+                                self.oper()
 
                 elif framed_recv[1] == "353" and framed_recv[2] == self.irc_nick:   # NAMES request by bot
                     imp.reload(names_e)
@@ -424,6 +433,17 @@ class IRC_Server:
     def kick_user(self, user, channel, reason):
         str_buff = ( "KICK %s %s :%s\r\n" ) % (channel, user, reason)
         self.irc_sock.send ( str_buff.encode() )    # will work if bot has OP
+
+    def oper(self):
+        str_buff = ( "OPER %s %s\r\n" ) % (self.irc_nick, self.oper_password)
+        self.irc_sock.send ( str_buff.encode() )
+
+        for channel in self.oper_channels:
+            str_buff = ( "SAMODE %s +o %s\r\n" ) % (channel, self.irc_nick)
+            self.irc_sock.send ( str_buff.encode() )
+
+        print ( ("*** [%s] Sent OPER authentication details and tried to OP itself on channels: %s") % (self.irc_host, " ".join(self.oper_channels)) )
+        self.oper_used = True
 
     def logs(self, irc_user, channel, logs_of, some_data, some_more_data):
         if self.write_logs == True:
@@ -698,7 +718,10 @@ def main():
                                 server_data['tools_support'],
                                 server_data['log_dir'],
                                 server_data['do_not_support_commands'],
-                                server_data['spam_filter_support'])
+                                server_data['spam_filter_support'],
+                                server_data['use_oper'],
+                                server_data['oper_password'],
+                                server_data['oper_channels'])
         ircserver_process = multiprocessing.Process(None, ircserver.ircbot, name="IRC Server")
         ircserver_process.start()
 
