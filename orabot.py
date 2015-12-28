@@ -1,4 +1,4 @@
-# Copyright 2011-2014 orabot Developers
+# Copyright 2011-2016 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -95,7 +95,7 @@ class IRC_Server:
 
             try:
                 if self.connect():
-                    if ( self.disconnected in ['excess flood', 'ping timeout']):
+                    if ( self.disconnected in ['excess flood', 'ping timeout', 'connection aborted']):
                         self.tools('terminate', procs)
                         print("*** [%s] Restarting the bot" % self.irc_host)
                         self.irc_sock.close()
@@ -185,7 +185,7 @@ class IRC_Server:
                     continue
                 elif ( self.disconnected == 'quit' ):
                     return True
-                elif ( self.disconnected in ['excess flood', 'ping timeout'] ):
+                elif ( self.disconnected in ['excess flood', 'ping timeout', 'connection aborted'] ):
                     return True
 
     def listen(self):
@@ -310,7 +310,8 @@ class IRC_Server:
 
                 elif framed_recv[0] == "ERROR" and framed_recv[1] == ":Closing":
                     print (("*** [%s] Connection aborted!") % (self.irc_host))
-                    exit(1)
+                    self.disconnected = 'connection aborted'
+                    return True
 
                 elif framed_recv[1] == "451" and framed_recv[2] == "JOIN":
                     # ERR_NOTREGISTERED ":You have not registered"
