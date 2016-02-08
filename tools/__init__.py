@@ -1,1 +1,1 @@
-__all__ = ["new_issue", "handle_topic", "new_map", "unknown_mod"]
+__all__ = ["new_issue", "handle_topic", "new_map", "unknown_mod", "ads"]

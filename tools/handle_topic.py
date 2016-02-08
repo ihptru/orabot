@@ -17,6 +17,10 @@ import time
 import json
 
 def start(self):
+    if self.irc_host != "irc.freenode.net":
+        print("*** [%s] Terminating child process (unsupported): %s" % (self.irc_host, __name__))
+        return
+    
     while  True:
         time.sleep(3600)  # wait an hour
         change_topic(self)
