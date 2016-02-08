@@ -16,6 +16,10 @@
 import time
 
 def start(self):
+    if self.irc_host != "irc.openra.net":
+        print("*** [%s] Terminating child process (unsupported): %s" % (self.irc_host, __name__))
+        return
+
     while  True:
         time.sleep(1800)  # wait 30 minutes
         push_ads(self)
