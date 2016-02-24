@@ -21,7 +21,7 @@ def start(self):
         return
 
     while  True:
-        time.sleep(1800)  # wait 30 minutes
+        time.sleep(5000)
         push_ads(self)
 
 def push_ads(self):

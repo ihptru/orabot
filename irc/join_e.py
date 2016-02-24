@@ -1,4 +1,4 @@
-# Copyright 2011-2014 orabot Developers
+# Copyright 2011-2016 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -12,6 +12,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import time
 
 # Module of JOIN event
 
@@ -131,7 +133,9 @@ def parse_event(self, recv):
                 time_l = ":".join(records[i][2].split('-')[3:5])
                 self.send_message_to_channel( ("### From: "+records[i][0]+";  channel: "+records[i][1]+";  date: "+date_l+" "+time_l), irc_join_nick.lower() )
                 self.send_message_to_channel( ("### "+records[i][3]), irc_join_nick.lower() )
+                time.sleep(2)
                 self.send_message_to_channel( ("Message to %s from %s has been delivered (%s %s)") % (irc_join_nick, records[i][0], date_l, time_l), records[i][1] )
+                time.sleep(3)
             sql = """DELETE FROM later
                     WHERE reciever = '"""+irc_join_nick.lower()+"""'
             """
