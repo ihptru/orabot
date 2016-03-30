@@ -101,6 +101,10 @@ class IRC_Server:
                         self.irc_sock.close()
                         time.sleep(60)
                         self.irc_sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
+
+                        if self.oper_used:
+                            self.oper_used = False
+
                         continue
                     elif ( self.disconnected == 'quit' ):
                         self.tools('terminate', procs)
