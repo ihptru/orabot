@@ -437,6 +437,18 @@ class IRC_Server:
         cur.close()
 
     def kick_user(self, user, channel, reason):
+
+        conn, cur = self.db_data()
+        sql = """SELECT status FROM user_channel
+                WHERE user = '"""+user.lower()+"""' AND channel = '"""+channel+"""'
+        """
+        cur.execute(sql)
+        records = cur.fetchall()
+        conn.commit()
+        if ( records[0][0] in ['@','%','+'] ):
+            print (("*** [%s] Can not kick user with high permissions: %s") % (self.irc_host, records[0][0] + user.lower()))
+            return False
+
         str_buff = ( "KICK %s %s :%s\r\n" ) % (channel, user, reason)
         self.irc_sock.send ( str_buff.encode() )    # will work if bot has OP
 
