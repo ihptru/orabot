@@ -1,4 +1,4 @@
-# Copyright 2011-2014 orabot Developers
+# Copyright 2011-2016 orabot Developers
 #
 # This file is part of orabot, which is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import datetime
 
 def last(self, user, channel):
     command = (self.command).split()
-    usage = "Usage: " + self.command_prefix + "last {seen|activity} args"
+    usage = "Usage: " + self.command_prefix + "last {seen|activity|message} args"
     if ( len(command) == 1 ):
         self.send_reply( (usage), user, channel )
         return
