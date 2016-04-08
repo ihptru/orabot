@@ -50,7 +50,7 @@ def copyRequiredRegex(dictlist, key, regexObject):
 def games(self, user, channel):
     command = (self.command).split()
     conn, cur = self.db_data()
-    masterServers = ['http://master.openra.net/', 'http://master.open-ra.org/']
+    masterServers = ['http://master.openra.net/']
     for i in range(len(masterServers)):
         url = masterServers[i] + 'games_json'
         try:
@@ -111,7 +111,7 @@ def games(self, user, channel):
                 if ( len(sname) == 0 ):
                     sname = 'noname'
                 players = listio[z]['players']
-                games = '@ '+sname.strip().ljust(18)[0:18]+' - '+players.ljust(3)[0:2]+' - '+modinfo(listio[z]['mods'])
+                games = '@ '+sname.strip().ljust(24)[0:24]+' - '+players.ljust(3)[0:2]+' - '+modinfo(listio[z]['mods'])
                 self.send_reply( (games), user, channel )
             if len(listio) > 3:
                 self.send_reply( ("I can't give you more than 3 results, but in sum, "+str(len(listio))+" servers match your request."), user, channel )
@@ -127,7 +127,7 @@ def games(self, user, channel):
         if ( len(sname) == 0 ):
             sname = 'noname'
         players = game['players']
-        games = '@ '+sname.strip().ljust(18)[0:18]+' - '+players.ljust(3)[0:2]+' - '+modinfo(game['mods'])
+        games = '@ '+sname.strip().ljust(24)[0:24]+' - '+players.ljust(3)[0:2]+' - '+modinfo(game['mods'])
         self.send_reply( (games), user, channel )
         time.sleep(0.1)
     cur.close()
