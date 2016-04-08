@@ -37,6 +37,11 @@ def last(self, user, channel):
             activity(self, user, channel, command[2:])
         else:
             self.send_reply( ("Usage: "+self.command_prefix+"last activity [-<amount of records>] username"), user, channel )
+    elif ( command[1].lower() == 'message' ):
+        if ( len(command) == 3):
+            message(self, user, channel, command[2].lower())
+        else:
+            self.send_reply( ("Usage: " + self.command_prefix + "last message <username>"), user, channel )
     else:
         self.send_reply( (usage), user, channel )
 
@@ -78,7 +83,7 @@ def time_result(last_time):
     return result
 
 def seen(self, user, channel, request_user):
-    
+
     """
     Shows when user was last seen on the channel
     """
@@ -115,6 +120,30 @@ def seen(self, user, channel, request_user):
                     self.send_reply( (request_user + " was last seen" + result), user, channel)
     else:
         self.send_message_to_channel( ("You can use `]last seen` only on a channel"), user)
+    cur.close()
+
+def message(self, user, channel, request_user):
+
+    """
+    Shows last message of user
+    """
+    if ( "'" in request_user ):
+        self.send_reply( ("Error! Unknown nickname: "+request_user), user, channel)
+        return
+    conn, cur = self.db_data()
+    sql = """SELECT last_message,last_message_channel FROM users
+            WHERE user = '"""+request_user+"""'
+    """
+    cur.execute(sql)
+    records = cur.fetchall()
+    conn.commit()
+    if ( len(records) == 0 ):  #user not found
+        self.send_reply( ("Error! Unknown nickname: "+request_user), user, channel)
+    else:
+        if records[0][0] is None:
+            self.send_reply( ("Do not have any stored messages of %s") % (request_user), user, channel)
+        else:
+            self.send_reply( ("Last message of %s at %s: %s") % (request_user, records[0][1], records[0][0]), user, channel)
     cur.close()
 
 def activity(self, user, channel, command_request):

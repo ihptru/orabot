@@ -440,13 +440,14 @@ class IRC_Server:
 
         conn, cur = self.db_data()
         sql = """SELECT status FROM user_channel
-                WHERE user = '"""+user.lower()+"""' AND channel = '"""+channel+"""'
+                WHERE user = '"""+user+"""' AND channel = '"""+channel+"""'
         """
         cur.execute(sql)
         records = cur.fetchall()
         conn.commit()
         if ( records[0][0] in ['@','%','+'] ):
             print (("*** [%s] Can not kick user with high permissions: %s") % (self.irc_host, records[0][0] + user.lower()))
+            cur.close()
             return False
 
         str_buff = ( "KICK %s %s :%s\r\n" ) % (channel, user, reason)
@@ -654,6 +655,16 @@ class IRC_Server:
         if ( records[0][0] == '' or records[0][0] == None ):
             self.send_reply( ("No rights!"), user, channel )
             return False
+        return True
+
+    def update_last_message(self, user, channel, message):
+        conn, cur = self.db_data()
+        sql = """UPDATE users
+                SET last_message = '"""+message+"""', last_message_channel = '"""+channel+"""'
+                WHERE user = '"""+user+"""'
+        """
+        cur.execute(sql)
+        conn.commit()
         return True
 
     def spam_filter(self, user, channel):

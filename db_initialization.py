@@ -31,7 +31,9 @@ def users(conn, cur):
         "uid" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,
         "user" varchar(30) NOT NULL,
         "date" date,
-        "state" bool NOT NULL DEFAULT 0
+        "state" bool NOT NULL DEFAULT 0,
+        "last_message" varchar(1024),
+        "last_message_channel" varchar(30)
         )
     """
     cur.execute(sql)

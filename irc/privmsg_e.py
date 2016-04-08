@@ -33,3 +33,4 @@ def parse_event(self, irc_user_nick, irc_user_message, chan):
     # parse links and issue numbers
     self.parse_link(chan, irc_user_nick.lower(), irc_user_message)
     self.parse_issue(chan, irc_user_message)
+    self.update_last_message(irc_user_nick.lower(), chan, irc_user_message)
