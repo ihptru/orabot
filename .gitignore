@@ -16,3 +16,4 @@
 /__init__.py
 .idea/
 .idea/*
+config.py
