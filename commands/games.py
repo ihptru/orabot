@@ -68,7 +68,7 @@ def games(self, user, channel):
         return
     # read keys
     try:
-        optlist,  args = getopt.getopt(command[1:], 'sr', ['mods=', 'version='])   # priority exists here
+        optlist,  args = getopt.getopt(command[1:], 'srh', ['mods=', 'version=', 'host'])   # priority exists here
     except getopt.GetoptError as e:
         self.send_reply(str(e), user, channel)
         return
@@ -128,6 +128,10 @@ def games(self, user, channel):
             sname = 'noname'
         players = game['players']
         games = '@ '+sname.strip().ljust(24)[0:24]+' - '+players.ljust(3)[0:2]+' - '+modinfo(game['mods'])
+
+        if '-h' in arguments or '--host' in arguments:
+            games += ' - openra://' + game['address']
+
         self.send_reply( (games), user, channel )
         time.sleep(0.1)
     cur.close()
