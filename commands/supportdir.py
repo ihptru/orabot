@@ -17,10 +17,14 @@
 Show OpenRA primary Support directory location
 """
 
+import time
+
 def supportdir(self, user, channel):
     command = (self.command).split()
     if ( len(command) == 1 ):
         self.send_reply( "Windows: Username\\My Documents\\OpenRA\\", user, channel )
+        time.sleep(1)
         self.send_reply( "OS X: /Users/username/Library/Application Support/OpenRA/ ", user, channel )
+        time.sleep(1)
         self.send_reply( "GNU/Linux: /home/username/.openra/", user, channel )
         return True
