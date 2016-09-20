@@ -683,7 +683,10 @@ class IRC_Server:
 
         last_message = last_messages_of_user[0]
         last_words = last_message.split()
-        percent_of_one_word = 100.0/len(last_words)
+        if last_words:
+            percent_of_one_word = 100.0/len(last_words)
+        else:
+            percent_of_one_word = 100.0
 
         percent_for_messages = []
         k = 0
