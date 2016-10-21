@@ -131,7 +131,7 @@ def parse_event(self, recv):
             for msg in records:
                 date_l = ".".join(msg[2].split('-')[0:3])
                 time_l = ":".join(msg[2].split('-')[3:5])
-                self.send_message_to_channel( ("offline msg from `%s` at `%s %s`: %s" % (msg[0], date_l, time_l, msg[3])), msg[1])  # send offline message to channel where it was created
+                self.send_message_to_channel( ("offline msg from `%s` at `%s %s UTC`: %s" % (msg[0], date_l, time_l, msg[3])), msg[1])  # send offline message to channel where it was created
                 time.sleep(2)
             sql = """DELETE FROM later
                     WHERE reciever = '"""+irc_join_nick.lower()+"""' AND channel = '"""+chan+"""'
