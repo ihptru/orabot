@@ -119,6 +119,7 @@ def parse_event(self, recv):
             """
             cur.execute(sql)
             conn.commit()
+        # Offline messages
         sql = """SELECT sender,channel,date,message FROM later
                 WHERE reciever = '"""+irc_join_nick.lower()+"""'
         """
@@ -127,15 +128,11 @@ def parse_event(self, recv):
         conn.commit()
         if ( len(records) != 0 ):    # he has messages in database, read it
             messages_ = len(records) # number of messages for player
-            self.send_message_to_channel( ("You have "+str(messages_)+" offline messages:"), irc_join_nick.lower() )
-            for i in range(messages_):
-                date_l = "-".join(records[i][2].split('-')[0:3])
-                time_l = ":".join(records[i][2].split('-')[3:5])
-                self.send_message_to_channel( ("### From: "+records[i][0]+";  channel: "+records[i][1]+";  date: "+date_l+" "+time_l), irc_join_nick.lower() )
-                self.send_message_to_channel( ("### "+records[i][3]), irc_join_nick.lower() )
+            for msg in records:
+                date_l = ".".join(msg[2].split('-')[0:3])
+                time_l = ":".join(msg[2].split('-')[3:5])
+                self.send_message_to_channel( ("offline msg from `%s` at `%s %s`: %s" % (msg[0], date_l, time_l, msg[3])), msg[1])  # send offline message to channel where it was created
                 time.sleep(2)
-                self.send_message_to_channel( ("Message to %s from %s has been delivered (%s %s)") % (irc_join_nick, records[i][0], date_l, time_l), records[i][1] )
-                time.sleep(3)
             sql = """DELETE FROM later
                     WHERE reciever = '"""+irc_join_nick.lower()+"""'
             """
