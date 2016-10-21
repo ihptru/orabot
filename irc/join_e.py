@@ -121,7 +121,7 @@ def parse_event(self, recv):
             conn.commit()
         # Offline messages
         sql = """SELECT sender,channel,date,message FROM later
-                WHERE reciever = '"""+irc_join_nick.lower()+"""'
+                WHERE reciever = '"""+irc_join_nick.lower()+"""' AND channel = '"""+chan+"""'
         """
         cur.execute(sql)
         records = cur.fetchall()
@@ -134,7 +134,7 @@ def parse_event(self, recv):
                 self.send_message_to_channel( ("offline msg from `%s` at `%s %s`: %s" % (msg[0], date_l, time_l, msg[3])), msg[1])  # send offline message to channel where it was created
                 time.sleep(2)
             sql = """DELETE FROM later
-                    WHERE reciever = '"""+irc_join_nick.lower()+"""'
+                    WHERE reciever = '"""+irc_join_nick.lower()+"""' AND channel = '"""+chan+"""'
             """
             cur.execute(sql)
             conn.commit()
